@@ -1,3 +1,5 @@
 export { cn } from "./cn";
-export { Button } from "./button";
-export type { ButtonProps, ButtonVariant, ButtonSize } from "./button";
+export { Button, buttonVariants } from "./button";
+export type { ButtonProps, ButtonVariant, ButtonSize, ButtonVariantProps } from "./button";
+export { Badge } from "./badge";
+export type { BadgeProps, BadgeVariant } from "./badge";

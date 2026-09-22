@@ -17,27 +17,38 @@ const sizeClasses: Record<ButtonSize, string> = {
   lg: "h-12 px-6 text-base",
 };
 
-export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+export interface ButtonVariantProps {
   variant?: ButtonVariant;
   size?: ButtonSize;
+  className?: string;
 }
 
+/**
+ * Returns the Button's visual classes without rendering a `<button>`.
+ * Use this to style a non-button element (e.g. `next/link`'s `<Link>`) as a
+ * button — nesting an anchor inside `Button` itself would be invalid HTML.
+ */
+export function buttonVariants({
+  variant = "primary",
+  size = "md",
+  className,
+}: ButtonVariantProps = {}) {
+  return cn(
+    "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md font-medium transition-colors",
+    "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background",
+    "disabled:pointer-events-none disabled:opacity-50",
+    variantClasses[variant],
+    sizeClasses[size],
+    className,
+  );
+}
+
+export interface ButtonProps
+  extends React.ButtonHTMLAttributes<HTMLButtonElement>, ButtonVariantProps {}
+
 export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
-  ({ className, variant = "primary", size = "md", ...props }, ref) => {
-    return (
-      <button
-        ref={ref}
-        className={cn(
-          "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md font-medium transition-colors",
-          "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background",
-          "disabled:pointer-events-none disabled:opacity-50",
-          variantClasses[variant],
-          sizeClasses[size],
-          className,
-        )}
-        {...props}
-      />
-    );
+  ({ className, variant, size, ...props }, ref) => {
+    return <button ref={ref} className={buttonVariants({ variant, size, className })} {...props} />;
   },
 );
 Button.displayName = "Button";
