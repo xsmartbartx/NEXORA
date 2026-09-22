@@ -14,9 +14,11 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@clerk/nextjs": "^7.9.4"
+    "@clerk/nextjs": "^7.9.4",
+    "@clerk/types": "^4.101.20"
   },
   "devDependencies": {
+    "@types/node": "^20",
     "@types/react": "^19",
     "typescript": "^5"
   },
