@@ -2,11 +2,17 @@
 
 import {
   ClerkProvider,
+  CreateOrganization,
+  OrganizationList,
+  OrganizationProfile,
   OrganizationSwitcher,
   Show,
+  SignIn,
   SignInButton,
+  SignUp,
   SignUpButton,
   UserButton,
+  UserProfile,
   useAuth,
   useOrganization,
   useUser,
@@ -19,7 +25,22 @@ import { isClerkConfigured } from "./config";
  * directly, for the same reason as `server.ts` — one place products depend
  * on, not the provider itself.
  */
-export { OrganizationSwitcher, Show, SignInButton, SignUpButton, UserButton, useAuth, useOrganization, useUser };
+export {
+  CreateOrganization,
+  OrganizationList,
+  OrganizationProfile,
+  OrganizationSwitcher,
+  Show,
+  SignIn,
+  SignInButton,
+  SignUp,
+  SignUpButton,
+  UserButton,
+  UserProfile,
+  useAuth,
+  useOrganization,
+  useUser,
+};
 
 const isConfigured = isClerkConfigured();
 
