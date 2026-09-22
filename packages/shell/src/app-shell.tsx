@@ -5,6 +5,7 @@ import {
   OrganizationSwitcher,
   UserButton,
 } from "@nexora/auth/client";
+import { isClerkConfigured } from "@nexora/auth/config";
 import { cn, LogoMark } from "@nexora/ui";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -68,8 +69,14 @@ export function AppShell({ appName, navItems, children }: AppShellProps) {
 
           <div className="ml-auto flex items-center gap-3">
             <EnvironmentBadge />
-            <OrganizationSwitcher hidePersonal={false} />
-            <UserButton />
+            {isClerkConfigured() ? (
+              <>
+                <OrganizationSwitcher hidePersonal={false} />
+                <UserButton />
+              </>
+            ) : (
+              <div className="h-8 w-8 rounded-full bg-muted" title="Identity provider not configured" />
+            )}
           </div>
         </div>
 
