@@ -17,7 +17,8 @@ export default async function ApiKeysPage() {
   } catch {
     // DATABASE_URL is a placeholder until a real Postgres instance is wired
     // up (see the root README) — fail this one page gracefully, not the app.
-    dbError = "Database not reachable. Set DATABASE_URL to a real Postgres instance to manage keys.";
+    dbError =
+      "Database not reachable. Set DATABASE_URL to a real Postgres instance to manage keys.";
   }
 
   return (
@@ -27,8 +28,8 @@ export default async function ApiKeysPage() {
       </span>
       <h1 className="mt-2 text-3xl font-semibold tracking-tight">API Keys</h1>
       <p className="mt-2 max-w-xl text-muted-foreground">
-        Machine identity for your organisation (§6.4). Keys are hashed at
-        rest and shown in full exactly once, at creation.
+        Machine identity for your organisation (§6.4). Keys are hashed at rest and shown in full
+        exactly once, at creation.
       </p>
 
       <div className="mt-8">

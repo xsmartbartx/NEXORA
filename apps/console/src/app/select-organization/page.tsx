@@ -18,8 +18,8 @@ export default async function SelectOrganizationPage() {
     <div className="mx-auto flex max-w-lg flex-1 flex-col items-center justify-center px-6 py-20 text-center">
       <h1 className="text-2xl font-semibold tracking-tight">Create an organisation to continue</h1>
       <p className="mt-2 text-sm text-muted-foreground">
-        Console is organisation-scoped — products, API keys and billing all
-        belong to an organisation, not to you personally.
+        Console is organisation-scoped — products, API keys and billing all belong to an
+        organisation, not to you personally.
       </p>
       <div className="mt-8">
         <CreateOrganization afterCreateOrganizationUrl="/" />

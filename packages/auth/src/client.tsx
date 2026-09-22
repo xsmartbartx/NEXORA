@@ -62,8 +62,8 @@ export function ClerkNotConfiguredNotice() {
   if (isConfigured) return null;
   return (
     <div className="border-b border-warning/30 bg-warning/10 px-6 py-2 text-center text-xs text-warning">
-      Identity provider not configured — set NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY
-      and CLERK_SECRET_KEY. Sign-in is disabled until then.
+      Identity provider not configured — set NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY and CLERK_SECRET_KEY.
+      Sign-in is disabled until then.
     </div>
   );
 }

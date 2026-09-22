@@ -10,7 +10,11 @@ export default async function OrganizationsPage() {
   await requireAuth();
   return (
     <div className="flex flex-1 justify-center px-6 py-12">
-      <OrganizationList hidePersonal={false} afterSelectOrganizationUrl="/" afterCreateOrganizationUrl="/" />
+      <OrganizationList
+        hidePersonal={false}
+        afterSelectOrganizationUrl="/"
+        afterCreateOrganizationUrl="/"
+      />
     </div>
   );
 }

@@ -20,8 +20,7 @@ export function SetupRequiredNotice({ appName }: { appName: string }) {
         </code>{" "}
         and{" "}
         <code className="rounded bg-muted px-1.5 py-0.5 font-mono text-sm">CLERK_SECRET_KEY</code>{" "}
-        aren&rsquo;t set yet. Add real Clerk keys to this app&rsquo;s environment
-        and reload.
+        aren&rsquo;t set yet. Add real Clerk keys to this app&rsquo;s environment and reload.
       </p>
     </div>
   );

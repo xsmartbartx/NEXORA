@@ -51,8 +51,8 @@ export default function StatusPage() {
       </div>
 
       <p className="mt-8 text-center text-xs text-muted-foreground">
-        Component status is set manually today. Automated health checks land
-        once products exist to report through them.
+        Component status is set manually today. Automated health checks land once products exist to
+        report through them.
       </p>
     </div>
   );

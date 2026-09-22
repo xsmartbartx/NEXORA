@@ -40,8 +40,8 @@ export default async function ConsoleOverview() {
           </Link>
         </div>
         <p className="mt-2 text-sm text-muted-foreground">
-          Every NEXORA product, whether your organisation is entitled to it
-          yet or not — the console never hardcodes a product list.
+          Every NEXORA product, whether your organisation is entitled to it yet or not — the console
+          never hardcodes a product list.
         </p>
         <div className="mt-6 grid gap-4 sm:grid-cols-3">
           {products.map((product) => (

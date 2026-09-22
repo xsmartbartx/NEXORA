@@ -9,7 +9,8 @@ import * as schema from "./schema";
  * DATABASE_URL; only an actual query fails until a real database is wired
  * up (see the root README's "Before this goes live" section).
  */
-const connectionString = process.env.DATABASE_URL ?? "postgres://user:password@localhost:5432/nexora";
+const connectionString =
+  process.env.DATABASE_URL ?? "postgres://user:password@localhost:5432/nexora";
 
 const client = postgres(connectionString, { prepare: false });
 

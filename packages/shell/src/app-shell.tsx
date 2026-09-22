@@ -1,10 +1,6 @@
 "use client";
 
-import {
-  ClerkNotConfiguredNotice,
-  OrganizationSwitcher,
-  UserButton,
-} from "@nexora/auth/client";
+import { ClerkNotConfiguredNotice, OrganizationSwitcher, UserButton } from "@nexora/auth/client";
 import { isClerkConfigured } from "@nexora/auth/config";
 import { cn, LogoMark } from "@nexora/ui";
 import Link from "next/link";
@@ -75,7 +71,10 @@ export function AppShell({ appName, navItems, children }: AppShellProps) {
                 <UserButton />
               </>
             ) : (
-              <div className="h-8 w-8 rounded-full bg-muted" title="Identity provider not configured" />
+              <div
+                className="h-8 w-8 rounded-full bg-muted"
+                title="Identity provider not configured"
+              />
             )}
           </div>
         </div>

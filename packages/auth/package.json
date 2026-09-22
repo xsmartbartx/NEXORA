@@ -15,7 +15,7 @@
   },
   "dependencies": {
     "@clerk/nextjs": "^7.9.4",
-    "@clerk/types": "^4.101.20"
+    "@clerk/shared": "^4.33.0"
   },
   "devDependencies": {
     "@types/node": "^20",

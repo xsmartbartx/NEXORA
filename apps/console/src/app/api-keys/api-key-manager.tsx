@@ -38,7 +38,9 @@ export function ApiKeyManager({ initialKeys }: { initialKeys: ApiKeySummary[] })
   function handleRevoke(id: string) {
     startTransition(async () => {
       await revokeApiKey(id);
-      setKeys((prev) => prev.map((k) => (k.id === id ? { ...k, revokedAt: new Date().toISOString() } : k)));
+      setKeys((prev) =>
+        prev.map((k) => (k.id === id ? { ...k, revokedAt: new Date().toISOString() } : k)),
+      );
     });
   }
 
@@ -102,7 +104,12 @@ export function ApiKeyManager({ initialKeys }: { initialKeys: ApiKeySummary[] })
           keys.map((key) => (
             <div key={key.id} className="flex items-center justify-between gap-4 p-4">
               <div>
-                <p className={cn("font-medium", key.revokedAt && "text-muted-foreground line-through")}>
+                <p
+                  className={cn(
+                    "font-medium",
+                    key.revokedAt && "text-muted-foreground line-through",
+                  )}
+                >
                   {key.name}
                 </p>
                 <p className="mt-0.5 font-mono text-xs text-muted-foreground">{key.keyPrefix}</p>
