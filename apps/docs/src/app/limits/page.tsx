@@ -12,9 +12,8 @@ export default function LimitsPage() {
 
       <h2>Rate limiting</h2>
       <p>
-        <strong>60 requests per minute per API key</strong>, fixed window.
-        Every response carries these headers so you can self-throttle before
-        hitting <code>429</code>:
+        <strong>60 requests per minute per API key</strong>, fixed window. Every response carries
+        these headers so you can self-throttle before hitting <code>429</code>:
       </p>
       <table>
         <thead>
@@ -46,23 +45,21 @@ export default function LimitsPage() {
       </table>
       <p>
         Exceeding the limit returns <code>429</code> with{" "}
-        <code>error.code: "rate_limited"</code>.
+        <code>error.code: &quot;rate_limited&quot;</code>.
       </p>
 
       <h2>What&rsquo;s not entitlement-gated yet</h2>
       <p>
-        Endpoints today read the same public registry data regardless of
-        which organisation is calling — there is no per-plan quota beyond
-        the flat rate limit above. Entitlements (limits tied to a billing
-        plan) arrive in Phase 5, once there is a product and a plan to
-        attach them to.
+        Endpoints today read the same public registry data regardless of which organisation is
+        calling — there is no per-plan quota beyond the flat rate limit above. Entitlements (limits
+        tied to a billing plan) arrive in Phase 5, once there is a product and a plan to attach them
+        to.
       </p>
 
       <h2>API keys</h2>
       <p>
-        No hard cap on keys per organisation today. A key has no expiry —
-        revoke it from <strong>Console → API Keys</strong> when it&rsquo;s no
-        longer needed.
+        No hard cap on keys per organisation today. A key has no expiry — revoke it from{" "}
+        <strong>Console → API Keys</strong> when it&rsquo;s no longer needed.
       </p>
     </article>
   );

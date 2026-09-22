@@ -33,7 +33,12 @@ export function checkRateLimit(key: string): RateLimitResult {
 
   if (!bucket || bucket.resetAt <= now) {
     buckets.set(key, { count: 1, resetAt: now + WINDOW_MS });
-    return { limited: false, limit: MAX_REQUESTS_PER_WINDOW, remaining: MAX_REQUESTS_PER_WINDOW - 1, resetAt: now + WINDOW_MS };
+    return {
+      limited: false,
+      limit: MAX_REQUESTS_PER_WINDOW,
+      remaining: MAX_REQUESTS_PER_WINDOW - 1,
+      resetAt: now + WINDOW_MS,
+    };
   }
 
   bucket.count += 1;

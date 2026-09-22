@@ -23,8 +23,8 @@ export default function ChangelogPage() {
     <article className="prose prose-invert max-w-none">
       <h1>Changelog</h1>
       <p>
-        Platform-wide only — a product&rsquo;s own changelog lives with that
-        product once it has one.
+        Platform-wide only — a product&rsquo;s own changelog lives with that product once it has
+        one.
       </p>
       {entries.map((entry) => (
         <section key={entry.version}>

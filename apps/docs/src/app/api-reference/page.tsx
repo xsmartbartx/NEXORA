@@ -12,14 +12,12 @@ export default function ApiReferencePage() {
     <article className="prose prose-invert max-w-none">
       <h1>API Reference</h1>
       <p>
-        Base URL: <code>{apiUrl}</code>. Every endpoint below is under{" "}
-        <code>/v1</code>.
+        Base URL: <code>{apiUrl}</code>. Every endpoint below is under <code>/v1</code>.
       </p>
 
       <h2>Authentication</h2>
       <p>
-        Send your API key as a bearer token on every request except{" "}
-        <code>/v1/health</code>:
+        Send your API key as a bearer token on every request except <code>/v1/health</code>:
       </p>
       <pre>
         <code>Authorization: Bearer nx_live_...</code>

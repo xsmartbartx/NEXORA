@@ -45,6 +45,8 @@ export function ProductSwitcher() {
               { label: "Console", href: links.console },
               { label: "Account", href: links.account },
               { label: "Status", href: links.status },
+              { label: "Developers", href: links.developers },
+              { label: "Docs", href: links.docs },
             ].map((item) => (
               <a
                 key={item.label}

@@ -31,7 +31,8 @@ export async function authenticateRequest(request: Request): Promise<AuthResult>
       ok: false,
       status: 401,
       code: "missing_api_key",
-      message: "Missing or malformed Authorization header. Expected: Authorization: Bearer nx_live_...",
+      message:
+        "Missing or malformed Authorization header. Expected: Authorization: Bearer nx_live_...",
     };
   }
 

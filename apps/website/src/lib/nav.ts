@@ -53,12 +53,17 @@ export function getSolution(slug: string): Solution | undefined {
 export interface NavItem {
   label: string;
   href: string;
+  /** Renders as a plain `<a>` — a different app/subdomain, not a route in this app. */
+  external?: boolean;
 }
+
+const developersUrl = process.env.NEXT_PUBLIC_DEVELOPERS_URL ?? "https://developers.onenexora.com";
 
 export const primaryNav: NavItem[] = [
   { label: "Platform", href: "/platform" },
   { label: "Products", href: "/products" },
   { label: "Solutions", href: "/solutions" },
+  { label: "Developers", href: developersUrl, external: true },
   { label: "Labs", href: "/labs" },
   { label: "Company", href: "/company" },
 ];

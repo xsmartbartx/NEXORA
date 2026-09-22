@@ -9,8 +9,8 @@ export default function ApiRoot() {
       <h1 className="mt-4 text-2xl font-semibold tracking-tight">NEXORA API</h1>
       <p className="mt-2 max-w-md text-muted-foreground">
         This host serves JSON, not pages. Start at{" "}
-        <code className="rounded bg-muted px-1.5 py-0.5 font-mono text-sm">GET /v1/health</code>{" "}
-        or read the{" "}
+        <code className="rounded bg-muted px-1.5 py-0.5 font-mono text-sm">GET /v1/health</code> or
+        read the{" "}
         <a href={`${docsUrl}/quickstart`} className="text-primary hover:underline">
           quickstart
         </a>

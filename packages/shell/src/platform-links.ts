@@ -10,5 +10,8 @@ export function platformLinks() {
     account: process.env.NEXT_PUBLIC_ACCOUNT_URL ?? "https://account.onenexora.com",
     console: process.env.NEXT_PUBLIC_CONSOLE_URL ?? "https://console.onenexora.com",
     status: process.env.NEXT_PUBLIC_STATUS_URL ?? "https://status.onenexora.com",
+    api: process.env.NEXT_PUBLIC_API_URL ?? "https://api.onenexora.com",
+    docs: process.env.NEXT_PUBLIC_DOCS_URL ?? "https://docs.onenexora.com",
+    developers: process.env.NEXT_PUBLIC_DEVELOPERS_URL ?? "https://developers.onenexora.com",
   };
 }

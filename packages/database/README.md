@@ -17,7 +17,12 @@ live in Clerk, never here (§13.1).
    npm run db:studio     # browse the database
    ```
 
-Until `DATABASE_URL` points at something real, every app that reads from
-this package (currently just `apps/console`'s API Keys page) degrades to a
-"database not reachable" message instead of crashing — see that page's own
-try/catch.
+Two apps read from this package:
+
+- `apps/console`'s API Keys page — degrades to a "database not reachable"
+  message instead of crashing when `DATABASE_URL` is a placeholder (see that
+  page's own try/catch).
+- `apps/api` — every `/v1` endpoint except `/v1/health` authenticates
+  against `api_keys` here. Verified end-to-end against a real local
+  Postgres during Phase 3: key creation, auth rejection (missing/invalid
+  key), rate limiting, and `last_used_at` tracking all confirmed working.

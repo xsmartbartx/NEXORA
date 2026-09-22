@@ -21,29 +21,39 @@ export default function QuickstartPage() {
           <a href={consoleUrl} target="_blank" rel="noopener noreferrer">
             {consoleUrl}
           </a>{" "}
-          and select or create an organisation — every key belongs to an
-          organisation, not to you personally.
+          and select or create an organisation — every key belongs to an organisation, not to you
+          personally.
         </li>
         <li>
           Open <strong>API Keys</strong> in the sidebar, name the key, and create it.
         </li>
         <li>
-          Copy the key immediately. It is shown in full exactly once and
-          stored hashed — NEXORA cannot show it to you again.
+          Copy the key immediately. It is shown in full exactly once and stored hashed — NEXORA
+          cannot show it to you again.
         </li>
       </ol>
 
       <h2>2. Make your first call</h2>
       <p>
-        List every public NEXORA product — this is the same Product Registry
-        that drives the website&rsquo;s <code>/products</code> page:
+        List every public NEXORA product — this is the same Product Registry that drives the
+        website&rsquo;s <code>/products</code> page:
       </p>
       <pre>
         <code>{`curl ${apiUrl}/v1/products \\
   -H "Authorization: Bearer nx_live_your_key_here"`}</code>
       </pre>
 
-      <p>A successful response looks like this:</p>
+      <p>
+        A successful response today looks like this — empty, because no product has graduated past{" "}
+        <code>concept</code>/<code>alpha</code> yet (the same reason <code>/products</code> on the
+        website is empty too):
+      </p>
+      <pre>
+        <code>{`{ "data": [] }`}</code>
+      </pre>
+      <p>
+        Once a product reaches <code>beta</code>, it shows up here with this shape:
+      </p>
       <pre>
         <code>{`{
   "data": [
@@ -54,7 +64,7 @@ export default function QuickstartPage() {
       "tagline": "AI-assisted log monitoring for cloud environments.",
       "category": "security",
       "platform_pillar": "security",
-      "lifecycle": "concept",
+      "lifecycle": "beta",
       "url": "https://sentinel.onenexora.com"
     }
   ]
@@ -62,10 +72,10 @@ export default function QuickstartPage() {
       </pre>
 
       <p>
-        Every response — success or error — carries{" "}
+        Either way, the call succeeded if you got a <code>200</code> back — that confirms your key
+        and organisation are real. Every response — success or error — carries{" "}
         <code>X-RateLimit-Limit</code>, <code>X-RateLimit-Remaining</code> and{" "}
-        <code>X-RateLimit-Reset</code> headers. See{" "}
-        <a href="/limits">Limits</a> for the numbers and{" "}
+        <code>X-RateLimit-Reset</code> headers. See <a href="/limits">Limits</a> for the numbers and{" "}
         <a href="/api-reference">API Reference</a> for every endpoint.
       </p>
 

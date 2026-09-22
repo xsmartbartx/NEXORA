@@ -20,16 +20,18 @@ export function SiteHeader() {
 
         <nav className="hidden items-center gap-1 md:flex">
           {primaryNav.map((item) => {
-            const active = pathname === item.href || pathname.startsWith(`${item.href}/`);
-            return (
-              <Link
-                key={item.href}
-                href={item.href}
-                className={cn(
-                  "rounded-md px-3 py-2 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground",
-                  active ? "text-foreground" : "text-muted-foreground",
-                )}
-              >
+            const active =
+              !item.external && (pathname === item.href || pathname.startsWith(`${item.href}/`));
+            const linkClassName = cn(
+              "rounded-md px-3 py-2 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground",
+              active ? "text-foreground" : "text-muted-foreground",
+            );
+            return item.external ? (
+              <a key={item.href} href={item.href} className={linkClassName}>
+                {item.label}
+              </a>
+            ) : (
+              <Link key={item.href} href={item.href} className={linkClassName}>
                 {item.label}
               </Link>
             );
@@ -66,13 +68,23 @@ export function SiteHeader() {
           <ul className="flex flex-col gap-1">
             {primaryNav.map((item) => (
               <li key={item.href}>
-                <Link
-                  href={item.href}
-                  onClick={() => setOpen(false)}
-                  className="block rounded-md px-3 py-2 text-sm font-medium text-foreground hover:bg-accent"
-                >
-                  {item.label}
-                </Link>
+                {item.external ? (
+                  <a
+                    href={item.href}
+                    onClick={() => setOpen(false)}
+                    className="block rounded-md px-3 py-2 text-sm font-medium text-foreground hover:bg-accent"
+                  >
+                    {item.label}
+                  </a>
+                ) : (
+                  <Link
+                    href={item.href}
+                    onClick={() => setOpen(false)}
+                    className="block rounded-md px-3 py-2 text-sm font-medium text-foreground hover:bg-accent"
+                  >
+                    {item.label}
+                  </Link>
+                )}
               </li>
             ))}
             <li className="pt-2">
