@@ -12,6 +12,7 @@ import {
   useUser,
 } from "@clerk/nextjs";
 import { clerkAppearance } from "./appearance";
+import { isClerkConfigured } from "./config";
 
 /**
  * Re-exported through here rather than imported from `@clerk/nextjs`
@@ -20,8 +21,7 @@ import { clerkAppearance } from "./appearance";
  */
 export { OrganizationSwitcher, Show, SignInButton, SignUpButton, UserButton, useAuth, useOrganization, useUser };
 
-const publishableKey = process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY;
-const isConfigured = Boolean(publishableKey && publishableKey.startsWith("pk_"));
+const isConfigured = isClerkConfigured();
 
 /**
  * Wraps Clerk's `ClerkProvider` with NEXORA's appearance, and — since this
