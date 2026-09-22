@@ -1,0 +1,26 @@
+{
+  "name": "@nexora/auth",
+  "version": "0.1.0",
+  "private": true,
+  "description": "NEXORA identity boundary. Every app talks to Clerk through here (C-AUTH) so the provider stays swappable (R-4) and never leaks into product code.",
+  "type": "module",
+  "exports": {
+    "./client": "./src/client.tsx",
+    "./server": "./src/server.ts",
+    "./appearance": "./src/appearance.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@clerk/nextjs": "^7.9.4"
+  },
+  "devDependencies": {
+    "@types/react": "^19",
+    "typescript": "^5"
+  },
+  "peerDependencies": {
+    "next": "^16",
+    "react": "^19"
+  }
+}
