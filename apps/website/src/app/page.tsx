@@ -13,9 +13,9 @@ export default function Home() {
         </h1>
 
         <p className="text-lg text-pretty text-muted-foreground sm:text-xl">
-          NEXORA is a technology platform. Its products are intelligent software,
-          AI systems and secure digital products that share one account, one
-          console, one API surface and one operational backbone.
+          NEXORA is a technology platform. Its products are intelligent software, AI systems and
+          secure digital products that share one account, one console, one API surface and one
+          operational backbone.
         </p>
 
         <div className="flex flex-col gap-4 sm:flex-row">
