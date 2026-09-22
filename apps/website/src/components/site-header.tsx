@@ -1,10 +1,9 @@
 "use client";
 
-import { buttonVariants, cn } from "@nexora/ui";
+import { buttonVariants, cn, LogoMark } from "@nexora/ui";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
-import { LogoMark } from "./logo-mark";
 import { primaryNav } from "@/lib/nav";
 
 export function SiteHeader() {

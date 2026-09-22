@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { LogoMark } from "./logo-mark";
+import { LogoMark } from "@nexora/ui";
 
 const columns: { title: string; links: { label: string; href: string }[] }[] = [
   {
