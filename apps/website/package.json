@@ -7,9 +7,10 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "next typegen && tsc --noEmit"
   },
   "dependencies": {
+    "@nexora/registry": "*",
     "@nexora/ui": "*",
     "next": "16.3.6",
     "react": "19.2.8",

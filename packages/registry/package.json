@@ -1,0 +1,16 @@
+{
+  "name": "@nexora/registry",
+  "version": "0.1.0",
+  "private": true,
+  "description": "NEXORA Product Registry: entity types and the query layer every surface reads through.",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "typescript": "^5"
+  }
+}

@@ -25,6 +25,7 @@ apps/
   website/          onenexora.com — marketing site
 packages/
   ui/                design tokens and shared UI primitives
+  registry/          Product Registry: entity types and query layer
   config/            shared TypeScript / lint / format configuration
 infrastructure/       DNS, edge, deployment (provisioned per environment)
 docs/                 architecture, ADRs and supporting documents
@@ -38,12 +39,22 @@ apps and packages are added.
 | Phase | Scope                                                     | Status         |
 | ----- | --------------------------------------------------------- | -------------- |
 | 0     | Foundations: monorepo, CI, design tokens, base UI package | ✅ Done        |
-| 1     | Product Registry and marketing website                    | 🚧 In progress |
+| 1     | Product Registry and marketing website                    | ✅ Done        |
 | 2     | Identity, Account and Console                             | ⬜ Not started |
 | 3     | API, Docs and Developer surface                           | ⬜ Not started |
 | 4     | Sentinel and CSPM as platform tenants                     | ⬜ Not started |
 | 5     | Gateway, Billing and Labs                                 | ⬜ Not started |
 | 6     | Marketplace and scale                                     | ⬜ Not started |
+
+## Before this goes live
+
+Two placeholders need a real value before launch — both flagged with
+`TODO(launch)` at [`apps/website/src/lib/site-config.ts`](apps/website/src/lib/site-config.ts):
+
+- `onenexora.com` is not registered/DNS-configured yet — `siteUrl` falls back
+  to it for metadata and the sitemap.
+- `hello@onenexora.com` is not a verified, monitored inbox — it's the site's
+  only contact method (`/company#contact`).
 
 ## Getting started
 
