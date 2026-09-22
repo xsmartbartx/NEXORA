@@ -35,15 +35,15 @@ apps and packages are added.
 
 ## Build status
 
-| Phase | Scope | Status |
-| --- | --- | --- |
-| 0 | Foundations: monorepo, CI, design tokens, base UI package | ✅ Done |
-| 1 | Product Registry and marketing website | 🚧 In progress |
-| 2 | Identity, Account and Console | ⬜ Not started |
-| 3 | API, Docs and Developer surface | ⬜ Not started |
-| 4 | Sentinel and CSPM as platform tenants | ⬜ Not started |
-| 5 | Gateway, Billing and Labs | ⬜ Not started |
-| 6 | Marketplace and scale | ⬜ Not started |
+| Phase | Scope                                                     | Status         |
+| ----- | --------------------------------------------------------- | -------------- |
+| 0     | Foundations: monorepo, CI, design tokens, base UI package | ✅ Done        |
+| 1     | Product Registry and marketing website                    | 🚧 In progress |
+| 2     | Identity, Account and Console                             | ⬜ Not started |
+| 3     | API, Docs and Developer surface                           | ⬜ Not started |
+| 4     | Sentinel and CSPM as platform tenants                     | ⬜ Not started |
+| 5     | Gateway, Billing and Labs                                 | ⬜ Not started |
+| 6     | Marketplace and scale                                     | ⬜ Not started |
 
 ## Getting started
 
@@ -61,14 +61,14 @@ The website app starts at `http://localhost:3000`.
 Run from the repository root; each fans out to every workspace that defines
 the script.
 
-| Command | Does |
-| --- | --- |
-| `npm run dev` | Starts the website app in development mode |
-| `npm run build` | Production build of every app and package |
-| `npm run lint` | ESLint across every workspace |
-| `npm run typecheck` | `tsc --noEmit` across every workspace |
-| `npm run format` | Formats the repository with Prettier |
-| `npm run format:check` | Checks formatting without writing |
+| Command                | Does                                       |
+| ---------------------- | ------------------------------------------ |
+| `npm run dev`          | Starts the website app in development mode |
+| `npm run build`        | Production build of every app and package  |
+| `npm run lint`         | ESLint across every workspace              |
+| `npm run typecheck`    | `tsc --noEmit` across every workspace      |
+| `npm run format`       | Formats the repository with Prettier       |
+| `npm run format:check` | Checks formatting without writing          |
 
 ## License
 
