@@ -1,0 +1,84 @@
+/**
+ * NEXORA design tokens.
+ * HSL triplets (no hsl() wrapper) so Tailwind can compose them as
+ * `hsl(var(--background))` and apply opacity modifiers.
+ */
+
+:root {
+  /* Brand: cold, precise, technical. Deep space neutral + electric indigo accent. */
+  --background: 222 47% 5%;
+  --foreground: 210 20% 94%;
+
+  --card: 222 40% 7%;
+  --card-foreground: 210 20% 94%;
+
+  --popover: 222 40% 7%;
+  --popover-foreground: 210 20% 94%;
+
+  --primary: 245 82% 65%;
+  --primary-foreground: 210 20% 98%;
+
+  --secondary: 199 89% 58%;
+  --secondary-foreground: 222 47% 5%;
+
+  --muted: 222 25% 14%;
+  --muted-foreground: 217 15% 65%;
+
+  --accent: 222 25% 16%;
+  --accent-foreground: 210 20% 94%;
+
+  --destructive: 0 72% 58%;
+  --destructive-foreground: 210 20% 98%;
+
+  --success: 152 60% 45%;
+  --warning: 38 92% 55%;
+
+  --border: 222 20% 18%;
+  --input: 222 20% 18%;
+  --ring: 245 82% 65%;
+
+  --radius: 0.625rem;
+
+  --font-sans:
+    ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --font-mono:
+    ui-monospace, "JetBrains Mono", "SF Mono", Menlo, Consolas, monospace;
+}
+
+/*
+ * NEXORA ships dark-first (the platform surfaces — console, docs, product apps
+ * — default to dark). A future light theme can be added under `.light` without
+ * touching component code, since every component reads these variables only.
+ */
+.light {
+  --background: 0 0% 100%;
+  --foreground: 222 47% 8%;
+
+  --card: 0 0% 100%;
+  --card-foreground: 222 47% 8%;
+
+  --popover: 0 0% 100%;
+  --popover-foreground: 222 47% 8%;
+
+  --primary: 245 75% 55%;
+  --primary-foreground: 210 20% 98%;
+
+  --secondary: 199 89% 45%;
+  --secondary-foreground: 210 20% 98%;
+
+  --muted: 220 20% 96%;
+  --muted-foreground: 220 10% 40%;
+
+  --accent: 220 20% 94%;
+  --accent-foreground: 222 47% 8%;
+
+  --destructive: 0 72% 51%;
+  --destructive-foreground: 210 20% 98%;
+
+  --success: 152 60% 36%;
+  --warning: 38 92% 45%;
+
+  --border: 220 15% 88%;
+  --input: 220 15% 88%;
+  --ring: 245 75% 55%;
+}
