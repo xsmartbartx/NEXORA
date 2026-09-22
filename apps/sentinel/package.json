@@ -1,18 +1,18 @@
 {
-  "name": "@nexora/console",
+  "name": "@nexora/sentinel",
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev -p 3002",
+    "dev": "next dev -p 3007",
     "build": "next build",
-    "start": "next start -p 3002",
+    "start": "next start -p 3007",
     "lint": "eslint",
     "typecheck": "next typegen && tsc --noEmit"
   },
   "dependencies": {
     "@clerk/nextjs": "^7.9.4",
     "@nexora/auth": "*",
-    "@nexora/database": "*",
+    "@nexora/entitlements": "*",
     "@nexora/registry": "*",
     "@nexora/shell": "*",
     "@nexora/telemetry": "*",

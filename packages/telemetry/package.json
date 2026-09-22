@@ -1,0 +1,19 @@
+{
+  "name": "@nexora/telemetry",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Event emission helpers (§9.2, C-EVENT). The only intended way products write to audit_events — packages/database owns the table, this owns the shape.",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@nexora/database": "*"
+  },
+  "devDependencies": {
+    "typescript": "^5"
+  }
+}

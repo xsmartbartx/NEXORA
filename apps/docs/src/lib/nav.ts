@@ -1,12 +1,15 @@
 /**
  * §8.6: "Quickstart → Concepts → Guides → Reference → Limits → Changelog",
- * applied at the platform level here. A per-product docs nav (driven by the
- * registry's `ProductDocSection` entity) arrives once a product has real
- * docs to show — none does yet (§5.3: concept-stage products aren't public).
+ * applied at the platform level. "Products" is per-product docs (T-8),
+ * added once a product has something real to document — Sentinel and CSPM
+ * as of Phase 4. A registry-driven `ProductDocSection` nav (§5.2) is future
+ * work once there are enough product doc pages to need one generated
+ * rather than hand-listed here.
  */
 export const docsNav = [
   { label: "Quickstart", href: "/quickstart" },
   { label: "Concepts", href: "/concepts" },
+  { label: "Products", href: "/products" },
   { label: "API Reference", href: "/api-reference" },
   { label: "Limits", href: "/limits" },
   { label: "SDKs & CLI", href: "/sdks" },

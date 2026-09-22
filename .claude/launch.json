@@ -42,6 +42,18 @@
       "runtimeExecutable": "npm",
       "runtimeArgs": ["run", "dev", "--workspace", "apps/developers"],
       "port": 3006
+    },
+    {
+      "name": "sentinel",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "dev", "--workspace", "apps/sentinel"],
+      "port": 3007
+    },
+    {
+      "name": "cspm",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "dev", "--workspace", "apps/cspm"],
+      "port": 3008
     }
   ]
 }

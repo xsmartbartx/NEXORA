@@ -4,7 +4,8 @@ import crypto from "node:crypto";
 import { and, desc, eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { requireOrg } from "@nexora/auth/server";
-import { apiKeys, auditEvents, db } from "@nexora/database";
+import { apiKeys, db } from "@nexora/database";
+import { logEvent } from "@nexora/telemetry";
 
 /**
  * §6.4: hashed at rest, plaintext shown exactly once. SHA-256 (unsalted) is
@@ -63,13 +64,12 @@ export async function createApiKey(
     .returning({ id: apiKeys.id });
   if (!inserted) throw new Error("Failed to create key");
 
-  await db.insert(auditEvents).values({
+  await logEvent({
     orgId,
     actorId: userId,
-    action: "api_key.created",
+    action: "console.api_key.created",
     resourceType: "api_key",
     resourceId: inserted.id,
-    outcome: "success",
   });
 
   revalidatePath("/api-keys");
@@ -84,13 +84,12 @@ export async function revokeApiKey(keyId: string): Promise<void> {
     .set({ revokedAt: new Date() })
     .where(and(eq(apiKeys.id, keyId), eq(apiKeys.orgId, orgId)));
 
-  await db.insert(auditEvents).values({
+  await logEvent({
     orgId,
     actorId: userId,
-    action: "api_key.revoked",
+    action: "console.api_key.revoked",
     resourceType: "api_key",
     resourceId: keyId,
-    outcome: "success",
   });
 
   revalidatePath("/api-keys");

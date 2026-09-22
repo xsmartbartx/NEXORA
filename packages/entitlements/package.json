@@ -1,0 +1,16 @@
+{
+  "name": "@nexora/entitlements",
+  "version": "0.1.0",
+  "private": true,
+  "description": "What an organisation is allowed to do (§4.1). The check point every product calls before a billable/limited action (Tenant Contract T-4).",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "typescript": "^5"
+  }
+}
