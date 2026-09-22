@@ -1,5 +1,6 @@
 @import "tailwindcss";
 @import "@nexora/ui/tokens.css";
+@plugin "@tailwindcss/typography";
 
 /*
  * Tailwind's automatic content scanner does not follow the node_modules
