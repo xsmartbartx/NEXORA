@@ -50,31 +50,30 @@ export async function listApiKeys(): Promise<ApiKeySummary[]> {
 
 export async function createApiKey(
   formData: FormData,
-): Promise<{ key: string; keyPrefix: string; name: string }> {
+): Promise<{ id: string; key: string; keyPrefix: string; name: string }> {
   const { userId, orgId } = await requireOrg();
   const name = String(formData.get("name") ?? "").trim();
   if (!name) throw new Error("Name is required");
 
   const { key, keyPrefix, keyHash } = generateApiKey();
 
-  await db.insert(apiKeys).values({
-    orgId,
-    name,
-    keyPrefix,
-    keyHash,
-    createdBy: userId,
-  });
+  const [inserted] = await db
+    .insert(apiKeys)
+    .values({ orgId, name, keyPrefix, keyHash, createdBy: userId })
+    .returning({ id: apiKeys.id });
+  if (!inserted) throw new Error("Failed to create key");
 
   await db.insert(auditEvents).values({
     orgId,
     actorId: userId,
     action: "api_key.created",
     resourceType: "api_key",
+    resourceId: inserted.id,
     outcome: "success",
   });
 
   revalidatePath("/api-keys");
-  return { key, keyPrefix, name };
+  return { id: inserted.id, key, keyPrefix, name };
 }
 
 export async function revokeApiKey(keyId: string): Promise<void> {

@@ -19,7 +19,7 @@ export function ApiKeyManager({ initialKeys }: { initialKeys: ApiKeySummary[] })
         setRevealedKey({ key: result.key, name: result.name });
         setKeys((prev) => [
           {
-            id: result.keyPrefix,
+            id: result.id,
             name: result.name,
             keyPrefix: result.keyPrefix,
             createdAt: new Date().toISOString(),
