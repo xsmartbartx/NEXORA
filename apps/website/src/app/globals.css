@@ -1,6 +1,13 @@
 @import "tailwindcss";
 @import "@nexora/ui/tokens.css";
 
+/*
+ * Tailwind's automatic content scanner does not follow the node_modules
+ * symlink into workspace packages, so @nexora/ui's class names (e.g. on
+ * Button) would otherwise never be detected. Declare it explicitly.
+ */
+@source "../../../../packages/ui/src";
+
 @theme inline {
   --color-background: hsl(var(--background));
   --color-foreground: hsl(var(--foreground));
