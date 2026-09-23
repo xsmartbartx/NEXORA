@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 
+const websiteUrl = process.env.NEXT_PUBLIC_WEBSITE_URL ?? "https://onenexora.com";
+
 export const metadata: Metadata = {
   title: "Concepts",
   description: "The platform model every NEXORA API and product shares.",
@@ -10,7 +12,7 @@ export default function ConceptsPage() {
     <article className="prose prose-invert max-w-none">
       <h1>Concepts</h1>
       <p>
-        Four ideas explain almost everything about how NEXORA is built. Understanding them tells you
+        Five ideas explain almost everything about how NEXORA is built. Understanding them tells you
         why the API and console behave the way they do.
       </p>
 
@@ -40,6 +42,20 @@ export default function ConceptsPage() {
         generated once, hashed at rest, and never tied to a specific person&rsquo;s session.
         Revoking your own console session does not revoke your organisation&rsquo;s API keys, and
         vice versa.
+      </p>
+
+      <h2>The Marketplace taxonomy</h2>
+      <p>
+        A Product is one specific thing: a full NEXORA app with a subdomain, a lifecycle and a
+        Tenant Contract to satisfy. Not everything worth listing is that heavy — an API surface,
+        an integration with an external provider, or eventually an agent, model or tool doesn&rsquo;t
+        need its own subdomain to be real. The{" "}
+        <a href={`${websiteUrl}/marketplace`}>marketplace</a> lists both: Products under
+        &ldquo;Apps&rdquo;, and
+        everything else as a <code>MarketplaceListing</code> with a <code>kind</code> of{" "}
+        <code>api</code>, <code>agent</code>, <code>model</code>, <code>integration</code> or{" "}
+        <code>tool</code>. A kind with nothing in it yet is shown as an honest empty state, not
+        hidden — adding the first real listing in it is a data change, not a schema rewrite.
       </p>
 
       <h2>Everything is versioned and reversible</h2>

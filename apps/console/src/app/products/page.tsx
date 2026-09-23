@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { categoryLabels, getAllProducts } from "@nexora/registry";
 import { platformLinks } from "@nexora/shell";
 import { requireOrg } from "@nexora/auth/server";
@@ -20,8 +21,15 @@ export default async function ConsoleProductsPage() {
       </span>
       <h1 className="mt-2 text-3xl font-semibold tracking-tight">Products</h1>
       <p className="mt-2 max-w-2xl text-muted-foreground">
-        Every NEXORA product tile, driven by the same registry as the public catalogue. Entitlement
-        gating (limits, upgrade prompts) arrives with Billing in Phase 5.
+        Every NEXORA product tile, driven by the same registry as the public catalogue. See{" "}
+        <Link href="/billing" className="text-primary hover:underline">
+          Billing
+        </Link>{" "}
+        for your plan&rsquo;s limits and{" "}
+        <Link href="/analytics" className="text-primary hover:underline">
+          Analytics
+        </Link>{" "}
+        for usage per product.
       </p>
 
       <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">

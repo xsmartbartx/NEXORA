@@ -33,7 +33,7 @@ apps/
   gateway/           gateway.onenexora.com — Secure AI Gateway (beta)
 packages/
   ui/                design tokens and shared UI primitives
-  registry/          Product Registry + Labs Experiments: entity types and query layer
+  registry/          Product Registry + Labs Experiments + Marketplace listings + product integrations: entity types and query layer
   auth/              identity boundary — every app talks to Clerk through here
   shell/             shared header/product-switcher/account-menu for authenticated apps
   database/          Postgres access — api_keys, audit_events, subscriptions
