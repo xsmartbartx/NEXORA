@@ -1,4 +1,4 @@
-import { desc, eq } from "drizzle-orm";
+import { and, count, desc, eq, gte } from "drizzle-orm";
 import { auditEvents, db, type AuditEvent } from "@nexora/database";
 
 export interface LogEventInput {
@@ -37,4 +37,25 @@ export async function listOrgEvents(orgId: string, limit = 50): Promise<AuditEve
     .where(eq(auditEvents.orgId, orgId))
     .orderBy(desc(auditEvents.createdAt))
     .limit(limit);
+}
+
+/**
+ * Powers Entitlements' metered limits (packages/entitlements): how many
+ * times has this org logged `action` since `since`. Org-scoped at the
+ * query itself, same isolation guarantee as `listOrgEvents`.
+ */
+export async function countOrgEvents(orgId: string, action: string, since: Date): Promise<number> {
+  const [row] = await db
+    .select({ value: count() })
+    .from(auditEvents)
+    .where(
+      and(eq(auditEvents.orgId, orgId), eq(auditEvents.action, action), gte(auditEvents.createdAt, since)),
+    );
+  return row?.value ?? 0;
+}
+
+/** The start of the current calendar month, UTC — the metering window until a subscription's own billing-period dates are wired through. */
+export function startOfCurrentBillingPeriod(): Date {
+  const now = new Date();
+  return new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1));
 }
