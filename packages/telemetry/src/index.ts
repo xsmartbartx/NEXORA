@@ -1,4 +1,4 @@
-import { and, count, desc, eq, gte } from "drizzle-orm";
+import { and, count, desc, eq, gte, sql } from "drizzle-orm";
 import { auditEvents, db, type AuditEvent } from "@nexora/database";
 
 export interface LogEventInput {
@@ -62,4 +62,38 @@ export async function countOrgEvents(orgId: string, action: string, since: Date)
 export function startOfCurrentBillingPeriod(): Date {
   const now = new Date();
   return new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1));
+}
+
+export interface DailyEventCount {
+  /** ISO calendar date, "YYYY-MM-DD", UTC. */
+  day: string;
+  count: number;
+}
+
+/**
+ * Powers Console's per-product analytics (§14.3 Phase 6). Grouped in the
+ * database, not fetched-then-reduced in the app, so it scales the same way
+ * `countOrgEvents` does. Returns one row per day that had at least one
+ * matching event — the caller fills in zero-count days, since that's a
+ * pure function of the date range and doesn't need a database round trip.
+ */
+export async function countOrgEventsByDay(
+  orgId: string,
+  action: string,
+  since: Date,
+): Promise<DailyEventCount[]> {
+  const dayBucket = sql`date_trunc('day', ${auditEvents.createdAt})`;
+  const rows = await db
+    .select({ day: sql<string>`to_char(${dayBucket}, 'YYYY-MM-DD')`, value: count() })
+    .from(auditEvents)
+    .where(
+      and(
+        eq(auditEvents.orgId, orgId),
+        eq(auditEvents.action, action),
+        gte(auditEvents.createdAt, since),
+      ),
+    )
+    .groupBy(dayBucket)
+    .orderBy(dayBucket);
+  return rows.map((row) => ({ day: row.day, count: row.value }));
 }

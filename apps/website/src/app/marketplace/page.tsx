@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import {
   getMarketplaceListingsByKind,
   getPublicProducts,
@@ -34,9 +35,9 @@ export default function MarketplacePage() {
         <h2 className="text-xl font-semibold">Apps</h2>
         <p className="mt-1 text-sm text-muted-foreground">
           Full NEXORA products — see the{" "}
-          <a href="/products" className="text-primary hover:underline">
+          <Link href="/products" className="text-primary hover:underline">
             Products
-          </a>{" "}
+          </Link>{" "}
           catalogue for the complete picture, including lifecycle and category filters.
         </p>
         <div className="mt-6 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
