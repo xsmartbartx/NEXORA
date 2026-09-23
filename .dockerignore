@@ -1,0 +1,32 @@
+# Same shape as .gitignore, plus git itself — the Docker build context is
+# the whole repo (infrastructure/docker/Dockerfile builds any single app
+# from it), so nothing here should ever let a real secret or a stale local
+# build into an image layer.
+
+node_modules/
+**/node_modules/
+.next/
+**/.next/
+out/
+build/
+dist/
+next-env.d.ts
+
+.env
+.env*.local
+!.env.example
+
+coverage/
+*.tsbuildinfo
+.turbo/
+
+.vscode/
+.idea/
+.DS_Store
+*.pem
+*.log
+
+.git/
+.github/
+.claude/
+docs/

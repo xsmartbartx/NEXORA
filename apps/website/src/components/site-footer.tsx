@@ -41,13 +41,21 @@ const columns: { title: string; links: { label: string; href: string; external?:
       { label: "Contact", href: "/company#contact" },
     ],
   },
+  {
+    title: "Legal",
+    links: [
+      { label: "Terms of Service", href: "/legal/terms" },
+      { label: "Privacy Policy", href: "/legal/privacy" },
+      { label: "Security", href: "/legal/security" },
+    ],
+  },
 ];
 
 export function SiteFooter() {
   return (
     <footer className="border-t border-border">
       <div className="mx-auto max-w-6xl px-6 py-12">
-        <div className="grid grid-cols-2 gap-8 sm:grid-cols-3 lg:grid-cols-5">
+        <div className="grid grid-cols-2 gap-8 sm:grid-cols-3 lg:grid-cols-6">
           <div className="col-span-2 sm:col-span-1">
             <Link href="/" className="flex items-center gap-2">
               <LogoMark className="h-6 w-6" />
@@ -94,7 +102,16 @@ export function SiteFooter() {
 
         <div className="mt-10 flex flex-col gap-2 border-t border-border pt-6 text-xs text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
           <p>&copy; {new Date().getFullYear()} NEXORA. All rights reserved.</p>
-          <p>Legal pages are on the Phase 4+ build plan.</p>
+          <p>
+            <Link href="/legal/terms" className="hover:text-foreground">
+              Terms
+            </Link>{" "}
+            ·{" "}
+            <Link href="/legal/privacy" className="hover:text-foreground">
+              Privacy
+            </Link>{" "}
+            — draft, not yet reviewed by a lawyer.
+          </p>
         </div>
       </div>
     </footer>
