@@ -9,7 +9,15 @@ import { siteConfig } from "@/lib/site-config";
  * registry record updates this automatically — no code change (§5.4, SC-1).
  */
 export default function sitemap(): MetadataRoute.Sitemap {
-  const staticRoutes = ["", "/platform", "/products", "/solutions", "/labs", "/company"];
+  const staticRoutes = [
+    "",
+    "/platform",
+    "/products",
+    "/marketplace",
+    "/solutions",
+    "/labs",
+    "/company",
+  ];
 
   const pillarRoutes = platformPillarSlugs.map((pillar) => `/platform/${pillar}`);
   const solutionRoutes = solutions.map((solution) => `/solutions/${solution.slug}`);

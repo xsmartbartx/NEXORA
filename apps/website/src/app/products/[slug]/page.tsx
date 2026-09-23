@@ -2,7 +2,13 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { buttonVariants, cn } from "@nexora/ui";
-import { categoryLabels, getAllProducts, getProductBySlug, pillarLabels } from "@nexora/registry";
+import {
+  categoryLabels,
+  getAllProducts,
+  getProductBySlug,
+  getProductIntegrations,
+  pillarLabels,
+} from "@nexora/registry";
 import { LifecycleBadge } from "@/components/lifecycle-badge";
 
 export function generateStaticParams() {
@@ -25,6 +31,7 @@ export default async function ProductDetailPage(props: PageProps<"/products/[slu
   if (!product) notFound();
 
   const isLive = product.lifecycle !== "concept" && product.lifecycle !== "alpha";
+  const integrations = getProductIntegrations(product.slug);
 
   return (
     <div className="mx-auto max-w-3xl px-6 py-20">
@@ -45,6 +52,32 @@ export default async function ProductDetailPage(props: PageProps<"/products/[slu
       <div className="mt-8 max-w-2xl text-foreground/90">
         <p>{product.description}</p>
       </div>
+
+      {integrations.length > 0 ? (
+        <div className="mt-8">
+          <h2 className="font-mono text-xs uppercase tracking-widest text-muted-foreground">
+            Integrates with
+          </h2>
+          <ul className="mt-3 flex flex-wrap gap-2">
+            {integrations.map((integration) => {
+              const otherSlug =
+                integration.product === product.slug
+                  ? integration.target_product
+                  : integration.product;
+              return (
+                <li key={`${integration.product}-${integration.target_product}`}>
+                  <Link
+                    href={`/products/${otherSlug}`}
+                    className="rounded-full border border-border px-3 py-1 text-sm text-muted-foreground transition-colors hover:border-primary/50 hover:text-foreground"
+                  >
+                    {otherSlug}
+                  </Link>
+                </li>
+              );
+            })}
+          </ul>
+        </div>
+      ) : null}
 
       <div className="mt-10 rounded-xl border border-dashed border-border p-6">
         {isLive ? (

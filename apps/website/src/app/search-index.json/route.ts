@@ -1,4 +1,10 @@
-import { getPublicProducts, pillarLabels, pillarTaglines, productHref } from "@nexora/registry";
+import {
+  getMarketplaceListings,
+  getPublicProducts,
+  pillarLabels,
+  pillarTaglines,
+  productHref,
+} from "@nexora/registry";
 import { platformPillarSlugs, solutions } from "@/lib/nav";
 
 /**
@@ -10,7 +16,7 @@ interface SearchEntry {
   title: string;
   description: string;
   url: string;
-  type: "product" | "pillar" | "solution";
+  type: "product" | "pillar" | "solution" | "listing";
 }
 
 export async function GET() {
@@ -35,5 +41,12 @@ export async function GET() {
     type: "solution",
   }));
 
-  return Response.json([...products, ...pillars, ...solutionEntries]);
+  const listings: SearchEntry[] = getMarketplaceListings().map((listing) => ({
+    title: listing.name,
+    description: listing.tagline,
+    url: listing.link,
+    type: "listing",
+  }));
+
+  return Response.json([...products, ...pillars, ...solutionEntries, ...listings]);
 }

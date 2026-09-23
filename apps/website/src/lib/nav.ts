@@ -62,6 +62,7 @@ const developersUrl = process.env.NEXT_PUBLIC_DEVELOPERS_URL ?? "https://develop
 export const primaryNav: NavItem[] = [
   { label: "Platform", href: "/platform" },
   { label: "Products", href: "/products" },
+  { label: "Marketplace", href: "/marketplace" },
   { label: "Solutions", href: "/solutions" },
   { label: "Developers", href: developersUrl, external: true },
   { label: "Labs", href: "/labs" },
