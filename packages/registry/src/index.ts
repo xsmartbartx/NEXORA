@@ -1,6 +1,10 @@
 export type {
   Experiment,
   ExperimentKind,
+  MarketplaceListing,
+  MarketplaceListingKind,
+  MarketplaceListingProvider,
+  MarketplaceListingStatus,
   Product,
   ProductCapability,
   ProductCategory,
@@ -14,15 +18,26 @@ export type {
 
 export {
   getAllProducts,
+  getAllProductIntegrations,
   getExperimentBySlug,
   getExperiments,
   getFeaturedProducts,
   getLabsProducts,
+  getMarketplaceListingBySlug,
+  getMarketplaceListings,
+  getMarketplaceListingsByKind,
   getProductBySlug,
+  getProductIntegrations,
   getProductsByCategory,
   getProductsByPillar,
   getPublicProducts,
   productHref,
 } from "./queries";
 
-export { categoryLabels, lifecycleLabels, pillarLabels, pillarTaglines } from "./labels";
+export {
+  categoryLabels,
+  lifecycleLabels,
+  marketplaceKindLabels,
+  pillarLabels,
+  pillarTaglines,
+} from "./labels";

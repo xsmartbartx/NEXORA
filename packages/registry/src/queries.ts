@@ -1,6 +1,16 @@
 import { experiments } from "./data/experiments";
+import { productIntegrations } from "./data/integrations";
+import { marketplaceListings } from "./data/marketplace-listings";
 import { products } from "./data/products";
-import type { Experiment, PlatformPillar, Product, ProductCategory } from "./types";
+import type {
+  Experiment,
+  MarketplaceListing,
+  MarketplaceListingKind,
+  PlatformPillar,
+  Product,
+  ProductCategory,
+  ProductIntegration,
+} from "./types";
 
 /**
  * The query layer every surface reads through (§5.4). Nothing outside this
@@ -52,6 +62,30 @@ export function getExperiments(): Experiment[] {
 
 export function getExperimentBySlug(slug: string): Experiment | undefined {
   return experiments.find((e) => e.slug === slug);
+}
+
+/** Every marketplace listing (§14.3 Phase 6), regardless of kind or status. */
+export function getMarketplaceListings(): MarketplaceListing[] {
+  return marketplaceListings;
+}
+
+export function getMarketplaceListingsByKind(kind: MarketplaceListingKind): MarketplaceListing[] {
+  return marketplaceListings.filter((listing) => listing.kind === kind);
+}
+
+export function getMarketplaceListingBySlug(slug: string): MarketplaceListing | undefined {
+  return marketplaceListings.find((listing) => listing.slug === slug);
+}
+
+/** Declared integrations for one product, in either direction (as source or target). */
+export function getProductIntegrations(productSlug: string): ProductIntegration[] {
+  return productIntegrations.filter(
+    (integration) => integration.product === productSlug || integration.target_product === productSlug,
+  );
+}
+
+export function getAllProductIntegrations(): ProductIntegration[] {
+  return productIntegrations;
 }
 
 /**
