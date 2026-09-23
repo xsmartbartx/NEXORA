@@ -28,9 +28,9 @@ export default function PrivacyPage() {
 
       <p className={p}>
         This Privacy Policy describes how {siteConfig.legalEntityName} (&ldquo;NEXORA,&rdquo;
-        &ldquo;we,&rdquo; &ldquo;us&rdquo;) collects, uses and shares information in connection
-        with the NEXORA platform. It describes our actual architecture, not generic boilerplate —
-        each section below reflects what the system genuinely does.
+        &ldquo;we,&rdquo; &ldquo;us&rdquo;) collects, uses and shares information in connection with
+        the NEXORA platform. It describes our actual architecture, not generic boilerplate — each
+        section below reflects what the system genuinely does.
       </p>
 
       <h2 className={h2}>1. Information we collect</h2>
@@ -42,29 +42,29 @@ export default function PrivacyPage() {
       </p>
       <p className={p}>
         <strong>Payment information.</strong> Subscription payments are processed by Stripe. We do
-        not collect or store your card number, expiry date, or CVC — Stripe handles and stores
-        that directly. We store only the subscription status, plan, and Stripe&rsquo;s own
+        not collect or store your card number, expiry date, or CVC — Stripe handles and stores that
+        directly. We store only the subscription status, plan, and Stripe&rsquo;s own
         customer/subscription identifiers needed to know what your organisation is entitled to.
       </p>
       <p className={p}>
         <strong>API keys.</strong> When your organisation creates an API key, we store a one-way
-        hash of it and a short, non-secret prefix for identification — the plaintext key is shown
-        to you once, at creation, and is never stored or retrievable again.
+        hash of it and a short, non-secret prefix for identification — the plaintext key is shown to
+        you once, at creation, and is never stored or retrievable again.
       </p>
       <p className={p}>
         <strong>Usage and audit events.</strong> We log events describing what your organisation
         does within the Service — for example, that a scan completed, or an API key was created —
         including a timestamp, the organisation and actor involved, and an outcome. This powers
-        billing/usage limits, the Usage and Analytics views in Console, and security auditing. We
-        do not log the content of what you submit to a product (for example, the log sample you
-        paste into Sentinel) as part of this audit trail — only that the action occurred.
+        billing/usage limits, the Usage and Analytics views in Console, and security auditing. We do
+        not log the content of what you submit to a product (for example, the log sample you paste
+        into Sentinel) as part of this audit trail — only that the action occurred.
       </p>
       <p className={p}>
         <strong>Content you submit to a product.</strong> Some products (for example, Sentinel and
-        CSPM) accept data you paste in directly — log samples, resource descriptions — to analyse
-        on request. Handling of that content is described on each product&rsquo;s own page;
-        [TODO(launch): confirm and state each product&rsquo;s retention period for submitted
-        content here once decided].
+        CSPM) accept data you paste in directly — log samples, resource descriptions — to analyse on
+        request. Handling of that content is described on each product&rsquo;s own page;
+        [TODO(launch): confirm and state each product&rsquo;s retention period for submitted content
+        here once decided].
       </p>
 
       <h2 className={h2}>2. How we use information</h2>
@@ -77,8 +77,8 @@ export default function PrivacyPage() {
         <li>To comply with legal obligations.</li>
       </ul>
       <p className={p}>
-        We do not sell your personal information, and we do not use content you submit to a
-        product to train any model.
+        We do not sell your personal information, and we do not use content you submit to a product
+        to train any model.
       </p>
 
       <h2 className={h2}>3. Who we share information with</h2>
@@ -114,16 +114,16 @@ export default function PrivacyPage() {
 
       <h2 className={h2}>4. Data retention</h2>
       <p className={p}>
-        We retain account and audit data for as long as your organisation&rsquo;s account is
-        active, and for a limited period afterward as needed for legal, tax, or dispute-resolution
-        purposes. [TODO(launch): specific retention periods per data category not yet decided.]
+        We retain account and audit data for as long as your organisation&rsquo;s account is active,
+        and for a limited period afterward as needed for legal, tax, or dispute-resolution purposes.
+        [TODO(launch): specific retention periods per data category not yet decided.]
       </p>
 
       <h2 className={h2}>5. Cookies</h2>
       <p className={p}>
-        We use cookies required for authentication (set by Clerk) and, where used, essential
-        session state. We do not currently use third-party advertising or cross-site tracking
-        cookies. [TODO(launch): update this section if analytics/marketing cookies are added.]
+        We use cookies required for authentication (set by Clerk) and, where used, essential session
+        state. We do not currently use third-party advertising or cross-site tracking cookies.
+        [TODO(launch): update this section if analytics/marketing cookies are added.]
       </p>
 
       <h2 className={h2}>6. Your rights</h2>
@@ -131,8 +131,8 @@ export default function PrivacyPage() {
         Depending on your location, you may have rights to access, correct, delete, or export your
         personal information, and to object to or restrict certain processing. To exercise any of
         these rights, contact {siteConfig.legalEmail}. [TODO(launch): this section needs
-        jurisdiction-specific detail — e.g. GDPR/UK GDPR and CCPA/CPRA rights and response
-        timelines — once NEXORA&rsquo;s operating jurisdictions and user base are known.]
+        jurisdiction-specific detail — e.g. GDPR/UK GDPR and CCPA/CPRA rights and response timelines
+        — once NEXORA&rsquo;s operating jurisdictions and user base are known.]
       </p>
 
       <h2 className={h2}>7. Security</h2>
@@ -147,8 +147,8 @@ export default function PrivacyPage() {
 
       <h2 className={h2}>8. Children&rsquo;s privacy</h2>
       <p className={p}>
-        The Service is not directed at children and is not intended for use by anyone under the
-        age of 16. We do not knowingly collect personal information from children.
+        The Service is not directed at children and is not intended for use by anyone under the age
+        of 16. We do not knowingly collect personal information from children.
       </p>
 
       <h2 className={h2}>9. Changes to this policy</h2>

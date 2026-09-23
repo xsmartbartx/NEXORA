@@ -42,7 +42,8 @@ packages/
   telemetry/         event emission/read helpers, built on packages/database
   api-kit/           the error contract, rate limiting and API-key-auth wrapper every machine endpoint shares
   config/            shared TypeScript / lint / format configuration
-infrastructure/       DNS, edge, deployment (provisioned per environment)
+infrastructure/
+  docker/            one Dockerfile builds any app; docker-compose.yml runs all 10 + Postgres locally
 docs/                 architecture, ADRs and supporting documents
 ```
 
@@ -102,6 +103,17 @@ against real infrastructure, not just typechecked:**
   correctly on `/marketplace` and a product page, removed them. See
   [`docs/adr/ADR-0013-marketplace-listing-taxonomy.md`](docs/adr/ADR-0013-marketplace-listing-taxonomy.md)
   for the design.
+- **Docker** — every app builds to a real, standalone container image from
+  [`infrastructure/docker/Dockerfile`](infrastructure/docker/Dockerfile):
+  `website` (no external dependencies) built, ran, and served real pages
+  and a static asset from inside the container; `console` (needs Clerk +
+  Postgres) built with placeholder env and correctly served the same
+  "Setup required" page it does locally; the full 10-app +
+  Postgres [`docker-compose.yml`](infrastructure/docker/docker-compose.yml)
+  stack came up together, ran real migrations against its own Postgres,
+  and every app responded `200`, with `sentinel`/`cspm`/`gateway`/`api`'s
+  health checks confirming their database connection specifically — see
+  [`infrastructure/docker/README.md`](infrastructure/docker/README.md).
 
 Every product is honestly scoped: real statistical/rule-based/proxy logic
 on data or a request _you_ provide today, not the eventual live-connected
@@ -144,6 +156,28 @@ reachable" message instead of crashing.
   vars fall back to its intended `*.onenexora.com` subdomain.
 - `hello@onenexora.com` is not a verified, monitored inbox — it's the site's
   only contact method (`/company#contact`).
+
+**Legal.** [`/legal`](apps/website/src/app/legal) has a real Terms of
+Service, Privacy Policy and Security Statement — not filler text, but a
+draft written by an AI assistant, not a lawyer, marked as such on every
+page and pending review. It references a legal entity, jurisdiction and
+registered address that don't exist yet (`site-config.ts`, same
+`TODO(launch)` pattern as pricing). A lawyer needs to review and approve
+these — for the jurisdictions NEXORA actually operates in — before
+they're anything more than a draft, and specifically before Stripe
+processes a live payment (Stripe's own merchant terms require a posted
+privacy policy and ToS).
+
+**Deployment.** Containers exist and are verified (see above), but where
+they actually run doesn't — no VPS, managed container platform, or CI
+deploy step is wired up yet, only local build/run. `packages/api-kit`'s
+rate limiter is in-memory (per-instance), noted in its own file comment,
+and needs a shared store (Redis/Upstash) before running more than one
+replica of `api`/`gateway`. If the eventual deploy target uses a real,
+non-`localhost` domain per app, see
+[`infrastructure/docker/README.md`](infrastructure/docker/README.md)'s
+"Build-time vs. runtime env" section before assuming the built images are
+ready to point at it.
 
 ## Getting started
 

@@ -38,3 +38,37 @@ jobs:
 
       - name: Build
         run: npm run build
+
+  docker-build:
+    name: Docker build (website)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # Only one app, deliberately: building all 10 in parallel is what
+      # exhausted memory when this was verified locally (see
+      # infrastructure/docker/README.md) — GitHub-hosted runners have a
+      # similar RAM ceiling. This app was picked because it has no
+      # external dependencies (Clerk/Postgres/Stripe), so a broken build
+      # here can only be the Dockerfile or next.config.ts's standalone
+      # output, not a missing credential. It exists to catch that
+      # specific regression, not to smoke-test every app on every push.
+      - name: Build website image
+        run: |
+          docker build -f infrastructure/docker/Dockerfile \
+            --build-arg APP_NAME=website \
+            --build-arg APP_PORT=3000 \
+            -t nexora-website:ci .
+
+      - name: Run and health-check
+        run: |
+          docker run -d --name nexora-website-ci -p 18080:3000 nexora-website:ci
+          for i in $(seq 1 15); do
+            code=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:18080/ || echo "000")
+            [ "$code" = "200" ] && echo "OK: got 200" && exit 0
+            sleep 1
+          done
+          echo "FAILED: container never returned 200"
+          docker logs nexora-website-ci
+          exit 1

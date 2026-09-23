@@ -70,9 +70,9 @@ export default function SecurityPage() {
       <p className={p}>
         All traffic to the Service is intended to be served over HTTPS/TLS. [TODO(launch): edge/TLS
         termination is not provisioned yet — this platform has not been deployed to production
-        infrastructure. This statement should be reviewed and confirmed once it has been.]
-        Database encryption at rest depends on the Postgres hosting provider selected; [TODO(launch):
-        name the provider and confirm its at-rest encryption once selected].
+        infrastructure. This statement should be reviewed and confirmed once it has been.] Database
+        encryption at rest depends on the Postgres hosting provider selected; [TODO(launch): name
+        the provider and confirm its at-rest encryption once selected].
       </p>
 
       <h2 className={h2}>What we have not done yet</h2>
@@ -89,10 +89,10 @@ export default function SecurityPage() {
       <p className={p}>
         If you believe you&rsquo;ve found a security vulnerability in NEXORA, please report it to{" "}
         {siteConfig.securityEmail} rather than disclosing it publicly. We ask that you give us a
-        reasonable opportunity to investigate and address a report before any public disclosure,
-        and that you do not access or modify data that isn&rsquo;t your own while investigating.
-        [TODO(launch): formalise a disclosure/bounty policy and response-time commitment once
-        real infrastructure exists to triage against.]
+        reasonable opportunity to investigate and address a report before any public disclosure, and
+        that you do not access or modify data that isn&rsquo;t your own while investigating.
+        [TODO(launch): formalise a disclosure/bounty policy and response-time commitment once real
+        infrastructure exists to triage against.]
       </p>
     </div>
   );

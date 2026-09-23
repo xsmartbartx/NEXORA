@@ -38,43 +38,43 @@ export default function TermsPage() {
 
       <h2 className={h2}>1. Eligibility</h2>
       <p className={p}>
-        You must be at least the age of majority in your jurisdiction to create an account. If
-        you are using the Service on behalf of an organisation, that organisation is bound by
-        these Terms and both you and the organisation are jointly responsible for compliance.
+        You must be at least the age of majority in your jurisdiction to create an account. If you
+        are using the Service on behalf of an organisation, that organisation is bound by these
+        Terms and both you and the organisation are jointly responsible for compliance.
       </p>
 
       <h2 className={h2}>2. Accounts and organisations</h2>
       <p className={p}>
-        Access to the Service requires an account. Accounts, API keys and billing all belong to
-        an <strong>organisation</strong>, never to an individual person directly — a person may
-        belong to more than one organisation and switches between them explicitly. You are
-        responsible for maintaining the security of your account credentials and for all activity
-        that occurs under your account or organisation, including activity performed with API
-        keys your organisation issues. Notify us immediately at {siteConfig.contactEmail} if you
-        suspect unauthorised access.
+        Access to the Service requires an account. Accounts, API keys and billing all belong to an{" "}
+        <strong>organisation</strong>, never to an individual person directly — a person may belong
+        to more than one organisation and switches between them explicitly. You are responsible for
+        maintaining the security of your account credentials and for all activity that occurs under
+        your account or organisation, including activity performed with API keys your organisation
+        issues. Notify us immediately at {siteConfig.contactEmail} if you suspect unauthorised
+        access.
       </p>
 
       <h2 className={h2}>3. The Service</h2>
       <p className={p}>
         NEXORA is a platform of individually-scoped products. Each product&rsquo;s own page states
         what it actually does today, as distinct from features described as planned or on the
-        roadmap — that distinction is part of these Terms, not just marketing copy. Products at
-        the &ldquo;beta&rdquo; lifecycle stage may change, be limited, or be discontinued with
-        notice; products in earlier stages (Labs) carry no service-level commitment at all.
+        roadmap — that distinction is part of these Terms, not just marketing copy. Products at the
+        &ldquo;beta&rdquo; lifecycle stage may change, be limited, or be discontinued with notice;
+        products in earlier stages (Labs) carry no service-level commitment at all.
       </p>
       <p className={p}>
-        We do not guarantee that the Service will be uninterrupted, error-free, or available at
-        any particular time, except to the extent a separately agreed service-level commitment
-        says otherwise for your plan.
+        We do not guarantee that the Service will be uninterrupted, error-free, or available at any
+        particular time, except to the extent a separately agreed service-level commitment says
+        otherwise for your plan.
       </p>
 
       <h2 className={h2}>4. Subscriptions, billing and payment</h2>
       <p className={p}>
         Paid plans are billed on a recurring basis through our payment processor, Stripe. By
-        subscribing to a paid plan, you authorise us (via Stripe) to charge your payment method on
-        a recurring basis until you cancel. Plan names, prices and usage limits in effect at any
-        given time are shown in the Console and are subject to change with notice before your next
-        billing period.
+        subscribing to a paid plan, you authorise us (via Stripe) to charge your payment method on a
+        recurring basis until you cancel. Plan names, prices and usage limits in effect at any given
+        time are shown in the Console and are subject to change with notice before your next billing
+        period.
       </p>
       <p className={p}>
         Usage limits are enforced per organisation per billing period as described for your plan.
@@ -112,9 +112,7 @@ export default function TermsPage() {
           Use the Service to build a product that is directly competitive with it, using access
           obtained through the Service itself;
         </li>
-        <li>
-          Resell or sublicense access to the Service without our prior written consent.
-        </li>
+        <li>Resell or sublicense access to the Service without our prior written consent.</li>
       </ul>
 
       <h2 className={h2}>6. API access and rate limits</h2>
@@ -127,10 +125,10 @@ export default function TermsPage() {
 
       <h2 className={h2}>7. Intellectual property</h2>
       <p className={p}>
-        NEXORA and its licensors retain all right, title and interest in the Service, including
-        all software, design and content we provide, excluding any content or data you submit.
-        Subject to these Terms, we grant you a limited, non-exclusive, non-transferable licence to
-        access and use the Service for your own internal business purposes.
+        NEXORA and its licensors retain all right, title and interest in the Service, including all
+        software, design and content we provide, excluding any content or data you submit. Subject
+        to these Terms, we grant you a limited, non-exclusive, non-transferable licence to access
+        and use the Service for your own internal business purposes.
       </p>
       <p className={p}>
         You retain ownership of any data, content or configuration you submit to the Service (
@@ -144,9 +142,8 @@ export default function TermsPage() {
         WARRANTIES OF ANY KIND, WHETHER EXPRESS, IMPLIED, OR STATUTORY, INCLUDING WARRANTIES OF
         MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, AND NON-INFRINGEMENT, TO THE MAXIMUM
         EXTENT PERMITTED BY APPLICABLE LAW. Product pages describe what each product does today;
-        outputs of any statistical, rule-based or AI-assisted feature are provided for your
-        review and are not guaranteed to be complete, accurate, or suitable for any particular
-        decision.
+        outputs of any statistical, rule-based or AI-assisted feature are provided for your review
+        and are not guaranteed to be complete, accurate, or suitable for any particular decision.
       </p>
 
       <h2 className={h2}>9. Limitation of liability</h2>
@@ -154,8 +151,8 @@ export default function TermsPage() {
         TO THE MAXIMUM EXTENT PERMITTED BY LAW, NEXORA WILL NOT BE LIABLE FOR ANY INDIRECT,
         INCIDENTAL, SPECIAL, CONSEQUENTIAL, OR PUNITIVE DAMAGES, OR ANY LOSS OF PROFITS, REVENUE,
         DATA, OR GOODWILL, ARISING FROM OR RELATED TO YOUR USE OF THE SERVICE. OUR TOTAL LIABILITY
-        FOR ANY CLAIM ARISING FROM THESE TERMS OR THE SERVICE WILL NOT EXCEED THE AMOUNT YOU PAID
-        US IN THE TWELVE (12) MONTHS PRECEDING THE CLAIM.
+        FOR ANY CLAIM ARISING FROM THESE TERMS OR THE SERVICE WILL NOT EXCEED THE AMOUNT YOU PAID US
+        IN THE TWELVE (12) MONTHS PRECEDING THE CLAIM.
       </p>
 
       <h2 className={h2}>10. Indemnification</h2>
@@ -169,17 +166,17 @@ export default function TermsPage() {
       <p className={p}>
         You may stop using the Service and close your account at any time. We may suspend or
         terminate your access to the Service if you materially breach these Terms and do not cure
-        the breach within a reasonable time after notice, or immediately if required to prevent
-        harm to the Service or other users. Sections of these Terms that by their nature should
-        survive termination (including Intellectual Property, Disclaimers, Limitation of
-        Liability, and Governing Law) will survive.
+        the breach within a reasonable time after notice, or immediately if required to prevent harm
+        to the Service or other users. Sections of these Terms that by their nature should survive
+        termination (including Intellectual Property, Disclaimers, Limitation of Liability, and
+        Governing Law) will survive.
       </p>
 
       <h2 className={h2}>12. Changes to these Terms</h2>
       <p className={p}>
         We may update these Terms from time to time. Material changes will be notified through the
-        Service or by email before taking effect. Continued use of the Service after a change
-        takes effect constitutes acceptance of the updated Terms.
+        Service or by email before taking effect. Continued use of the Service after a change takes
+        effect constitutes acceptance of the updated Terms.
       </p>
 
       <h2 className={h2}>13. Governing law</h2>
