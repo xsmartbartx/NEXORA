@@ -4,8 +4,14 @@ const docsUrl = process.env.NEXT_PUBLIC_DOCS_URL ?? "https://docs.onenexora.com"
 const statusUrl = process.env.NEXT_PUBLIC_STATUS_URL ?? "https://status.onenexora.com";
 
 const steps = [
-  { title: "Describe", body: "List your resources as JSON — buckets, security groups, IAM policies." },
-  { title: "Scan", body: "A real rule set checks each resource against known misconfiguration patterns." },
+  {
+    title: "Describe",
+    body: "List your resources as JSON — buckets, security groups, IAM policies.",
+  },
+  {
+    title: "Scan",
+    body: "A real rule set checks each resource against known misconfiguration patterns.",
+  },
   { title: "Fix", body: "Get back concrete findings, ranked by severity, with what to change." },
 ];
 
@@ -26,16 +32,18 @@ export default function CspmHome() {
           NEXORA CSPM
         </h1>
         <p className="mt-4 max-w-xl text-lg text-muted-foreground">
-          Paste your cloud config, get real findings back. The same class of
-          check a live-connected scanner runs — public buckets, open
-          security groups, over-permissive policies — on a resource
-          description you provide.
+          Paste your cloud config, get real findings back. The same class of check a live-connected
+          scanner runs — public buckets, open security groups, over-permissive policies — on a
+          resource description you provide.
         </p>
         <div className="mt-8 flex flex-col gap-4 sm:flex-row">
           <a href="/app" className={buttonVariants({ size: "lg" })}>
             Open CSPM
           </a>
-          <a href={`${docsUrl}/quickstart`} className={buttonVariants({ size: "lg", variant: "outline" })}>
+          <a
+            href={`${docsUrl}/quickstart`}
+            className={buttonVariants({ size: "lg", variant: "outline" })}
+          >
             Read the docs
           </a>
         </div>
@@ -43,7 +51,9 @@ export default function CspmHome() {
 
       <section className="border-t border-border px-6 py-20">
         <div className="mx-auto max-w-4xl">
-          <h2 className="text-center text-2xl font-semibold tracking-tight">Describe. Scan. Fix.</h2>
+          <h2 className="text-center text-2xl font-semibold tracking-tight">
+            Describe. Scan. Fix.
+          </h2>
           <div className="mt-10 grid gap-6 sm:grid-cols-3">
             {steps.map((step, i) => (
               <div key={step.title} className="rounded-xl border border-border bg-card p-6">
@@ -68,8 +78,8 @@ export default function CspmHome() {
             ))}
           </ul>
           <p className="mt-6 text-sm text-muted-foreground">
-            Rule-based checks on data you provide today; connecting a live
-            cloud account is on the roadmap — see{" "}
+            Rule-based checks on data you provide today; connecting a live cloud account is on the
+            roadmap — see{" "}
             <a href={`${docsUrl}/concepts`} className="text-primary hover:underline">
               Concepts
             </a>

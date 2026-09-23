@@ -51,9 +51,8 @@ export default function StatusPage() {
       </div>
 
       <p className="mt-8 text-center text-xs text-muted-foreground">
-        Component status is set manually today. Sentinel and CSPM publish a
-        real health endpoint each — automated polling is the next step, not
-        yet wired up.
+        Component status is set manually today. Sentinel and CSPM publish a real health endpoint
+        each — automated polling is the next step, not yet wired up.
       </p>
     </div>
   );

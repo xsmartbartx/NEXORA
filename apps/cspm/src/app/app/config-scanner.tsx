@@ -77,7 +77,10 @@ export function ConfigScanner() {
               </p>
             ) : (
               result.findings.map((finding, i) => (
-                <div key={`${finding.resource}-${finding.rule}-${i}`} className="flex flex-col gap-1 p-4">
+                <div
+                  key={`${finding.resource}-${finding.rule}-${i}`}
+                  className="flex flex-col gap-1 p-4"
+                >
                   <div className="flex items-center gap-2">
                     <Badge variant={severityVariant[finding.severity]}>{finding.severity}</Badge>
                     <span className="text-xs text-muted-foreground">

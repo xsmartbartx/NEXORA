@@ -25,8 +25,8 @@ export default async function UsagePage() {
       </span>
       <h1 className="mt-2 text-3xl font-semibold tracking-tight">Usage</h1>
       <p className="mt-2 max-w-xl text-muted-foreground">
-        Every event your organisation&rsquo;s products and API keys have
-        emitted (C-EVENT, §4.2) — scoped to this organisation only.
+        Every event your organisation&rsquo;s products and API keys have emitted (C-EVENT, §4.2) —
+        scoped to this organisation only.
       </p>
 
       <div className="mt-8">
@@ -47,7 +47,10 @@ export default async function UsagePage() {
                     </p>
                   ) : null}
                 </div>
-                <time className="shrink-0 text-xs text-muted-foreground" dateTime={event.createdAt.toISOString()}>
+                <time
+                  className="shrink-0 text-xs text-muted-foreground"
+                  dateTime={event.createdAt.toISOString()}
+                >
                   {event.createdAt.toLocaleString()}
                 </time>
               </div>
@@ -55,8 +58,8 @@ export default async function UsagePage() {
           </div>
         ) : (
           <div className="rounded-xl border border-dashed border-border p-6 text-sm text-muted-foreground">
-            Nothing yet — usage appears here as soon as your organisation
-            uses an API key or a product.
+            Nothing yet — usage appears here as soon as your organisation uses an API key or a
+            product.
           </div>
         )}
       </div>

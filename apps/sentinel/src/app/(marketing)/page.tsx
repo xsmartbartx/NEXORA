@@ -6,7 +6,10 @@ const statusUrl = process.env.NEXT_PUBLIC_STATUS_URL ?? "https://status.onenexor
 const steps = [
   { title: "Paste", body: "Drop in a log sample — plain text, one entry per line." },
   { title: "Analyze", body: "Keyword rules plus frequency-based outlier detection run instantly." },
-  { title: "Review", body: "Get back the lines actually worth a human's attention, ranked by severity." },
+  {
+    title: "Review",
+    body: "Get back the lines actually worth a human's attention, ranked by severity.",
+  },
 ];
 
 const capabilities = [
@@ -25,15 +28,17 @@ export default function SentinelHome() {
           AI Cloud Log Sentinel
         </h1>
         <p className="mt-4 max-w-xl text-lg text-muted-foreground">
-          Paste a log sample, find the ten lines worth reading. Sentinel
-          flags what doesn&rsquo;t fit the pattern, so you don&rsquo;t read
-          ten thousand lines to find the ones that matter.
+          Paste a log sample, find the ten lines worth reading. Sentinel flags what doesn&rsquo;t
+          fit the pattern, so you don&rsquo;t read ten thousand lines to find the ones that matter.
         </p>
         <div className="mt-8 flex flex-col gap-4 sm:flex-row">
           <a href="/app" className={buttonVariants({ size: "lg" })}>
             Open Sentinel
           </a>
-          <a href={`${docsUrl}/quickstart`} className={buttonVariants({ size: "lg", variant: "outline" })}>
+          <a
+            href={`${docsUrl}/quickstart`}
+            className={buttonVariants({ size: "lg", variant: "outline" })}
+          >
             Read the docs
           </a>
         </div>
@@ -41,7 +46,9 @@ export default function SentinelHome() {
 
       <section className="border-t border-border px-6 py-20">
         <div className="mx-auto max-w-4xl">
-          <h2 className="text-center text-2xl font-semibold tracking-tight">Paste. Analyze. Review.</h2>
+          <h2 className="text-center text-2xl font-semibold tracking-tight">
+            Paste. Analyze. Review.
+          </h2>
           <div className="mt-10 grid gap-6 sm:grid-cols-3">
             {steps.map((step, i) => (
               <div key={step.title} className="rounded-xl border border-border bg-card p-6">
@@ -66,8 +73,8 @@ export default function SentinelHome() {
             ))}
           </ul>
           <p className="mt-6 text-sm text-muted-foreground">
-            Statistical detection today; deeper AI-based analysis and live
-            cloud log connections are on the roadmap — see{" "}
+            Statistical detection today; deeper AI-based analysis and live cloud log connections are
+            on the roadmap — see{" "}
             <a href={`${docsUrl}/concepts`} className="text-primary hover:underline">
               Concepts
             </a>

@@ -20,7 +20,12 @@ export const components: StatusComponent[] = [
   { name: "Website", description: "onenexora.com", status: "operational" },
   { name: "Account", description: "account.onenexora.com", status: "operational" },
   { name: "Console", description: "console.onenexora.com", status: "operational" },
-  { name: "API", description: "api.onenexora.com", status: "operational", healthUrl: "https://api.onenexora.com/v1/health" },
+  {
+    name: "API",
+    description: "api.onenexora.com",
+    status: "operational",
+    healthUrl: "https://api.onenexora.com/v1/health",
+  },
   { name: "Docs", description: "docs.onenexora.com", status: "operational" },
   { name: "Developers", description: "developers.onenexora.com", status: "operational" },
   { name: "Status", description: "status.onenexora.com", status: "operational" },

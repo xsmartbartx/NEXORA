@@ -161,7 +161,9 @@ export function parseResourcesInput(raw: string): CloudResource[] {
 
   const list = Array.isArray(parsed)
     ? parsed
-    : typeof parsed === "object" && parsed !== null && Array.isArray((parsed as { resources?: unknown }).resources)
+    : typeof parsed === "object" &&
+        parsed !== null &&
+        Array.isArray((parsed as { resources?: unknown }).resources)
       ? (parsed as { resources: unknown[] }).resources
       : null;
 

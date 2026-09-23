@@ -22,9 +22,21 @@ export interface AnalyzeResult {
 }
 
 const KEYWORD_RULES: { pattern: RegExp; severity: FindingSeverity; reason: string }[] = [
-  { pattern: /\b(fatal|panic|segfault|out of memory|oom)\b/i, severity: "critical", reason: "Fatal-level keyword" },
-  { pattern: /\b(error|exception|denied|refused|failed)\b/i, severity: "warning", reason: "Error-level keyword" },
-  { pattern: /\b(timeout|retry|retrying|degraded|slow)\b/i, severity: "info", reason: "Reliability keyword" },
+  {
+    pattern: /\b(fatal|panic|segfault|out of memory|oom)\b/i,
+    severity: "critical",
+    reason: "Fatal-level keyword",
+  },
+  {
+    pattern: /\b(error|exception|denied|refused|failed)\b/i,
+    severity: "warning",
+    reason: "Error-level keyword",
+  },
+  {
+    pattern: /\b(timeout|retry|retrying|degraded|slow)\b/i,
+    severity: "info",
+    reason: "Reliability keyword",
+  },
 ];
 
 const MAX_FINDINGS = 100;
@@ -32,7 +44,10 @@ const MAX_FINDINGS = 100;
 /** Collapses the variable parts of a line so repeated log shapes collide into one bucket. */
 function normalizeShape(line: string): string {
   return line
-    .replace(/[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}/g, "<uuid>")
+    .replace(
+      /[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}/g,
+      "<uuid>",
+    )
     .replace(/\b\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\b/g, "<ip>")
     .replace(/\b\d{4}-\d{2}-\d{2}[T ]\d{2}:\d{2}:\d{2}(\.\d+)?Z?\b/g, "<timestamp>")
     .replace(/\b\d+\b/g, "<n>")
@@ -58,7 +73,12 @@ export function analyzeLogSample(raw: string): AnalyzeResult {
     const keywordRule = KEYWORD_RULES.find((rule) => rule.pattern.test(line));
 
     if (keywordRule) {
-      findings.push({ line, lineNumber: i + 1, severity: keywordRule.severity, reason: keywordRule.reason });
+      findings.push({
+        line,
+        lineNumber: i + 1,
+        severity: keywordRule.severity,
+        reason: keywordRule.reason,
+      });
       continue;
     }
 
