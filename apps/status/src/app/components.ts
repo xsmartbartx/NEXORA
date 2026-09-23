@@ -41,4 +41,10 @@ export const components: StatusComponent[] = [
     status: "operational",
     healthUrl: "https://cspm.onenexora.com/api/health",
   },
+  {
+    name: "Gateway",
+    description: "gateway.onenexora.com",
+    status: "operational",
+    healthUrl: "https://gateway.onenexora.com/api/health",
+  },
 ];

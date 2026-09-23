@@ -7,15 +7,16 @@ export const metadata: Metadata = {
 
 const sentinelUrl = process.env.NEXT_PUBLIC_SENTINEL_URL ?? "https://sentinel.onenexora.com";
 const cspmUrl = process.env.NEXT_PUBLIC_CSPM_URL ?? "https://cspm.onenexora.com";
+const gatewayUrl = process.env.NEXT_PUBLIC_GATEWAY_URL ?? "https://gateway.onenexora.com";
 
 export default function ProductsDocsPage() {
   return (
     <article className="prose prose-invert max-w-none">
       <h1>Products</h1>
       <p>
-        Each product&rsquo;s own quickstart. Both are <code>beta</code> — real, working tools with
-        an honestly-scoped feature set, not the eventual full vision. See each section for exactly
-        what that means today.
+        Each product&rsquo;s own quickstart. All three are <code>beta</code> — real, working tools
+        with an honestly-scoped feature set, not the eventual full vision. See each section for
+        exactly what that means today.
       </p>
 
       <h2 id="sentinel">Sentinel</h2>
@@ -70,6 +71,34 @@ export default function ProductsDocsPage() {
         <strong>Today:</strong> rule-based checks (public buckets, open security groups, wildcard
         IAM policies, public/unencrypted databases) on a resource description you provide. Nothing
         is stored. <strong>Not yet:</strong> connecting a live AWS/GCP/Azure account.
+      </p>
+
+      <h2 id="gateway">Gateway</h2>
+      <p>
+        <a href={gatewayUrl}>{gatewayUrl}</a>
+      </p>
+      <p>
+        Gateway is called via API, not a paste-and-click tool — see{" "}
+        <a href="/api-reference">API Reference</a> for the full endpoint. To try it without writing
+        code first:
+      </p>
+      <ol>
+        <li>
+          Open <a href={`${gatewayUrl}/app`}>{gatewayUrl}/app</a> and sign in.
+        </li>
+        <li>Type a prompt into the playground and send it — no API key needed here, your session is enough.</li>
+      </ol>
+      <p>For a real integration, use an API key from Console:</p>
+      <pre>
+        <code>{`curl ${gatewayUrl}/v1/chat \\
+  -H "Authorization: Bearer nx_live_your_key_here" \\
+  -H "Content-Type: application/json" \\
+  -d '{"messages":[{"role":"user","content":"Hello"}]}'`}</code>
+      </pre>
+      <p>
+        <strong>Today:</strong> one configurable upstream provider (Anthropic&rsquo;s Messages API
+        shape by default), proxied with full auth, rate-limiting, entitlement checks and audit
+        logging. <strong>Not yet:</strong> multi-provider routing, a model allowlist/policy engine.
       </p>
     </article>
   );

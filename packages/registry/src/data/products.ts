@@ -5,18 +5,12 @@ import type { Product } from "../types";
  * day 29–30: "Seed registry with Sentinel, CSPM and Gateway at correct
  * lifecycle states").
  *
- * Sentinel and CSPM were promoted to `beta`/`public` in Phase 4, once their
- * product apps existed and passed the Tenant Contract (§4.3) — see
- * apps/sentinel and apps/cspm. Their descriptions are deliberately scoped
- * to what those apps actually do today (statistical/rule-based analysis on
- * data you paste in), not the eventual live-cloud-connected vision —
- * promoting the lifecycle state is not licence to overclaim the copy.
- *
- * Gateway has no app yet, so it stays `concept`/`internal` per §5.3: that
- * means it surfaces only in Labs and internal console views, never as a
- * public claim of a shipping product. Promote its `lifecycle`/`visibility`
- * here — nothing else — once its product app exists and passes the Tenant
- * Contract.
+ * Sentinel and CSPM were promoted to `beta`/`public` in Phase 4; Gateway in
+ * Phase 5 — each once its product app existed and passed the Tenant
+ * Contract (§4.3). Every description is deliberately scoped to what that
+ * app actually does today (real but narrow), not the eventual full
+ * vision — promoting the lifecycle state is not licence to overclaim the
+ * copy.
  */
 export const products: Product[] = [
   {
@@ -64,13 +58,15 @@ export const products: Product[] = [
     short_name: "Gateway",
     tagline: "A governed front door for every model call your org makes.",
     description:
-      "Gateway sits between applications and AI model providers, applying authentication, rate limits, policy and audit logging to every request, regardless of provider.",
+      "Gateway sits between applications and AI model providers, so your org calls one endpoint with one key instead of a loose API key copy-pasted into every service. Today that's one configurable upstream provider, proxied with full auth, rate-limiting, entitlement checks and audit logging; multi-provider routing and a model policy engine are on the roadmap.",
     category: "ai",
     platform_pillar: "ai",
-    lifecycle: "concept",
-    visibility: "internal",
-    featured: false,
+    lifecycle: "beta",
+    visibility: "public",
+    featured: true,
     url: "https://gateway.onenexora.com",
+    app_url: "https://gateway.onenexora.com/app",
+    health_source: "https://gateway.onenexora.com/api/health",
     icon: "gateway",
     owner: "Platform Team",
   },
