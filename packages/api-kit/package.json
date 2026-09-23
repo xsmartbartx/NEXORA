@@ -1,0 +1,23 @@
+{
+  "name": "@nexora/api-kit",
+  "version": "0.1.0",
+  "private": true,
+  "description": "The error contract, rate limiting and API-key-auth wrapper shared by every machine-facing NEXORA endpoint (apps/api, apps/gateway).",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@nexora/database": "*"
+  },
+  "devDependencies": {
+    "@types/node": "^20",
+    "typescript": "^5"
+  },
+  "peerDependencies": {
+    "next": "^16"
+  }
+}

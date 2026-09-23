@@ -1,10 +1,9 @@
 import { NextResponse } from "next/server";
 import { getProductBySlug } from "@nexora/registry";
-import { apiError } from "@/lib/api-error";
-import { withApiKey } from "@/lib/with-api-key";
+import { apiError, withApiKey } from "@nexora/api-kit";
 
 export async function GET(request: Request, props: { params: Promise<{ slug: string }> }) {
-  return withApiKey(request, async () => {
+  return withApiKey(request, "api", async () => {
     const { slug } = await props.params;
     const product = getProductBySlug(slug);
 

@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { getPublicProducts } from "@nexora/registry";
-import { withApiKey } from "@/lib/with-api-key";
+import { withApiKey } from "@nexora/api-kit";
 
 /**
  * C-META over the wire: the same Product Registry every other surface
@@ -8,7 +8,7 @@ import { withApiKey } from "@/lib/with-api-key";
  * quickstart's "first successful call" (Phase 3 exit criteria).
  */
 export async function GET(request: Request) {
-  return withApiKey(request, async () => {
+  return withApiKey(request, "api", async () => {
     const products = getPublicProducts().map((product) => ({
       id: product.id,
       slug: product.slug,

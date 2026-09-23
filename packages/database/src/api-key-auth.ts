@@ -1,13 +1,14 @@
 import crypto from "node:crypto";
-import { eq, isNull, and } from "drizzle-orm";
-import { apiKeys, db } from "@nexora/database";
+import { and, eq, isNull } from "drizzle-orm";
+import { apiKeys } from "./schema";
+import { db } from "./client";
 
 export interface AuthenticatedKey {
   keyId: string;
   orgId: string;
 }
 
-export type AuthResult =
+export type ApiKeyAuthResult =
   | { ok: true; key: AuthenticatedKey }
   | { ok: false; status: 401; code: "missing_api_key" | "invalid_api_key"; message: string };
 
@@ -16,13 +17,14 @@ function hashKey(key: string): string {
 }
 
 /**
- * Machine identity (§6.4): validates the `Authorization: Bearer nx_live_...`
- * header against the hash stored by Console's API Keys page (same
- * `packages/database` table, same hash algorithm — see
- * apps/console/src/app/api-keys/actions.ts). Never compares against or logs
- * the raw key.
+ * Machine identity (§6.4), shared by every product that authenticates
+ * machine requests via a NEXORA API key — currently `apps/api` and
+ * `apps/gateway` — rather than each maintaining its own copy. Validates the
+ * `Authorization: Bearer nx_live_...` header against the hash Console's API
+ * Keys page wrote (apps/console/src/app/api-keys/actions.ts). Never
+ * compares against or logs the raw key.
  */
-export async function authenticateRequest(request: Request): Promise<AuthResult> {
+export async function authenticateApiKey(request: Request): Promise<ApiKeyAuthResult> {
   const header = request.headers.get("authorization") ?? "";
   const [scheme, token] = header.split(" ");
 

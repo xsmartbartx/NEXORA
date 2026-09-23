@@ -10,6 +10,8 @@
     "typecheck": "next typegen && tsc --noEmit"
   },
   "dependencies": {
+    "@nexora/api-kit": "*",
+    "@nexora/billing": "*",
     "@nexora/database": "*",
     "@nexora/registry": "*",
     "next": "16.3.6",

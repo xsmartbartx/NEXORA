@@ -27,12 +27,18 @@ export interface RateLimitResult {
   resetAt: number;
 }
 
-export function checkRateLimit(key: string): RateLimitResult {
+/**
+ * `namespace` keeps one API key's usage of `apps/api` separate from its use
+ * of `apps/gateway` (or any other product) — otherwise calling both from
+ * the same key would share one bucket by accident.
+ */
+export function checkRateLimit(key: string, namespace: string): RateLimitResult {
+  const bucketKey = `${namespace}:${key}`;
   const now = Date.now();
-  const bucket = buckets.get(key);
+  const bucket = buckets.get(bucketKey);
 
   if (!bucket || bucket.resetAt <= now) {
-    buckets.set(key, { count: 1, resetAt: now + WINDOW_MS });
+    buckets.set(bucketKey, { count: 1, resetAt: now + WINDOW_MS });
     return {
       limited: false,
       limit: MAX_REQUESTS_PER_WINDOW,

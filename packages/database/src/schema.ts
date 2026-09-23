@@ -36,7 +36,28 @@ export const auditEvents = pgTable("audit_events", {
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
 
+/**
+ * One row per organisation, mirroring Paddle's subscription resource
+ * (§4.1 Billing: "feeds Entitlements — never deciding access directly").
+ * This table is the read model Entitlements checks against; Paddle's
+ * webhooks (packages/billing) are the only writer. No row means the org is
+ * on the default (free) plan.
+ */
+export const subscriptions = pgTable("subscriptions", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  orgId: text("org_id").notNull().unique(),
+  planId: text("plan_id").notNull(),
+  status: text("status").notNull(),
+  paddleSubscriptionId: text("paddle_subscription_id").notNull().unique(),
+  paddleCustomerId: text("paddle_customer_id").notNull(),
+  currentPeriodEnd: timestamp("current_period_end", { withTimezone: true }),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
 export type ApiKey = typeof apiKeys.$inferSelect;
 export type NewApiKey = typeof apiKeys.$inferInsert;
 export type AuditEvent = typeof auditEvents.$inferSelect;
 export type NewAuditEvent = typeof auditEvents.$inferInsert;
+export type Subscription = typeof subscriptions.$inferSelect;
+export type NewSubscription = typeof subscriptions.$inferInsert;
