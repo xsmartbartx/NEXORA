@@ -1,25 +1,23 @@
 {
-  "name": "@nexora/console",
+  "name": "@nexora/gateway",
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev -p 3002",
+    "dev": "next dev -p 3009",
     "build": "next build",
-    "start": "next start -p 3002",
+    "start": "next start -p 3009",
     "lint": "eslint",
     "typecheck": "next typegen && tsc --noEmit"
   },
   "dependencies": {
     "@clerk/nextjs": "^7.9.4",
+    "@nexora/api-kit": "*",
     "@nexora/auth": "*",
-    "@nexora/billing": "*",
     "@nexora/database": "*",
     "@nexora/entitlements": "*",
-    "@nexora/registry": "*",
     "@nexora/shell": "*",
     "@nexora/telemetry": "*",
     "@nexora/ui": "*",
-    "@paddle/paddle-js": "^1.6.5",
     "next": "16.3.6",
     "react": "19.2.8",
     "react-dom": "19.2.8"

@@ -1,4 +1,6 @@
 export type {
+  Experiment,
+  ExperimentKind,
   Product,
   ProductCapability,
   ProductCategory,
@@ -12,6 +14,8 @@ export type {
 
 export {
   getAllProducts,
+  getExperimentBySlug,
+  getExperiments,
   getFeaturedProducts,
   getLabsProducts,
   getProductBySlug,

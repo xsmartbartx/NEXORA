@@ -1,5 +1,6 @@
+import { experiments } from "./data/experiments";
 import { products } from "./data/products";
-import type { PlatformPillar, Product, ProductCategory } from "./types";
+import type { Experiment, PlatformPillar, Product, ProductCategory } from "./types";
 
 /**
  * The query layer every surface reads through (§5.4). Nothing outside this
@@ -42,6 +43,15 @@ export function getProductsByCategory(category: ProductCategory): Product[] {
 /** Labs surfaces concept/alpha records regardless of visibility (§8.7, §5.3). */
 export function getLabsProducts(): Product[] {
   return products.filter((p) => p.lifecycle === "concept" || p.lifecycle === "alpha");
+}
+
+/** Every published Labs experiment (§8.7) — write-ups and open-source components that aren't a Product. */
+export function getExperiments(): Experiment[] {
+  return experiments;
+}
+
+export function getExperimentBySlug(slug: string): Experiment | undefined {
+  return experiments.find((e) => e.slug === slug);
 }
 
 /**

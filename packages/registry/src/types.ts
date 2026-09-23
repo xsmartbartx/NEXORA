@@ -67,3 +67,23 @@ export interface ProductDocSection {
   title: string;
   order: number;
 }
+
+export type ExperimentKind = "research" | "open-source";
+
+/**
+ * Labs (§8.7): "research write-ups and open source components" — content
+ * that belongs in Labs but isn't a Product (no lifecycle to graduate
+ * through, no subdomain, no Tenant Contract). Published by adding a record
+ * here, same as a Product — never by touching the products catalogue or
+ * any page's code (Phase 5 exit criteria).
+ */
+export interface Experiment {
+  id: string;
+  slug: string;
+  title: string;
+  summary: string;
+  kind: ExperimentKind;
+  /** External link (a GitHub repo, an npm package) or an internal docs path. */
+  link: string;
+  publishedAt: string;
+}
