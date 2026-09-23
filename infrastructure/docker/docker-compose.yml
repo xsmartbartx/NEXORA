@@ -1,0 +1,208 @@
+# Local reference topology: all 10 apps plus Postgres, each built from the
+# one shared Dockerfile in this directory. Not a production deploy
+# manifest — no orchestrator-level restart/scaling policy, no secrets
+# manager, one Postgres instance for everything. It exists to prove the
+# Dockerfiles actually work together and to give you something real to
+# adapt for whatever you deploy to. See README.md in this directory.
+#
+# Each apps/<name>/.env.local (if it exists — env_file is optional below,
+# so this stack runs even before you've created any) is loaded directly,
+# so there is exactly one place to set real Clerk/Stripe values, shared
+# with local (non-Docker) dev. DATABASE_URL is the one exception: it's
+# overridden per service below to point at this compose network's own
+# `postgres` service, since whatever's in .env.local is set up for
+# non-Docker local dev (Postgres at localhost) and wouldn't resolve here.
+#
+# Run from the repository root:
+#   docker compose -f infrastructure/docker/docker-compose.yml up --build
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: nexora
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - nexora-postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 2s
+      timeout: 3s
+      retries: 15
+
+  # Applies packages/database's migrations once, then exits. The 5 apps
+  # below that need Postgres wait on this, not just on postgres itself
+  # being *up* — being up isn't the same as being migrated.
+  db-migrate:
+    build:
+      context: ../..
+      dockerfile: infrastructure/docker/Dockerfile.migrate
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgres://postgres:postgres@postgres:5432/nexora
+
+  website:
+    build:
+      context: ../..
+      dockerfile: infrastructure/docker/Dockerfile
+      args:
+        APP_NAME: website
+        APP_PORT: "3000"
+    env_file:
+      - path: ../../apps/website/.env.local
+        required: false
+    ports:
+      - "3000:3000"
+
+  account:
+    build:
+      context: ../..
+      dockerfile: infrastructure/docker/Dockerfile
+      args:
+        APP_NAME: account
+        APP_PORT: "3001"
+    env_file:
+      - path: ../../apps/account/.env.local
+        required: false
+    ports:
+      - "3001:3001"
+
+  console:
+    build:
+      context: ../..
+      dockerfile: infrastructure/docker/Dockerfile
+      args:
+        APP_NAME: console
+        APP_PORT: "3002"
+    env_file:
+      - path: ../../apps/console/.env.local
+        required: false
+    environment:
+      # Overrides whatever DATABASE_URL is in .env.local (that file is
+      # shared with non-Docker local dev, where Postgres is reachable at
+      # localhost — inside this compose network it's reachable by the
+      # `postgres` service name instead).
+      DATABASE_URL: postgres://postgres:postgres@postgres:5432/nexora
+    ports:
+      - "3002:3002"
+    depends_on:
+      db-migrate:
+        condition: service_completed_successfully
+
+  status:
+    build:
+      context: ../..
+      dockerfile: infrastructure/docker/Dockerfile
+      args:
+        APP_NAME: status
+        APP_PORT: "3003"
+    env_file:
+      - path: ../../apps/status/.env.local
+        required: false
+    ports:
+      - "3003:3003"
+
+  api:
+    build:
+      context: ../..
+      dockerfile: infrastructure/docker/Dockerfile
+      args:
+        APP_NAME: api
+        APP_PORT: "3004"
+    env_file:
+      - path: ../../apps/api/.env.local
+        required: false
+    environment:
+      DATABASE_URL: postgres://postgres:postgres@postgres:5432/nexora
+    ports:
+      - "3004:3004"
+    depends_on:
+      db-migrate:
+        condition: service_completed_successfully
+
+  docs:
+    build:
+      context: ../..
+      dockerfile: infrastructure/docker/Dockerfile
+      args:
+        APP_NAME: docs
+        APP_PORT: "3005"
+    env_file:
+      - path: ../../apps/docs/.env.local
+        required: false
+    ports:
+      - "3005:3005"
+
+  developers:
+    build:
+      context: ../..
+      dockerfile: infrastructure/docker/Dockerfile
+      args:
+        APP_NAME: developers
+        APP_PORT: "3006"
+    env_file:
+      - path: ../../apps/developers/.env.local
+        required: false
+    ports:
+      - "3006:3006"
+
+  sentinel:
+    build:
+      context: ../..
+      dockerfile: infrastructure/docker/Dockerfile
+      args:
+        APP_NAME: sentinel
+        APP_PORT: "3007"
+    env_file:
+      - path: ../../apps/sentinel/.env.local
+        required: false
+    environment:
+      DATABASE_URL: postgres://postgres:postgres@postgres:5432/nexora
+    ports:
+      - "3007:3007"
+    depends_on:
+      db-migrate:
+        condition: service_completed_successfully
+
+  cspm:
+    build:
+      context: ../..
+      dockerfile: infrastructure/docker/Dockerfile
+      args:
+        APP_NAME: cspm
+        APP_PORT: "3008"
+    env_file:
+      - path: ../../apps/cspm/.env.local
+        required: false
+    environment:
+      DATABASE_URL: postgres://postgres:postgres@postgres:5432/nexora
+    ports:
+      - "3008:3008"
+    depends_on:
+      db-migrate:
+        condition: service_completed_successfully
+
+  gateway:
+    build:
+      context: ../..
+      dockerfile: infrastructure/docker/Dockerfile
+      args:
+        APP_NAME: gateway
+        APP_PORT: "3009"
+    env_file:
+      - path: ../../apps/gateway/.env.local
+        required: false
+    environment:
+      DATABASE_URL: postgres://postgres:postgres@postgres:5432/nexora
+    ports:
+      - "3009:3009"
+    depends_on:
+      db-migrate:
+        condition: service_completed_successfully
+
+volumes:
+  nexora-postgres-data:
