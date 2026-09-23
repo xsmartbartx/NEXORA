@@ -8,7 +8,11 @@ export async function POST(request: Request) {
   return withApiKey(request, "gateway", async (key) => {
     const entitlement = await checkEntitlement(key.orgId, "gateway.proxy");
     if (!entitlement.allowed) {
-      return apiError(403, "entitlement_exceeded", entitlement.reason ?? "Not entitled to use Gateway.");
+      return apiError(
+        403,
+        "entitlement_exceeded",
+        entitlement.reason ?? "Not entitled to use Gateway.",
+      );
     }
 
     let input: RelayRequest;

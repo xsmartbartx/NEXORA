@@ -86,7 +86,10 @@ export default function ProductsDocsPage() {
         <li>
           Open <a href={`${gatewayUrl}/app`}>{gatewayUrl}/app</a> and sign in.
         </li>
-        <li>Type a prompt into the playground and send it — no API key needed here, your session is enough.</li>
+        <li>
+          Type a prompt into the playground and send it — no API key needed here, your session is
+          enough.
+        </li>
       </ol>
       <p>For a real integration, use an API key from Console:</p>
       <pre>

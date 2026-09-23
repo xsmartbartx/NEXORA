@@ -87,6 +87,8 @@ export async function relayChatRequest(input: RelayRequest): Promise<RelayResult
     };
   }
 
-  const raw = await response.json().catch(() => ({ error: "Upstream returned a non-JSON response." }));
+  const raw = await response
+    .json()
+    .catch(() => ({ error: "Upstream returned a non-JSON response." }));
   return { ok: response.ok, status: response.status, raw, text: extractText(raw) };
 }

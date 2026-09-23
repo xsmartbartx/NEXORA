@@ -1,5 +1,9 @@
 import { NextResponse } from "next/server";
-import { applySubscriptionEvent, verifyPaddleSignature, type PaddleWebhookEvent } from "@nexora/billing";
+import {
+  applySubscriptionEvent,
+  verifyPaddleSignature,
+  type PaddleWebhookEvent,
+} from "@nexora/billing";
 import { apiError } from "@nexora/api-kit";
 
 /**
@@ -22,7 +26,11 @@ export async function POST(request: Request) {
 
   const verification = verifyPaddleSignature(rawBody, signatureHeader, secret);
   if (!verification.ok) {
-    return apiError(401, "invalid_signature", `Webhook signature verification failed: ${verification.reason}`);
+    return apiError(
+      401,
+      "invalid_signature",
+      `Webhook signature verification failed: ${verification.reason}`,
+    );
   }
 
   let event: PaddleWebhookEvent;
@@ -37,7 +45,8 @@ export async function POST(request: Request) {
       await applySubscriptionEvent(event);
     } catch (err) {
       // 400, not 500: a malformed/unassociable event won't succeed on retry either.
-      const message = err instanceof Error ? err.message : "Unknown error processing subscription event.";
+      const message =
+        err instanceof Error ? err.message : "Unknown error processing subscription event.";
       return apiError(400, "webhook_processing_failed", message);
     }
   }

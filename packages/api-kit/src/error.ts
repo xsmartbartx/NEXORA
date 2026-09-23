@@ -13,7 +13,11 @@ export interface ApiErrorBody {
   };
 }
 
-export function apiError(status: number, code: string, message: string): NextResponse<ApiErrorBody> {
+export function apiError(
+  status: number,
+  code: string,
+  message: string,
+): NextResponse<ApiErrorBody> {
   return NextResponse.json(
     { error: { code, message, request_id: crypto.randomUUID() } },
     { status },

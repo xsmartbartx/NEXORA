@@ -4,9 +4,18 @@ const docsUrl = process.env.NEXT_PUBLIC_DOCS_URL ?? "https://docs.onenexora.com"
 const statusUrl = process.env.NEXT_PUBLIC_STATUS_URL ?? "https://status.onenexora.com";
 
 const steps = [
-  { title: "Key", body: "Use the same NEXORA API key your org already has — no separate Gateway key." },
-  { title: "Call", body: "POST to /v1/chat with a messages array, same shape as a normal chat completion." },
-  { title: "Govern", body: "Every call is authenticated, rate-limited, entitlement-checked and logged." },
+  {
+    title: "Key",
+    body: "Use the same NEXORA API key your org already has — no separate Gateway key.",
+  },
+  {
+    title: "Call",
+    body: "POST to /v1/chat with a messages array, same shape as a normal chat completion.",
+  },
+  {
+    title: "Govern",
+    body: "Every call is authenticated, rate-limited, entitlement-checked and logged.",
+  },
 ];
 
 const capabilities = [
@@ -25,15 +34,18 @@ export default function GatewayHome() {
           Secure AI Gateway
         </h1>
         <p className="mt-4 max-w-xl text-lg text-muted-foreground">
-          A governed front door for every model call your org makes. One key,
-          one endpoint, full audit trail — instead of a loose API key
-          copy-pasted into every service that needs a model.
+          A governed front door for every model call your org makes. One key, one endpoint, full
+          audit trail — instead of a loose API key copy-pasted into every service that needs a
+          model.
         </p>
         <div className="mt-8 flex flex-col gap-4 sm:flex-row">
           <a href="/app" className={buttonVariants({ size: "lg" })}>
             Open Gateway
           </a>
-          <a href={`${docsUrl}/quickstart`} className={buttonVariants({ size: "lg", variant: "outline" })}>
+          <a
+            href={`${docsUrl}/quickstart`}
+            className={buttonVariants({ size: "lg", variant: "outline" })}
+          >
             Read the docs
           </a>
         </div>
@@ -66,8 +78,8 @@ export default function GatewayHome() {
             ))}
           </ul>
           <p className="mt-6 text-sm text-muted-foreground">
-            One configurable upstream provider today; multi-provider
-            routing and a model policy engine are on the roadmap — see{" "}
+            One configurable upstream provider today; multi-provider routing and a model policy
+            engine are on the roadmap — see{" "}
             <a href={`${docsUrl}/concepts`} className="text-primary hover:underline">
               Concepts
             </a>

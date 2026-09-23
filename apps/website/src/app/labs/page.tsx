@@ -24,8 +24,8 @@ export default function LabsPage() {
       </h1>
       <p className="mt-4 max-w-2xl text-lg text-pretty text-muted-foreground">
         Labs is where a future NEXORA product proves itself before it earns a registry promotion to
-        beta, and where research write-ups and open-source components live even when they aren&rsquo;t
-        a product at all. Nothing here carries an uptime commitment.
+        beta, and where research write-ups and open-source components live even when they
+        aren&rsquo;t a product at all. Nothing here carries an uptime commitment.
       </p>
 
       {products.length > 0 ? (

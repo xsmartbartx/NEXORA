@@ -4,7 +4,8 @@ import { buttonVariants } from "@nexora/ui";
 import { useState } from "react";
 
 const clientToken = process.env.NEXT_PUBLIC_PADDLE_CLIENT_TOKEN;
-const environment = process.env.NEXT_PUBLIC_PADDLE_ENVIRONMENT === "production" ? "production" : "sandbox";
+const environment =
+  process.env.NEXT_PUBLIC_PADDLE_ENVIRONMENT === "production" ? "production" : "sandbox";
 
 export function CheckoutButton({ priceId, orgId }: { priceId: string; orgId: string }) {
   const [isLoading, setIsLoading] = useState(false);
@@ -45,7 +46,12 @@ export function CheckoutButton({ priceId, orgId }: { priceId: string; orgId: str
 
   return (
     <div>
-      <button type="button" onClick={handleClick} disabled={isLoading} className={buttonVariants({ size: "md" })}>
+      <button
+        type="button"
+        onClick={handleClick}
+        disabled={isLoading}
+        className={buttonVariants({ size: "md" })}
+      >
         {isLoading ? "Loading…" : "Upgrade to Pro"}
       </button>
       {error ? <p className="mt-2 text-sm text-destructive">{error}</p> : null}

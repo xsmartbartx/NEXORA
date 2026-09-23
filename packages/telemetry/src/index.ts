@@ -49,7 +49,11 @@ export async function countOrgEvents(orgId: string, action: string, since: Date)
     .select({ value: count() })
     .from(auditEvents)
     .where(
-      and(eq(auditEvents.orgId, orgId), eq(auditEvents.action, action), gte(auditEvents.createdAt, since)),
+      and(
+        eq(auditEvents.orgId, orgId),
+        eq(auditEvents.action, action),
+        gte(auditEvents.createdAt, since),
+      ),
     );
   return row?.value ?? 0;
 }
