@@ -7,10 +7,8 @@ systems and secure digital products that share one account, one console, one
 API surface and one operational backbone.
 
 This repository (`nexora-platform`) holds the website, console, account,
-API, docs and product applications, plus the shared packages they all
-consume. Gateway's product repository will live separately and consume this
-platform as a tenant once it exists — see the architecture document for the
-full model.
+API, docs and every product app, plus the shared packages they all consume
+— see the architecture document for the full model.
 
 ## Read first
 
@@ -27,19 +25,22 @@ apps/
   account/           account.onenexora.com — profile, security, organisations
   console/           console.onenexora.com — the org-scoped control plane
   status/            status.onenexora.com — manually maintained component status
-  api/               api.onenexora.com — the public v1 API
+  api/               api.onenexora.com — the public v1 API + Paddle webhook
   docs/              docs.onenexora.com — quickstart, concepts, reference
   developers/        developers.onenexora.com — developer landing page
   sentinel/          sentinel.onenexora.com — AI Cloud Log Sentinel (beta)
   cspm/              cspm.onenexora.com — NEXORA CSPM (beta)
+  gateway/           gateway.onenexora.com — Secure AI Gateway (beta)
 packages/
   ui/                design tokens and shared UI primitives
-  registry/          Product Registry: entity types and query layer
+  registry/          Product Registry + Labs Experiments: entity types and query layer
   auth/              identity boundary — every app talks to Clerk through here
   shell/             shared header/product-switcher/account-menu for authenticated apps
-  database/          Postgres access — api_keys and audit_events only
-  entitlements/      what an organisation is allowed to do (stub until Phase 5 billing)
+  database/          Postgres access — api_keys, audit_events, subscriptions
+  billing/            Paddle integration: plan catalog, webhook verification, subscription sync
+  entitlements/      real plan-based usage limits, fed by billing + telemetry
   telemetry/         event emission/read helpers, built on packages/database
+  api-kit/           the error contract, rate limiting and API-key-auth wrapper every machine endpoint shares
   config/            shared TypeScript / lint / format configuration
 infrastructure/       DNS, edge, deployment (provisioned per environment)
 docs/                 architecture, ADRs and supporting documents
@@ -60,39 +61,55 @@ later, separate decision.
 | 2     | Identity, Account and Console                             | ✅ Scaffolded  |
 | 3     | API, Docs and Developer surface                           | ✅ Scaffolded  |
 | 4     | Sentinel and CSPM as platform tenants                     | ✅ Scaffolded  |
-| 5     | Gateway, Billing and Labs                                 | ⬜ Not started |
+| 5     | Gateway, Billing and Labs                                 | ✅ Scaffolded  |
 | 6     | Marketplace and scale                                     | ⬜ Not started |
 
 "Scaffolded" means the code is real, builds/typechecks/lints clean, and
-degrades gracefully instead of crashing — but ships with placeholder Clerk
-and Postgres credentials (see below), so sign-in isn't usable until real
-Clerk keys are set. **Two things don't need Clerk and were verified against
-real infrastructure, not just typechecked:**
+degrades gracefully instead of crashing — but ships with placeholder Clerk,
+Postgres and Paddle credentials, so sign-in and checkout aren't usable until
+real ones are set. **Everything that doesn't need Clerk was verified
+against real infrastructure, not just typechecked:**
 
 - **The API** — key creation, auth rejection, rate limiting and usage
   tracking, against a real local Postgres.
-- **Sentinel and CSPM's core engines** — the log-anomaly detector and the
-  cloud-config rule scanner are pure functions, unit-tested directly with
-  realistic mixed data (clean resources stay clean, every rule fires
-  correctly). Cross-organisation isolation for usage events (Console's
-  Usage page) was also verified against real Postgres: one org's events
-  never leak into another's query.
+- **Sentinel and CSPM's core engines** — pure functions, unit-tested
+  directly with realistic mixed data (clean resources stay clean, every
+  rule fires correctly).
+- **Billing end-to-end** — Paddle webhook signature verification (valid,
+  tampered, wrong secret, malformed header all correctly accepted/rejected)
+  and subscription sync, against real Postgres: plan mapping, upsert-by-org
+  semantics (a resubscribe with a new Paddle subscription id updates the
+  same row), and real entitlement enforcement (a free-plan org is genuinely
+  blocked at its limit; a pro-plan org isn't).
+- **Gateway's proxy** — authenticated against a real API key, relayed
+  through a local mock upstream standing in for the AI provider: auth
+  rejection, input validation, upstream error propagation, audit logging,
+  and entitlement blocking at the free-tier limit all confirmed working.
+- **Cross-organisation isolation** for usage events — one org's events
+  never leak into another's query, verified against real Postgres.
 
-Both products are honestly scoped: real statistical/rule-based analysis on
-data _you_ paste in today, not a live-connected cloud integration — see
-each product's own page and [`apps/docs`](apps/docs)`/products` for exactly
-what that means.
+Every product is honestly scoped: real statistical/rule-based/proxy logic
+on data or a request _you_ provide today, not the eventual live-connected
+vision — see each product's own page and the docs app's `/products` page
+for exactly what that means. **Plan names and prices are explicit
+placeholders** — see
+[`packages/billing/src/plans.ts`](packages/billing/src/plans.ts) — pricing
+is a business decision, not one this build makes for you.
 
 ## Before this goes live
 
-**Identity and database.** Every app that needs Clerk reads
+**Identity, database and billing.** Every app that needs Clerk reads
 `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` and `CLERK_SECRET_KEY` from its own
 `.env.local` (copy each app's `.env.example`); `apps/console`, `apps/api`,
-`apps/sentinel` and `apps/cspm` additionally need `DATABASE_URL` pointed at
-a real Postgres instance (see
+`apps/sentinel`, `apps/cspm` and `apps/gateway` additionally need
+`DATABASE_URL` pointed at a real Postgres instance (see
 [`packages/database/README.md`](packages/database/README.md) for
-migrations). Until then, every protected route across every app renders a
-clear "Setup required" or "not reachable" message instead of crashing.
+migrations). `apps/console` needs `NEXT_PUBLIC_PADDLE_CLIENT_TOKEN` to show
+a working "Upgrade" button, and `apps/api` needs
+`PADDLE_WEBHOOK_SECRET_KEY` to process subscription events — both require a
+real Paddle account and real prices created in its dashboard first. Until
+configured, every protected route across every app renders a clear "Setup
+required" or "not reachable" message instead of crashing.
 
 **Two more placeholders**, flagged `TODO(launch)` at
 [`apps/website/src/lib/site-config.ts`](apps/website/src/lib/site-config.ts):
@@ -113,9 +130,9 @@ npm run dev
 
 The website app starts at `http://localhost:3000`. To run every app at once
 (website `3000`, account `3001`, console `3002`, status `3003`, api `3004`,
-docs `3005`, developers `3006`, sentinel `3007`, cspm `3008`), start each
-with `npm run dev --workspace apps/<name>` in its own terminal, or use this
-project's `.claude/launch.json` configurations.
+docs `3005`, developers `3006`, sentinel `3007`, cspm `3008`, gateway
+`3009`), start each with `npm run dev --workspace apps/<name>` in its own
+terminal, or use this project's `.claude/launch.json` configurations.
 
 ## Scripts
 
