@@ -11,7 +11,7 @@ export interface EntitlementCheck {
 /**
  * Tenant Contract T-4: "Checks entitlements before any billable or limited
  * action." Real as of Phase 5: reads the organisation's current plan
- * (`@nexora/billing`, fed by Paddle webhooks) and, for metered features,
+ * (`@nexora/billing`, fed by Stripe webhooks) and, for metered features,
  * counts this billing period's usage (`@nexora/telemetry`) against the
  * plan's limit for that feature.
  *

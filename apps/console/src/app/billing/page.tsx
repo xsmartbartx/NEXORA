@@ -42,9 +42,11 @@ async function loadBillingData(orgId: string): Promise<BillingData | null> {
   }
 }
 
-export default async function BillingPage() {
+export default async function BillingPage(props: PageProps<"/billing">) {
   const { orgId } = await requireOrg();
   const data = await loadBillingData(orgId);
+  const searchParams = await props.searchParams;
+  const checkoutStatus = searchParams.checkout;
 
   return (
     <div className="mx-auto max-w-2xl px-6 py-12">
@@ -60,23 +62,33 @@ export default async function BillingPage() {
         .
       </p>
 
+      {checkoutStatus === "success" ? (
+        <p className="mt-4 rounded-lg border border-success/30 bg-success/10 px-4 py-3 text-sm text-success">
+          Checkout complete — Stripe&rsquo;s webhook updates your plan within a few seconds.
+        </p>
+      ) : checkoutStatus === "cancelled" ? (
+        <p className="mt-4 rounded-lg border border-border bg-muted/50 px-4 py-3 text-sm text-muted-foreground">
+          Checkout cancelled — your plan hasn&rsquo;t changed.
+        </p>
+      ) : null}
+
       <div className="mt-8">
         {data === null ? (
           <div className="rounded-xl border border-dashed border-border p-6 text-sm text-muted-foreground">
             Database not reachable. Set DATABASE_URL to a real Postgres instance to see billing.
           </div>
         ) : (
-          <BillingContent orgId={orgId} data={data} />
+          <BillingContent data={data} />
         )}
       </div>
     </div>
   );
 }
 
-function BillingContent({ orgId, data }: { orgId: string; data: BillingData }) {
+function BillingContent({ data }: { data: BillingData }) {
   const { plan, subscription, usageEntries } = data;
   const proPlan = PLANS.find((p) => p.id === "pro");
-  const canUpgrade = plan.id !== "pro" && proPlan?.paddlePriceId;
+  const canUpgrade = plan.id !== "pro" && proPlan?.stripePriceId;
 
   return (
     <>
@@ -99,11 +111,11 @@ function BillingContent({ orgId, data }: { orgId: string; data: BillingData }) {
         ) : null}
         {canUpgrade ? (
           <div className="mt-6">
-            <CheckoutButton priceId={proPlan!.paddlePriceId!} orgId={orgId} />
+            <CheckoutButton priceId={proPlan!.stripePriceId!} />
           </div>
-        ) : !proPlan?.paddlePriceId ? (
+        ) : !proPlan?.stripePriceId ? (
           <p className="mt-6 text-sm text-muted-foreground">
-            Upgrading isn&rsquo;t available yet — PADDLE_PRICE_ID_PRO isn&rsquo;t configured.
+            Upgrading isn&rsquo;t available yet — STRIPE_PRICE_ID_PRO isn&rsquo;t configured.
           </p>
         ) : null}
       </div>

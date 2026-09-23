@@ -2,7 +2,7 @@
   "name": "@nexora/billing",
   "version": "0.1.0",
   "private": true,
-  "description": "Paddle integration: plan catalog, webhook verification and subscription sync. Console/Entitlements read through this — never Paddle's API directly.",
+  "description": "Stripe integration: plan catalog, webhook verification and subscription sync. Console/Entitlements read through this — never Stripe's API directly.",
   "type": "module",
   "exports": {
     ".": "./src/index.ts"
@@ -11,7 +11,8 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@nexora/database": "*"
+    "@nexora/database": "*",
+    "stripe": "^22.6.2"
   },
   "devDependencies": {
     "@types/node": "^20",

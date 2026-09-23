@@ -37,9 +37,9 @@ export const auditEvents = pgTable("audit_events", {
 });
 
 /**
- * One row per organisation, mirroring Paddle's subscription resource
+ * One row per organisation, mirroring Stripe's subscription resource
  * (§4.1 Billing: "feeds Entitlements — never deciding access directly").
- * This table is the read model Entitlements checks against; Paddle's
+ * This table is the read model Entitlements checks against; Stripe's
  * webhooks (packages/billing) are the only writer. No row means the org is
  * on the default (free) plan.
  */
@@ -48,8 +48,8 @@ export const subscriptions = pgTable("subscriptions", {
   orgId: text("org_id").notNull().unique(),
   planId: text("plan_id").notNull(),
   status: text("status").notNull(),
-  paddleSubscriptionId: text("paddle_subscription_id").notNull().unique(),
-  paddleCustomerId: text("paddle_customer_id").notNull(),
+  stripeSubscriptionId: text("stripe_subscription_id").notNull().unique(),
+  stripeCustomerId: text("stripe_customer_id").notNull(),
   currentPeriodEnd: timestamp("current_period_end", { withTimezone: true }),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),

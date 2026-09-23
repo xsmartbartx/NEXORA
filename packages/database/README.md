@@ -1,8 +1,8 @@
 # @nexora/database
 
-The only package that talks to Postgres directly (§9.3). Owns two tables —
-`api_keys` and `audit_events` — and nothing else: users and organisations
-live in Clerk, never here (§13.1).
+The only package that talks to Postgres directly (§9.3). Owns three tables
+— `api_keys`, `audit_events` and `subscriptions` — and nothing else: users
+and organisations live in Clerk, never here (§13.1).
 
 ## Setup
 
@@ -17,12 +17,15 @@ live in Clerk, never here (§13.1).
    npm run db:studio     # browse the database
    ```
 
-Two apps read from this package:
+Every app that touches Postgres degrades to a "database not reachable"
+message instead of crashing when `DATABASE_URL` is a placeholder (see
+`apps/console`'s API Keys, Billing, Usage and Analytics pages for the
+pattern). Verified end-to-end against a real local Postgres:
 
-- `apps/console`'s API Keys page — degrades to a "database not reachable"
-  message instead of crashing when `DATABASE_URL` is a placeholder (see that
-  page's own try/catch).
-- `apps/api` — every `/v1` endpoint except `/v1/health` authenticates
-  against `api_keys` here. Verified end-to-end against a real local
-  Postgres during Phase 3: key creation, auth rejection (missing/invalid
-  key), rate limiting, and `last_used_at` tracking all confirmed working.
+- `apps/api` — key creation, auth rejection (missing/invalid key), rate
+  limiting and `last_used_at` tracking (Phase 3).
+- `packages/billing` — Stripe webhook signature verification and
+  subscription upsert-by-org semantics against the `subscriptions` table
+  (Phase 5, provider switched in [ADR-0011](../../docs/adr/ADR-0011-billing-provider-selection.md)).
+- `packages/telemetry` — cross-organisation isolation and day-bucketed
+  usage queries against `audit_events` (Phases 4 and 6).

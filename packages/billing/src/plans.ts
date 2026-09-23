@@ -3,9 +3,9 @@
  * business decision — pricing, plan names and limits need a real answer
  * from the business, not from me. This file exists so Entitlements has a
  * real plan to check against and Console has a real plan to render, but
- * `priceCents`, `paddlePriceId` and every `limits` value below are
+ * `priceCents`, `stripePriceId` and every `limits` value below are
  * illustrative only. Replace them — and create matching prices in the
- * Paddle dashboard — before anyone can actually subscribe.
+ * Stripe dashboard — before anyone can actually subscribe.
  *
  * `limits[feature]`: requests allowed per organisation per calendar month.
  * `null` means unlimited. `feature` keys match the telemetry action
@@ -17,8 +17,8 @@ export interface Plan {
   id: string;
   name: string;
   priceCents: number | null;
-  /** Paddle price ID for this plan — env-configured since it's created per-environment in the Paddle dashboard. `null` for the free plan (no checkout needed). */
-  paddlePriceId: string | null;
+  /** Stripe price ID for this plan — env-configured since it's created per-environment in the Stripe dashboard. `null` for the free plan (no checkout needed). */
+  stripePriceId: string | null;
   limits: Record<string, number | null>;
 }
 
@@ -27,7 +27,7 @@ export const PLANS: Plan[] = [
     id: "free",
     name: "Free",
     priceCents: 0,
-    paddlePriceId: null,
+    stripePriceId: null,
     limits: {
       "sentinel.scan": 20,
       "cspm.scan": 20,
@@ -38,7 +38,7 @@ export const PLANS: Plan[] = [
     id: "pro",
     name: "Pro",
     priceCents: 2900,
-    paddlePriceId: process.env.PADDLE_PRICE_ID_PRO ?? null,
+    stripePriceId: process.env.STRIPE_PRICE_ID_PRO ?? null,
     limits: {
       "sentinel.scan": null,
       "cspm.scan": null,

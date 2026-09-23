@@ -719,7 +719,7 @@ Enforced rules:
 | Edge | Cloudflare (DNS, TLS, WAF, CDN) | One control point for every subdomain | — |
 | Runtime packaging | Docker | Portable across VPS and managed hosts | — |
 | Hosting | Oracle Cloud VPS for services; managed edge for static | Cost control with owned infrastructure | Any container host |
-| Payments | Paddle | Merchant of record reduces tax and compliance burden | Stripe + tax provider |
+| Payments | Stripe | Chosen over the Paddle default (see [ADR-0011](adr/ADR-0011-billing-provider-selection.md)) — direct control over checkout and billing logic, at the cost of owning tax/VAT compliance separately | Paddle (merchant of record) |
 | Transactional email | Postmark | Deliverability for account and security email | Resend, SES |
 | AI providers | Anthropic / OpenAI and others behind an abstraction | Provider choice must remain swappable | — |
 | Error and performance monitoring | Sentry + external uptime checks | Feeds Health and status | — |

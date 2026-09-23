@@ -15,6 +15,13 @@
       "when": 1790176387514,
       "tag": "0001_clear_shape",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1790270000000,
+      "tag": "0002_rename_paddle_to_stripe",
+      "breakpoints": true
     }
   ]
 }

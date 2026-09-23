@@ -25,7 +25,7 @@ apps/
   account/           account.onenexora.com — profile, security, organisations
   console/           console.onenexora.com — the org-scoped control plane
   status/            status.onenexora.com — manually maintained component status
-  api/               api.onenexora.com — the public v1 API + Paddle webhook
+  api/               api.onenexora.com — the public v1 API + Stripe webhook
   docs/              docs.onenexora.com — quickstart, concepts, reference
   developers/        developers.onenexora.com — developer landing page
   sentinel/          sentinel.onenexora.com — AI Cloud Log Sentinel (beta)
@@ -37,7 +37,7 @@ packages/
   auth/              identity boundary — every app talks to Clerk through here
   shell/             shared header/product-switcher/account-menu for authenticated apps
   database/          Postgres access — api_keys, audit_events, subscriptions
-  billing/            Paddle integration: plan catalog, webhook verification, subscription sync
+  billing/            Stripe integration: plan catalog, webhook verification, subscription sync
   entitlements/      real plan-based usage limits, fed by billing + telemetry
   telemetry/         event emission/read helpers, built on packages/database
   api-kit/           the error contract, rate limiting and API-key-auth wrapper every machine endpoint shares
@@ -66,7 +66,7 @@ later, separate decision.
 
 "Scaffolded" means the code is real, builds/typechecks/lints clean, and
 degrades gracefully instead of crashing — but ships with placeholder Clerk,
-Postgres and Paddle credentials, so sign-in and checkout aren't usable until
+Postgres and Stripe credentials, so sign-in and checkout aren't usable until
 real ones are set. **Everything that doesn't need Clerk was verified
 against real infrastructure, not just typechecked:**
 
@@ -75,12 +75,16 @@ against real infrastructure, not just typechecked:**
 - **Sentinel and CSPM's core engines** — pure functions, unit-tested
   directly with realistic mixed data (clean resources stay clean, every
   rule fires correctly).
-- **Billing end-to-end** — Paddle webhook signature verification (valid,
-  tampered, wrong secret, malformed header all correctly accepted/rejected)
-  and subscription sync, against real Postgres: plan mapping, upsert-by-org
-  semantics (a resubscribe with a new Paddle subscription id updates the
-  same row), and real entitlement enforcement (a free-plan org is genuinely
-  blocked at its limit; a pro-plan org isn't).
+- **Billing end-to-end** — Stripe webhook signature verification, using
+  Stripe's own test-signature generator (valid, tampered, wrong secret,
+  malformed/missing header all correctly accepted/rejected) and
+  subscription sync, against real Postgres: plan mapping, upsert-by-org
+  semantics (a resubscribe with a new Stripe subscription id updates the
+  same row, not a second one), an orphan-row guard (an event with no
+  `orgId` in metadata throws instead of writing unassociated data), and
+  real entitlement enforcement (a free-plan org is genuinely blocked at its
+  limit; a pro-plan org isn't). Provider choice explained in
+  [ADR-0011](docs/adr/ADR-0011-billing-provider-selection.md).
 - **Gateway's proxy** — authenticated against a real API key, relayed
   through a local mock upstream standing in for the AI provider: auth
   rejection, input validation, upstream error propagation, audit logging,
@@ -125,12 +129,13 @@ would be exactly the kind of fabricated scope this build avoids elsewhere.
 `apps/sentinel`, `apps/cspm` and `apps/gateway` additionally need
 `DATABASE_URL` pointed at a real Postgres instance (see
 [`packages/database/README.md`](packages/database/README.md) for
-migrations). `apps/console` needs `NEXT_PUBLIC_PADDLE_CLIENT_TOKEN` to show
-a working "Upgrade" button, and `apps/api` needs
-`PADDLE_WEBHOOK_SECRET_KEY` to process subscription events — both require a
-real Paddle account and real prices created in its dashboard first. Until
-configured, every protected route across every app renders a clear "Setup
-required" or "not reachable" message instead of crashing.
+migrations). `apps/console` needs `STRIPE_SECRET_KEY` to create real
+Checkout Sessions, and `apps/api` needs `STRIPE_WEBHOOK_SECRET` to verify
+and process subscription events — both apps also need `STRIPE_PRICE_ID_PRO`
+set to a real Price id, and all three require a real Stripe account with
+that price created in its dashboard first. Until configured, every
+protected route across every app renders a clear "Setup required" or "not
+reachable" message instead of crashing.
 
 **Two more placeholders**, flagged `TODO(launch)` at
 [`apps/website/src/lib/site-config.ts`](apps/website/src/lib/site-config.ts):
