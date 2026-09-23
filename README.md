@@ -54,15 +54,15 @@ later, separate decision.
 
 ## Build status
 
-| Phase | Scope                                                     | Status         |
-| ----- | --------------------------------------------------------- | -------------- |
-| 0     | Foundations: monorepo, CI, design tokens, base UI package | ✅ Done        |
-| 1     | Product Registry and marketing website                    | ✅ Done        |
-| 2     | Identity, Account and Console                             | ✅ Scaffolded  |
-| 3     | API, Docs and Developer surface                           | ✅ Scaffolded  |
-| 4     | Sentinel and CSPM as platform tenants                     | ✅ Scaffolded  |
-| 5     | Gateway, Billing and Labs                                 | ✅ Scaffolded  |
-| 6     | Marketplace and scale                                     | ⬜ Not started |
+| Phase | Scope                                                     | Status        |
+| ----- | --------------------------------------------------------- | ------------- |
+| 0     | Foundations: monorepo, CI, design tokens, base UI package | ✅ Done       |
+| 1     | Product Registry and marketing website                    | ✅ Done       |
+| 2     | Identity, Account and Console                             | ✅ Scaffolded |
+| 3     | API, Docs and Developer surface                           | ✅ Scaffolded |
+| 4     | Sentinel and CSPM as platform tenants                     | ✅ Scaffolded |
+| 5     | Gateway, Billing and Labs                                 | ✅ Scaffolded |
+| 6     | Marketplace and scale                                     | ✅ Scaffolded |
 
 "Scaffolded" means the code is real, builds/typechecks/lints clean, and
 degrades gracefully instead of crashing — but ships with placeholder Clerk,
@@ -87,6 +87,17 @@ against real infrastructure, not just typechecked:**
   and entitlement blocking at the free-tier limit all confirmed working.
 - **Cross-organisation isolation** for usage events — one org's events
   never leak into another's query, verified against real Postgres.
+- **Per-product analytics** — the day-bucketed usage query behind Console's
+  Analytics page, verified against real Postgres: correct per-day counts,
+  correct billing-period totals, and cross-organisation isolation
+  re-confirmed for this new query independently of the Phase 4 test.
+- **Marketplace taxonomy extensibility** — the Phase 6 exit criterion ("a
+  listing type other than product can be added without a schema rewrite")
+  verified the same way Phase 1 verified SC-1: added a throwaway listing of
+  a new kind and a throwaway product integration, confirmed both rendered
+  correctly on `/marketplace` and a product page, removed them. See
+  [`docs/adr/ADR-0013-marketplace-listing-taxonomy.md`](docs/adr/ADR-0013-marketplace-listing-taxonomy.md)
+  for the design.
 
 Every product is honestly scoped: real statistical/rule-based/proxy logic
 on data or a request _you_ provide today, not the eventual live-connected
@@ -95,6 +106,16 @@ for exactly what that means. **Plan names and prices are explicit
 placeholders** — see
 [`packages/billing/src/plans.ts`](packages/billing/src/plans.ts) — pricing
 is a business decision, not one this build makes for you.
+
+**Two Phase 6 deliverables were deliberately not pursued**, per the
+architecture doc's own conditional phrasing ("if demanded" / "if
+pursued" — §14.3 Phase 6): multi-region/data-residency options, since
+nothing today runs in more than one region or has asked to; and a
+partner/third-party listing model, since NEXORA has no partners yet. The
+marketplace's `provider: "nexora" | "partner"` field exists so the first
+real partner listing is a data change when one is actually pursued —
+building the onboarding flow for a partner program that doesn't exist yet
+would be exactly the kind of fabricated scope this build avoids elsewhere.
 
 ## Before this goes live
 

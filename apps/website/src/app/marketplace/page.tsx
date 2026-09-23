@@ -59,9 +59,7 @@ export default function MarketplacePage() {
                 ))}
               </div>
             ) : (
-              <p className="mt-4 text-sm text-muted-foreground">
-                Nothing listed here yet.
-              </p>
+              <p className="mt-4 text-sm text-muted-foreground">Nothing listed here yet.</p>
             )}
           </div>
         );

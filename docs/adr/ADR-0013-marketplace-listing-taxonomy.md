@@ -1,9 +1,9 @@
 # ADR-0013 — Marketplace listing taxonomy as a sibling entity to Product
 
-| | |
-|---|---|
-| Status | Accepted |
-| Phase | 6 |
+|         |                                                                                             |
+| ------- | ------------------------------------------------------------------------------------------- |
+| Status  | Accepted                                                                                    |
+| Phase   | 6                                                                                           |
 | Extends | [`NEXORA-PLATFORM-ARCHITECTURE.md`](../NEXORA-PLATFORM-ARCHITECTURE.md) §5.2, §14.3 Phase 6 |
 
 ## Context
@@ -40,8 +40,8 @@ page composes both: Products rendered under "Apps" via the existing
 kind.
 
 `ProductIntegration` (already defined in §5.2 but unseeded until now) is a
-distinct, narrower concept: a declared functional connection *between two
-Products*, not a listing in its own right. It gets its own data file and
+distinct, narrower concept: a declared functional connection _between two
+Products_, not a listing in its own right. It gets its own data file and
 query functions (`getProductIntegrations`), surfaced on the product detail
 page.
 

@@ -39,9 +39,7 @@ export default async function ConsoleOverview() {
         </div>
         <div className="rounded-xl border border-border bg-card p-6">
           <p className="text-sm text-muted-foreground">API keys</p>
-          <p className="mt-2 text-2xl font-semibold">
-            {overview ? overview.activeKeyCount : "—"}
-          </p>
+          <p className="mt-2 text-2xl font-semibold">{overview ? overview.activeKeyCount : "—"}</p>
           <Link href="/api-keys" className="mt-1 inline-block text-xs text-primary hover:underline">
             Manage keys →
           </Link>

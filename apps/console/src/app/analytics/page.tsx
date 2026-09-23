@@ -2,7 +2,11 @@ import type { Metadata } from "next";
 import { requireOrg } from "@nexora/auth/server";
 import { getOrgPlan } from "@nexora/billing";
 import { getAllProducts } from "@nexora/registry";
-import { countOrgEvents, countOrgEventsByDay, startOfCurrentBillingPeriod } from "@nexora/telemetry";
+import {
+  countOrgEvents,
+  countOrgEventsByDay,
+  startOfCurrentBillingPeriod,
+} from "@nexora/telemetry";
 import { zeroFillDailySeries, type DayPoint } from "./series";
 
 export const metadata: Metadata = {

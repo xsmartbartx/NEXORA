@@ -80,7 +80,8 @@ export function getMarketplaceListingBySlug(slug: string): MarketplaceListing | 
 /** Declared integrations for one product, in either direction (as source or target). */
 export function getProductIntegrations(productSlug: string): ProductIntegration[] {
   return productIntegrations.filter(
-    (integration) => integration.product === productSlug || integration.target_product === productSlug,
+    (integration) =>
+      integration.product === productSlug || integration.target_product === productSlug,
   );
 }
 

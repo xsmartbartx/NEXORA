@@ -47,15 +47,14 @@ export default function ConceptsPage() {
       <h2>The Marketplace taxonomy</h2>
       <p>
         A Product is one specific thing: a full NEXORA app with a subdomain, a lifecycle and a
-        Tenant Contract to satisfy. Not everything worth listing is that heavy — an API surface,
-        an integration with an external provider, or eventually an agent, model or tool doesn&rsquo;t
-        need its own subdomain to be real. The{" "}
-        <a href={`${websiteUrl}/marketplace`}>marketplace</a> lists both: Products under
-        &ldquo;Apps&rdquo;, and
-        everything else as a <code>MarketplaceListing</code> with a <code>kind</code> of{" "}
-        <code>api</code>, <code>agent</code>, <code>model</code>, <code>integration</code> or{" "}
-        <code>tool</code>. A kind with nothing in it yet is shown as an honest empty state, not
-        hidden — adding the first real listing in it is a data change, not a schema rewrite.
+        Tenant Contract to satisfy. Not everything worth listing is that heavy — an API surface, an
+        integration with an external provider, or eventually an agent, model or tool doesn&rsquo;t
+        need its own subdomain to be real. The <a href={`${websiteUrl}/marketplace`}>marketplace</a>{" "}
+        lists both: Products under &ldquo;Apps&rdquo;, and everything else as a{" "}
+        <code>MarketplaceListing</code> with a <code>kind</code> of <code>api</code>,{" "}
+        <code>agent</code>, <code>model</code>, <code>integration</code> or <code>tool</code>. A
+        kind with nothing in it yet is shown as an honest empty state, not hidden — adding the first
+        real listing in it is a data change, not a schema rewrite.
       </p>
 
       <h2>Everything is versioned and reversible</h2>
