@@ -2,8 +2,11 @@
 
 Every app in `apps/*` builds from the single [`Dockerfile`](Dockerfile) in
 this directory, parameterised by `APP_NAME`. [`docker-compose.yml`](docker-compose.yml)
-wires all 10 together with Postgres for local use. Both are verified —
-see "What's been verified" below, not just written and assumed correct.
+wires all 10 together with Postgres for local use;
+[`docker-compose.prod.yml`](docker-compose.prod.yml) does the same plus
+[`Caddyfile`](Caddyfile) for real subdomains and automatic TLS — see
+"Going to production" below. All of it is verified — see "What's been
+verified" — not just written and assumed correct.
 
 ## Build one app
 
@@ -58,20 +61,46 @@ one at a time first (`docker compose ... build <service>` in a loop), then
 here, works reliably, and matches how a CI pipeline builds and pushes
 images anyway (one at a time, not all in parallel on one machine).
 
-## Build-time vs. runtime env — the one real gotcha
+## Going to production
 
-Next.js bakes every `NEXT_PUBLIC_*` variable into the JavaScript bundle at
-`next build` time. The Dockerfile's builder stage runs `next build` with
-no `NEXT_PUBLIC_*` build args passed, so each app falls back to whatever
-default is hardcoded in its source (e.g.
-`process.env.NEXT_PUBLIC_CONSOLE_URL ?? "http://localhost:3002"`) — which
-happens to be exactly right for `docker-compose.yml`'s all-on-one-machine
-topology, but **will be wrong for a real multi-host deploy** where
-`console.onenexora.com` isn't `localhost:3002` anymore. For that, add
-`ARG`/`ENV` lines for the specific `NEXT_PUBLIC_*` values each app needs
-before its `RUN npm run build` line, and pass them as `--build-arg` — the
-Dockerfile doesn't do this today because there's no real domain yet to
-bake in (see the root README's "Before this goes live").
+`docker-compose.prod.yml` is a single-VM topology (e.g. one OCI
+instance): Caddy terminates TLS and routes each `*.onenexora.com`
+subdomain to its container, Postgres is bundled, nothing but Caddy's
+80/443 is published to the host.
+
+1. **DNS**: point every subdomain at the VM's public IP —
+   `onenexora.com`, `www`, `account`, `console`, `status`, `api`, `docs`,
+   `developers`, `sentinel`, `cspm`, `gateway` (10 records, all A records
+   to the same IP; Caddy figures out which app from the hostname). Caddy
+   requests a Let's Encrypt certificate per domain on first request, so
+   DNS has to actually resolve before it can — expect the first hit to
+   each subdomain to be slow while that happens.
+2. **Open ports 80 and 443** on the VM (OCI's security list/NSG, not just
+   the OS firewall — both have to allow it).
+3. **Secrets**: on the VM, `cp infrastructure/docker/.env.prod.example infrastructure/docker/.env.prod`
+   and fill in real values (Clerk, Stripe, a Postgres password) — see that
+   file for exactly what's needed and which app reads what.
+4. **Run it**:
+   ```bash
+   docker compose -f infrastructure/docker/docker-compose.prod.yml \
+     --env-file infrastructure/docker/.env.prod up -d --build
+   ```
+   Same memory caveat as below applies, more so with 10 apps on a VM
+   that's likely smaller than a dev machine — build services one at a
+   time first if `--build` runs out of memory.
+
+**The one real gotcha, either way:** Next.js bakes every `NEXT_PUBLIC_*`
+variable into the JavaScript bundle at `next build` time, not runtime.
+`docker-compose.prod.yml`'s `args:` blocks pass the real
+`https://*.onenexora.com` values at build time for exactly this reason —
+confirmed by building with a real domain and checking it landed in the
+output (`sitemap.xml`), not just assumed from reading Next.js's docs. If
+you build an image any other way (plain `docker build`, a CI step) and
+need a real public URL baked in, pass it as a `--build-arg`, matching the
+list of `ARG NEXT_PUBLIC_*` lines already in the Dockerfile — an
+unset one is genuinely `undefined` in `process.env` (verified directly,
+not assumed), so every app's own `?? "http://localhost:..."` fallback
+still works correctly for a local/test build with nothing passed.
 
 ## What's been verified
 
@@ -94,16 +123,27 @@ Actually built and run, not just written:
 - Each standalone image is small: ~78MB compressed, consistent with
   Next.js's `output: "standalone"` tracing only the dependencies each
   app actually uses rather than a full `node_modules`.
+- Real-domain build args actually land in the built output — built
+  `website` with `NEXT_PUBLIC_SITE_URL=https://onenexora.com` passed as a
+  `--build-arg`, confirmed `sitemap.xml` served from the running
+  container used that real domain, not the `localhost` fallback.
+- `Caddyfile` — validated with `caddy validate`, not just written; it
+  correctly detects it should enable automatic HTTPS and HTTP→HTTPS
+  redirects for every domain listed.
+- `docker-compose.prod.yml`'s variable interpolation — validated with
+  `docker compose config` against a real `.env.prod`-shaped file, confirmed
+  every `${...}` (the Postgres password, the Clerk publishable key) and
+  every hardcoded `https://*.onenexora.com` build arg resolved to the
+  actual value, not left as a literal `${VAR}` string.
 
-## What this is not
+## What this still is not
 
-A production deployment manifest. No orchestrator (no Kubernetes/ECS/etc
-config), no secrets manager, no horizontal scaling, no TLS termination,
-one Postgres instance for everything with no backup policy, and
-`packages/api-kit`'s rate limiter is in-memory (per-instance — see its own
-file comment) so it needs a shared store (Redis/Upstash) before running
-more than one replica of `api` or `gateway`. This gets you a real,
-verified container per app and a real, verified way to run them together
-locally; where you actually deploy them (a VPS, a managed container
-platform, ...) is a separate decision the root README flags as still
-open.
+No orchestrator (no Kubernetes/ECS/etc config) and no secrets manager —
+`.env.prod` on the VM is it. No horizontal scaling: one Postgres instance
+for everything with no backup policy, and `packages/api-kit`'s rate
+limiter is in-memory (per-instance — see its own file comment) so it
+needs a shared store (Redis/Upstash) before running more than one replica
+of `api` or `gateway`. This gets you a real, verified container per app
+and a real, verified way to run them together — including with real TLS
+on real subdomains — on one machine; scaling beyond one machine is a
+later, separate decision.

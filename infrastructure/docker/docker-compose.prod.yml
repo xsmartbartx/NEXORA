@@ -1,0 +1,241 @@
+# Production topology for a single VM (e.g. one OCI instance): Caddy
+# terminates TLS (automatic, via Let's Encrypt — see Caddyfile) and routes
+# each onenexora.com subdomain to its app container; Postgres is bundled
+# here too, for the same single-VM-to-start reason. No app port is
+# published to the host directly — only Caddy's 80/443 are, so every app
+# is reached through Caddy or not at all. See README.md's "Going to
+# production" section before running this for the first time.
+#
+# One secrets file, not one per app: infrastructure/docker/.env.prod
+# (copy from .env.prod.example, never committed — see .gitignore). A
+# single VM is easier to operate with one file to edit than ten.
+#
+# Run from the repository root:
+#   docker compose -f infrastructure/docker/docker-compose.prod.yml \
+#     --env-file infrastructure/docker/.env.prod up -d --build
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: nexora
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - nexora-postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 2s
+      timeout: 3s
+      retries: 15
+
+  db-migrate:
+    build:
+      context: ../..
+      dockerfile: infrastructure/docker/Dockerfile.migrate
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgres://postgres:${POSTGRES_PASSWORD}@postgres:5432/nexora
+
+  caddy:
+    image: caddy:2-alpine
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy-data:/data
+      - caddy-config:/config
+    depends_on:
+      - website
+      - account
+      - console
+      - status
+      - api
+      - docs
+      - developers
+      - sentinel
+      - cspm
+      - gateway
+
+  website:
+    build:
+      context: ../..
+      dockerfile: infrastructure/docker/Dockerfile
+      args:
+        APP_NAME: website
+        APP_PORT: "3000"
+        NEXT_PUBLIC_SITE_URL: https://onenexora.com
+        NEXT_PUBLIC_CONSOLE_URL: https://console.onenexora.com
+        NEXT_PUBLIC_STATUS_URL: https://status.onenexora.com
+        NEXT_PUBLIC_DOCS_URL: https://docs.onenexora.com
+        NEXT_PUBLIC_DEVELOPERS_URL: https://developers.onenexora.com
+        NEXT_PUBLIC_NEXORA_ENV: production
+    env_file: .env.prod
+
+  account:
+    build:
+      context: ../..
+      dockerfile: infrastructure/docker/Dockerfile
+      args:
+        APP_NAME: account
+        APP_PORT: "3001"
+        NEXT_PUBLIC_WEBSITE_URL: https://onenexora.com
+        NEXT_PUBLIC_ACCOUNT_URL: https://account.onenexora.com
+        NEXT_PUBLIC_CONSOLE_URL: https://console.onenexora.com
+        NEXT_PUBLIC_STATUS_URL: https://status.onenexora.com
+        NEXT_PUBLIC_API_URL: https://api.onenexora.com
+        NEXT_PUBLIC_DOCS_URL: https://docs.onenexora.com
+        NEXT_PUBLIC_DEVELOPERS_URL: https://developers.onenexora.com
+        NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY}
+        NEXT_PUBLIC_NEXORA_ENV: production
+    env_file: .env.prod
+
+  console:
+    build:
+      context: ../..
+      dockerfile: infrastructure/docker/Dockerfile
+      args:
+        APP_NAME: console
+        APP_PORT: "3002"
+        NEXT_PUBLIC_WEBSITE_URL: https://onenexora.com
+        NEXT_PUBLIC_ACCOUNT_URL: https://account.onenexora.com
+        NEXT_PUBLIC_CONSOLE_URL: https://console.onenexora.com
+        NEXT_PUBLIC_STATUS_URL: https://status.onenexora.com
+        NEXT_PUBLIC_API_URL: https://api.onenexora.com
+        NEXT_PUBLIC_DOCS_URL: https://docs.onenexora.com
+        NEXT_PUBLIC_DEVELOPERS_URL: https://developers.onenexora.com
+        NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY}
+        NEXT_PUBLIC_NEXORA_ENV: production
+    env_file: .env.prod
+    environment:
+      DATABASE_URL: postgres://postgres:${POSTGRES_PASSWORD}@postgres:5432/nexora
+    depends_on:
+      db-migrate:
+        condition: service_completed_successfully
+
+  status:
+    build:
+      context: ../..
+      dockerfile: infrastructure/docker/Dockerfile
+      args:
+        APP_NAME: status
+        APP_PORT: "3003"
+        NEXT_PUBLIC_WEBSITE_URL: https://onenexora.com
+        NEXT_PUBLIC_ACCOUNT_URL: https://account.onenexora.com
+        NEXT_PUBLIC_CONSOLE_URL: https://console.onenexora.com
+        NEXT_PUBLIC_STATUS_URL: https://status.onenexora.com
+        NEXT_PUBLIC_NEXORA_ENV: production
+    env_file: .env.prod
+
+  api:
+    build:
+      context: ../..
+      dockerfile: infrastructure/docker/Dockerfile
+      args:
+        APP_NAME: api
+        APP_PORT: "3004"
+        NEXT_PUBLIC_DOCS_URL: https://docs.onenexora.com
+        NEXT_PUBLIC_NEXORA_ENV: production
+    env_file: .env.prod
+    environment:
+      DATABASE_URL: postgres://postgres:${POSTGRES_PASSWORD}@postgres:5432/nexora
+    depends_on:
+      db-migrate:
+        condition: service_completed_successfully
+
+  docs:
+    build:
+      context: ../..
+      dockerfile: infrastructure/docker/Dockerfile
+      args:
+        APP_NAME: docs
+        APP_PORT: "3005"
+        NEXT_PUBLIC_WEBSITE_URL: https://onenexora.com
+        NEXT_PUBLIC_CONSOLE_URL: https://console.onenexora.com
+        NEXT_PUBLIC_API_URL: https://api.onenexora.com
+        NEXT_PUBLIC_SENTINEL_URL: https://sentinel.onenexora.com
+        NEXT_PUBLIC_CSPM_URL: https://cspm.onenexora.com
+        NEXT_PUBLIC_GATEWAY_URL: https://gateway.onenexora.com
+        NEXT_PUBLIC_NEXORA_ENV: production
+    env_file: .env.prod
+
+  developers:
+    build:
+      context: ../..
+      dockerfile: infrastructure/docker/Dockerfile
+      args:
+        APP_NAME: developers
+        APP_PORT: "3006"
+        NEXT_PUBLIC_WEBSITE_URL: https://onenexora.com
+        NEXT_PUBLIC_CONSOLE_URL: https://console.onenexora.com
+        NEXT_PUBLIC_API_URL: https://api.onenexora.com
+        NEXT_PUBLIC_DOCS_URL: https://docs.onenexora.com
+        NEXT_PUBLIC_NEXORA_ENV: production
+    env_file: .env.prod
+
+  sentinel:
+    build:
+      context: ../..
+      dockerfile: infrastructure/docker/Dockerfile
+      args:
+        APP_NAME: sentinel
+        APP_PORT: "3007"
+        NEXT_PUBLIC_WEBSITE_URL: https://onenexora.com
+        NEXT_PUBLIC_CONSOLE_URL: https://console.onenexora.com
+        NEXT_PUBLIC_STATUS_URL: https://status.onenexora.com
+        NEXT_PUBLIC_DOCS_URL: https://docs.onenexora.com
+        NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY}
+        NEXT_PUBLIC_NEXORA_ENV: production
+    env_file: .env.prod
+    environment:
+      DATABASE_URL: postgres://postgres:${POSTGRES_PASSWORD}@postgres:5432/nexora
+    depends_on:
+      db-migrate:
+        condition: service_completed_successfully
+
+  cspm:
+    build:
+      context: ../..
+      dockerfile: infrastructure/docker/Dockerfile
+      args:
+        APP_NAME: cspm
+        APP_PORT: "3008"
+        NEXT_PUBLIC_WEBSITE_URL: https://onenexora.com
+        NEXT_PUBLIC_CONSOLE_URL: https://console.onenexora.com
+        NEXT_PUBLIC_STATUS_URL: https://status.onenexora.com
+        NEXT_PUBLIC_DOCS_URL: https://docs.onenexora.com
+        NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY}
+        NEXT_PUBLIC_NEXORA_ENV: production
+    env_file: .env.prod
+    environment:
+      DATABASE_URL: postgres://postgres:${POSTGRES_PASSWORD}@postgres:5432/nexora
+    depends_on:
+      db-migrate:
+        condition: service_completed_successfully
+
+  gateway:
+    build:
+      context: ../..
+      dockerfile: infrastructure/docker/Dockerfile
+      args:
+        APP_NAME: gateway
+        APP_PORT: "3009"
+        NEXT_PUBLIC_WEBSITE_URL: https://onenexora.com
+        NEXT_PUBLIC_CONSOLE_URL: https://console.onenexora.com
+        NEXT_PUBLIC_STATUS_URL: https://status.onenexora.com
+        NEXT_PUBLIC_DOCS_URL: https://docs.onenexora.com
+        NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY}
+        NEXT_PUBLIC_NEXORA_ENV: production
+    env_file: .env.prod
+    environment:
+      DATABASE_URL: postgres://postgres:${POSTGRES_PASSWORD}@postgres:5432/nexora
+    depends_on:
+      db-migrate:
+        condition: service_completed_successfully
+
+volumes:
+  nexora-postgres-data:
+  caddy-data:
+  caddy-config:
