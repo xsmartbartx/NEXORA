@@ -68,26 +68,83 @@ instance): Caddy terminates TLS and routes each `*.onenexora.com`
 subdomain to its container, Postgres is bundled, nothing but Caddy's
 80/443 is published to the host.
 
-1. **DNS**: point every subdomain at the VM's public IP —
-   `onenexora.com`, `www`, `account`, `console`, `status`, `api`, `docs`,
-   `developers`, `sentinel`, `cspm`, `gateway` (10 records, all A records
-   to the same IP; Caddy figures out which app from the hostname). Caddy
-   requests a Let's Encrypt certificate per domain on first request, so
-   DNS has to actually resolve before it can — expect the first hit to
-   each subdomain to be slow while that happens.
-2. **Open ports 80 and 443** on the VM (OCI's security list/NSG, not just
-   the OS firewall — both have to allow it).
-3. **Secrets**: on the VM, `cp infrastructure/docker/.env.prod.example infrastructure/docker/.env.prod`
-   and fill in real values (Clerk, Stripe, a Postgres password) — see that
-   file for exactly what's needed and which app reads what.
-4. **Run it**:
+1. **DNS**: on whatever registrar manages `onenexora.com`, add 10 **A**
+   records — `@` (root), `www`, `account`, `console`, `status`, `api`,
+   `docs`, `developers`, `sentinel`, `cspm`, `gateway` — all pointing at
+   the OCI instance's public IPv4 address. Caddy requests a Let's Encrypt
+   certificate per domain on first request, so DNS has to actually
+   resolve before it can — expect the first hit to each subdomain to be
+   slow while that happens.
+
+2. **Open ports 80 and 443 — at both layers.** OCI blocks them by
+   default at two independent layers, and both have to be opened or
+   nothing gets through:
+   - **OCI Security List / Network Security Group** (Console → Networking
+     → Virtual Cloud Networks → your VCN → the subnet's Security List, or
+     the instance's own NSG if it has one): add ingress rules for
+     `0.0.0.0/0`, TCP, ports 80 and 443. This is a cloud-level firewall —
+     nothing inside the VM can override it, so it has to be done from the
+     OCI Console itself, which needs your OCI login, not mine.
+   - **The instance's own OS firewall** (`firewalld`, which Oracle Linux
+     ships with enabled by default) — run on the instance itself:
+     ```bash
+     sudo firewall-cmd --permanent --add-port=80/tcp
+     sudo firewall-cmd --permanent --add-port=443/tcp
+     sudo firewall-cmd --reload
+     ```
+
+3. **Install Docker** (Oracle Linux is RHEL-family — `dnf`, not `apt`;
+   its own container tooling is podman, not Docker, so this adds Docker's
+   real upstream repo rather than using what's preinstalled):
+
    ```bash
+   sudo dnf install -y dnf-utils
+   sudo dnf config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
+   sudo dnf install -y docker-ce docker-ce-cli containerd.io docker-compose-plugin
+   sudo systemctl enable --now docker
+   sudo usermod -aG docker $USER   # log out/in once for this to apply
+   ```
+
+4. **Get the code onto the instance and configure secrets**:
+
+   ```bash
+   git clone https://github.com/xsmartbartx/NEXORA.git nexora-platform
+   cd nexora-platform
+   cp infrastructure/docker/.env.prod.example infrastructure/docker/.env.prod
+   nano infrastructure/docker/.env.prod   # fill in real Clerk/Stripe/Postgres values
+   ```
+
+5. **Build and run** — check the instance's RAM first (`free -h`); OCI's
+   Always Free shapes in particular can be too small to build all 10
+   apps' `next build` in parallel (this was verified failing at ~4GB free
+   locally — see the memory note above, same risk here, likely worse on a
+   small shape):
+
+   ```bash
+   # If RAM is tight, build one at a time first, then start without
+   # --build (already-built images are reused, not rebuilt):
+   for app in website account console status api docs developers sentinel cspm gateway; do
+     docker compose -f infrastructure/docker/docker-compose.prod.yml \
+       --env-file infrastructure/docker/.env.prod build "$app"
+   done
+   docker compose -f infrastructure/docker/docker-compose.prod.yml \
+     --env-file infrastructure/docker/.env.prod up -d
+
+   # If RAM isn't a concern, this one command does both:
    docker compose -f infrastructure/docker/docker-compose.prod.yml \
      --env-file infrastructure/docker/.env.prod up -d --build
    ```
-   Same memory caveat as below applies, more so with 10 apps on a VM
-   that's likely smaller than a dev machine — build services one at a
-   time first if `--build` runs out of memory.
+
+6. **Check it actually came up**:
+   ```bash
+   docker compose -f infrastructure/docker/docker-compose.prod.yml \
+     --env-file infrastructure/docker/.env.prod ps
+   docker compose -f infrastructure/docker/docker-compose.prod.yml \
+     --env-file infrastructure/docker/.env.prod logs -f caddy
+   ```
+   Watch the Caddy logs specifically on first run — that's where a
+   certificate failure (DNS not propagated yet, or ports 80/443 not
+   actually reachable from the internet) shows up.
 
 **The one real gotcha, either way:** Next.js bakes every `NEXT_PUBLIC_*`
 variable into the JavaScript bundle at `next build` time, not runtime.
