@@ -12,7 +12,14 @@ import { NextResponse } from "next/server";
 export default isClerkConfigured()
   ? clerkMiddleware(async (auth, req) => {
       const accountUrl = process.env.NEXT_PUBLIC_ACCOUNT_URL ?? "https://account.onenexora.com";
-      const unauthenticatedUrl = `${accountUrl}/sign-in?redirect_url=${encodeURIComponent(req.url)}`;
+      // req.url reflects the container's own bind address (e.g.
+      // 0.0.0.0:3002), not the public hostname, when running as a
+      // standalone Next.js server behind a reverse proxy — build the
+      // return URL from the app's own public URL instead, same as
+      // accountUrl above.
+      const consoleUrl = process.env.NEXT_PUBLIC_CONSOLE_URL ?? "https://console.onenexora.com";
+      const returnTo = `${consoleUrl}${req.nextUrl.pathname}${req.nextUrl.search}`;
+      const unauthenticatedUrl = `${accountUrl}/sign-in?redirect_url=${encodeURIComponent(returnTo)}`;
       await auth.protect({ unauthenticatedUrl });
     })
   : () => NextResponse.next();
