@@ -58,12 +58,6 @@ export interface NavItem {
 }
 
 const developersUrl = process.env.NEXT_PUBLIC_DEVELOPERS_URL ?? "https://developers.onenexora.com";
-// Vigilo isn't a NEXORA Product (§5.2) — it doesn't satisfy the Tenant
-// Contract (§4.3: Core identity, entitlements, audit events, shared shell),
-// so it isn't in the products registry. It's an independently built and
-// hosted security scanner, linked here the same way Developers links out to
-// its own subdomain — a plain external reference, not a platform claim.
-const vigiloUrl = process.env.NEXT_PUBLIC_VIGILO_URL ?? "https://vigilo.onenexora.com";
 
 export const primaryNav: NavItem[] = [
   { label: "Platform", href: "/platform" },
@@ -71,7 +65,6 @@ export const primaryNav: NavItem[] = [
   { label: "Marketplace", href: "/marketplace" },
   { label: "Solutions", href: "/solutions" },
   { label: "Developers", href: developersUrl, external: true },
-  { label: "Vigilo", href: vigiloUrl, external: true },
   { label: "Labs", href: "/labs" },
   { label: "Company", href: "/company" },
 ];

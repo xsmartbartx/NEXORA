@@ -70,4 +70,22 @@ export const products: Product[] = [
     icon: "gateway",
     owner: "Platform Team",
   },
+  {
+    id: "prod_vigilo",
+    slug: "vigilo",
+    name: "Vigilo",
+    short_name: "Vigilo",
+    tagline: "Scan any live URL, get a real security and compliance report back.",
+    description:
+      "Vigilo scans a live web app's public surface — security headers, TLS configuration, exposed secrets, GDPR/legal-link presence — and returns a scored report with concrete, copy-pasteable remediation steps. Today that's passive, non-intrusive checks anyone can run against a public URL for free; deeper active-tier probing (endpoint enumeration, further compliance checks) unlocks once you verify ownership of the target. Independently built and hosted — not yet on Core identity/entitlements, so it's `beta` here rather than a deeper platform integration.",
+    category: "security",
+    platform_pillar: "security",
+    lifecycle: "beta",
+    visibility: "public",
+    featured: true,
+    url: "https://vigilo.onenexora.com",
+    health_source: "https://vigilo-api.duckdns.org/healthz",
+    icon: "vigilo",
+    owner: "Platform Team",
+  },
 ];
