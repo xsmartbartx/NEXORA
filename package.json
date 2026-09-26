@@ -17,6 +17,7 @@
     "test": "vitest run"
   },
   "devDependencies": {
+    "picomatch": "^4.0.7",
     "prettier": "^3.4.2",
     "vitest": "^3.2.7"
   },
