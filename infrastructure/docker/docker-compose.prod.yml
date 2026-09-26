@@ -1,10 +1,9 @@
-# Production topology for a single VM (e.g. one OCI instance): Caddy
-# terminates TLS (automatic, via Let's Encrypt — see Caddyfile) and routes
-# each onenexora.com subdomain to its app container; Postgres is bundled
-# here too, for the same single-VM-to-start reason. No app port is
-# published to the host directly — only Caddy's 80/443 are, so every app
-# is reached through Caddy or not at all. See README.md's "Going to
-# production" section before running this for the first time.
+# Production topology for a single VM (e.g. one OCI instance): the 10 apps
+# plus Postgres. No port is published to the host — TLS and routing live
+# in infrastructure/edge/, a separate Caddy stack shared with the other
+# projects on the same host, which joins this project's network and
+# proxies each onenexora.com subdomain to its container. See README.md's
+# "Going to production" section before running this for the first time.
 #
 # One secrets file, not one per app: infrastructure/docker/.env.prod
 # (copy from .env.prod.example, never committed — see .gitignore). A
@@ -13,6 +12,11 @@
 # Run from the repository root:
 #   docker compose -f infrastructure/docker/docker-compose.prod.yml \
 #     --env-file infrastructure/docker/.env.prod up -d --build
+
+# Pinned, not left to default to the directory name: infrastructure/edge/
+# addresses this stack by its network (nexora_default) and container names
+# (nexora-<service>-1).
+name: nexora
 
 services:
   postgres:
@@ -37,27 +41,6 @@ services:
         condition: service_healthy
     environment:
       DATABASE_URL: postgres://postgres:${POSTGRES_PASSWORD}@postgres:5432/nexora
-
-  caddy:
-    image: caddy:2-alpine
-    ports:
-      - "80:80"
-      - "443:443"
-    volumes:
-      - ./Caddyfile:/etc/caddy/Caddyfile:ro
-      - caddy-data:/data
-      - caddy-config:/config
-    depends_on:
-      - website
-      - account
-      - console
-      - status
-      - api
-      - docs
-      - developers
-      - sentinel
-      - cspm
-      - gateway
 
   website:
     build:
@@ -237,5 +220,3 @@ services:
 
 volumes:
   nexora-postgres-data:
-  caddy-data:
-  caddy-config:

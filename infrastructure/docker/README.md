@@ -3,8 +3,9 @@
 Every app in `apps/*` builds from the single [`Dockerfile`](Dockerfile) in
 this directory, parameterised by `APP_NAME`. [`docker-compose.yml`](docker-compose.yml)
 wires all 10 together with Postgres for local use;
-[`docker-compose.prod.yml`](docker-compose.prod.yml) does the same plus
-[`Caddyfile`](Caddyfile) for real subdomains and automatic TLS — see
+[`docker-compose.prod.yml`](docker-compose.prod.yml) is the production
+equivalent, fronted by the shared reverse proxy in
+[`../edge/`](../edge/) for real subdomains and automatic TLS — see
 "Going to production" below. All of it is verified — see "What's been
 verified" — not just written and assumed correct.
 
@@ -64,9 +65,11 @@ images anyway (one at a time, not all in parallel on one machine).
 ## Going to production
 
 `docker-compose.prod.yml` is a single-VM topology (e.g. one OCI
-instance): Caddy terminates TLS and routes each `*.onenexora.com`
-subdomain to its container, Postgres is bundled, nothing but Caddy's
-80/443 is published to the host.
+instance) with Postgres bundled and no ports published. TLS and routing
+live in [`infrastructure/edge/`](../edge/): one Caddy stack for the whole
+host, shared with Vigilo, which joins each project's Docker network and
+routes every `*.onenexora.com` subdomain to its container. Only that
+Caddy binds 80/443.
 
 1. **DNS**: on whatever registrar manages `onenexora.com`, add 10 **A**
    records — `@` (root), `www`, `account`, `console`, `status`, `api`,
@@ -135,12 +138,19 @@ subdomain to its container, Postgres is bundled, nothing but Caddy's
      --env-file infrastructure/docker/.env.prod up -d --build
    ```
 
+   Then start the edge proxy. It declares both this project's network and
+   Vigilo's (`vigilo-self-host_default`) as external, so Vigilo's stack has
+   to be up first too, or `up` fails on the missing network:
+
+   ```bash
+   docker compose -f infrastructure/edge/docker-compose.yml up -d
+   ```
+
 6. **Check it actually came up**:
    ```bash
    docker compose -f infrastructure/docker/docker-compose.prod.yml \
      --env-file infrastructure/docker/.env.prod ps
-   docker compose -f infrastructure/docker/docker-compose.prod.yml \
-     --env-file infrastructure/docker/.env.prod logs -f caddy
+   docker compose -f infrastructure/edge/docker-compose.yml logs -f caddy
    ```
    Watch the Caddy logs specifically on first run — that's where a
    certificate failure (DNS not propagated yet, or ports 80/443 not
@@ -184,9 +194,9 @@ Actually built and run, not just written:
   `website` with `NEXT_PUBLIC_SITE_URL=https://onenexora.com` passed as a
   `--build-arg`, confirmed `sitemap.xml` served from the running
   container used that real domain, not the `localhost` fallback.
-- `Caddyfile` — validated with `caddy validate`, not just written; it
-  correctly detects it should enable automatic HTTPS and HTTP→HTTPS
-  redirects for every domain listed.
+- `infrastructure/edge/` — running in production on the shared OCI
+  instance, serving every NEXORA and Vigilo domain with a Let's Encrypt
+  certificate, proxying across both projects' networks.
 - `docker-compose.prod.yml`'s variable interpolation — validated with
   `docker compose config` against a real `.env.prod`-shaped file, confirmed
   every `${...}` (the Postgres password, the Clerk publishable key) and
