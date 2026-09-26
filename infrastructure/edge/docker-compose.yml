@@ -1,0 +1,29 @@
+# The one process on this host bound to 80/443 — see Caddyfile's header
+# comment for why this is a separate stack rather than living inside
+# either project's own compose file.
+name: edge
+
+services:
+  caddy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    networks:
+      - nexora_default
+      - vigilo-self-host_default
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - edge_caddy_data:/data
+      - edge_caddy_config:/config
+
+networks:
+  nexora_default:
+    external: true
+  vigilo-self-host_default:
+    external: true
+
+volumes:
+  edge_caddy_data:
+  edge_caddy_config:
