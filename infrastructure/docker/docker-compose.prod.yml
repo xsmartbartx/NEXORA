@@ -111,6 +111,10 @@ services:
         NEXT_PUBLIC_STATUS_URL: https://status.onenexora.com
         NEXT_PUBLIC_NEXORA_ENV: production
     env_file: .env.prod
+    # The host's nightly backup script (/opt/backups/backup-all.sh) writes
+    # its last-success timestamp here; /api/backup reports its freshness.
+    volumes:
+      - /opt/backups/heartbeat:/backup-heartbeat:ro
 
   api:
     build:
