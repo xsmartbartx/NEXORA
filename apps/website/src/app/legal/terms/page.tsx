@@ -88,11 +88,10 @@ export default function TermsPage() {
         end of the current billing period unless stated otherwise at the time of cancellation.
       </p>
       <p className={p}>
-        <strong>
-          [TODO(launch): refund policy not yet decided — this is a business decision, not a
-          technical one. Placeholder pending a real answer:]
-        </strong>{" "}
-        Except where required by applicable law, fees already paid are non-refundable.
+        When you cancel, your plan does not renew and you keep access to paid features until the end
+        of the period you have already paid for. Fees already paid are non-refundable, including for
+        partial billing periods, except where applicable law requires a refund — for example, any
+        statutory right of withdrawal you have as a consumer.
       </p>
 
       <h2 className={h2}>5. Acceptable use</h2>
@@ -182,8 +181,13 @@ export default function TermsPage() {
       <h2 className={h2}>13. Governing law</h2>
       <p className={p}>
         These Terms are governed by the laws of {siteConfig.legalJurisdiction}, without regard to
-        its conflict-of-laws principles. [TODO(launch): dispute resolution mechanism — arbitration
-        clause, venue, and class-action waiver, if any — is a legal decision not yet made.]
+        its conflict-of-laws principles. Disputes arising from these Terms or the Service will be
+        resolved by the competent common courts of Poland.
+      </p>
+      <p className={p}>
+        If you use the Service as a consumer, nothing in this section deprives you of the protection
+        of the mandatory laws of your country of residence, and you may also bring proceedings in
+        the courts of that country.
       </p>
 
       <h2 className={h2}>14. Contact</h2>

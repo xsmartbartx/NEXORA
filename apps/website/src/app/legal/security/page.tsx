@@ -96,8 +96,11 @@ export default function SecurityPage() {
         {siteConfig.securityEmail} rather than disclosing it publicly. We ask that you give us a
         reasonable opportunity to investigate and address a report before any public disclosure, and
         that you do not access or modify data that isn&rsquo;t your own while investigating.
-        [TODO(launch): formalise a disclosure/bounty policy and response-time commitment once real
-        infrastructure exists to triage against.]
+      </p>
+      <p className={p}>
+        We aim to acknowledge every report within five business days and to keep you informed while
+        we investigate and fix it. We will not pursue legal action against research carried out in
+        good faith under these guidelines. We do not currently run a paid bug bounty.
       </p>
     </div>
   );

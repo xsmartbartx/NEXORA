@@ -62,9 +62,10 @@ export default function PrivacyPage() {
       <p className={p}>
         <strong>Content you submit to a product.</strong> Some products (for example, Sentinel and
         CSPM) accept data you paste in directly — log samples, resource descriptions — to analyse on
-        request. Handling of that content is described on each product&rsquo;s own page;
-        [TODO(launch): confirm and state each product&rsquo;s retention period for submitted content
-        here once decided].
+        request. Sentinel and CSPM analyse that content in memory on our own servers: it is not
+        written to our database or logs, and it is discarded once the result is returned to you.
+        Gateway forwards each request to its configured AI provider (see section 3); for our own
+        records it logs only the request&rsquo;s outcome and response time, not its content.
       </p>
 
       <h2 className={h2}>2. How we use information</h2>
@@ -111,11 +112,17 @@ export default function PrivacyPage() {
 
       <h2 className={h2}>4. Data retention</h2>
       <p className={p}>
-        We retain account and audit data for as long as your organisation&rsquo;s account is active,
-        and for a limited period afterward as needed for legal, tax, or dispute-resolution purposes.
+        We keep your organisation&rsquo;s data — API key hashes, audit events and subscription state
+        — for as long as its account is active. When an organisation closes its account, we delete
+        that data within 30 days. The exception is billing and invoice records, which we keep for as
+        long as tax and accounting law requires (in Poland, generally five years from the end of the
+        year in which the related tax was due); Stripe keeps its own payment records under its own
+        terms. Account and identity data held by Clerk is deleted when you delete your account.
+      </p>
+      <p className={p}>
         Our database is backed up nightly (backups kept for 14 days) and the whole server weekly
-        (kept for 27 days), so data you delete can remain in backups for up to 27 days before it is
-        overwritten. [TODO(launch): specific retention periods per data category not yet decided.]
+        (kept for 27 days), so deleted data can remain in backups for up to 27 days after deletion
+        before it is overwritten.
       </p>
 
       <h2 className={h2}>5. Cookies</h2>
@@ -128,11 +135,37 @@ export default function PrivacyPage() {
 
       <h2 className={h2}>6. Your rights</h2>
       <p className={p}>
-        Depending on your location, you may have rights to access, correct, delete, or export your
-        personal information, and to object to or restrict certain processing. To exercise any of
-        these rights, contact {siteConfig.legalEmail}. [TODO(launch): this section needs
-        jurisdiction-specific detail — e.g. GDPR/UK GDPR and CCPA/CPRA rights and response timelines
-        — once NEXORA&rsquo;s operating jurisdictions and user base are known.]
+        We process personal information under the EU General Data Protection Regulation (GDPR). Our
+        legal bases are: performing our contract with you (providing the Service, authentication and
+        billing); complying with legal obligations (for example, keeping billing records); and our
+        legitimate interest in keeping the Service secure and preventing abuse.
+      </p>
+      <p className={p}>You have the right to:</p>
+      <ul className={ul}>
+        <li>access the personal information we hold about you and receive a copy of it;</li>
+        <li>have inaccurate information corrected;</li>
+        <li>have your information deleted, where we have no legal reason to keep it;</li>
+        <li>
+          restrict or object to certain processing, including processing based on our legitimate
+          interests;
+        </li>
+        <li>receive the information you provided in a portable, machine-readable format;</li>
+        <li>
+          lodge a complaint with a data protection authority — in Poland, the President of the
+          Personal Data Protection Office (Prezes Urzędu Ochrony Danych Osobowych, UODO), or the
+          authority in the EU country where you live or work.
+        </li>
+      </ul>
+      <p className={p}>
+        To exercise any of these rights, contact {siteConfig.legalEmail}. We respond within one
+        month; for complex requests the GDPR allows us to extend this by up to two further months,
+        and we will tell you if we need to.
+      </p>
+      <p className={p}>
+        Clerk and Stripe are based in the United States, so information they process may be
+        transferred outside the European Economic Area. Those transfers rely on the safeguards each
+        provider offers under the GDPR, such as the EU–US Data Privacy Framework or the European
+        Commission&rsquo;s Standard Contractual Clauses.
       </p>
 
       <h2 className={h2}>7. Security</h2>
