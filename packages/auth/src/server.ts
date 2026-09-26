@@ -1,5 +1,6 @@
 import { auth, clerkClient, currentUser } from "@clerk/nextjs/server";
 import { notFound, redirect } from "next/navigation";
+import { adminEmailFor, parseAdminAllowlist } from "./admin";
 import { isClerkConfigured } from "./config";
 
 /**
@@ -51,10 +52,7 @@ export interface RequiredAdmin {
 }
 
 function adminAllowlist(): string[] {
-  return (process.env.NEXORA_ADMIN_EMAILS ?? "")
-    .split(",")
-    .map((email) => email.trim().toLowerCase())
-    .filter(Boolean);
+  return parseAdminAllowlist(process.env.NEXORA_ADMIN_EMAILS);
 }
 
 /**
@@ -71,12 +69,8 @@ function adminAllowlist(): string[] {
  */
 export async function requireAdmin(signInUrl = "/sign-in"): Promise<RequiredAdmin> {
   const session = await requireAuth(signInUrl);
-  const allowlist = adminAllowlist();
-  const user = await currentUser();
-  const email = user?.primaryEmailAddress?.emailAddress ?? null;
-  if (allowlist.length === 0 || !email || !allowlist.includes(email.toLowerCase())) {
-    notFound();
-  }
+  const email = adminEmailFor(await currentUser(), adminAllowlist());
+  if (!email) notFound();
   return { userId: session.userId, email };
 }
 
@@ -89,9 +83,7 @@ export async function isAdmin(): Promise<boolean> {
   const allowlist = adminAllowlist();
   if (allowlist.length === 0) return false;
 
-  const user = await currentUser();
-  const email = user?.primaryEmailAddress?.emailAddress ?? null;
-  return !!email && allowlist.includes(email.toLowerCase());
+  return adminEmailFor(await currentUser(), allowlist) !== null;
 }
 
 /** Like `requireAuth`, but also requires an active organisation (redirects to org selection otherwise). */
