@@ -68,11 +68,16 @@ export default function SecurityPage() {
 
       <h2 className={h2}>Transport and infrastructure</h2>
       <p className={p}>
-        All traffic to the Service is intended to be served over HTTPS/TLS. [TODO(launch): edge/TLS
-        termination is not provisioned yet — this platform has not been deployed to production
-        infrastructure. This statement should be reviewed and confirmed once it has been.] Database
-        encryption at rest depends on the Postgres hosting provider selected; [TODO(launch): name
-        the provider and confirm its at-rest encryption once selected].
+        Every NEXORA site and the API are served over HTTPS/TLS with certificates from Let&rsquo;s
+        Encrypt; plain HTTP requests are redirected to HTTPS. TLS is terminated by a reverse proxy
+        on the same server as the application. The platform runs on Oracle Cloud Infrastructure in
+        Frankfurt, Germany, and its Postgres database lives on block storage that Oracle Cloud
+        encrypts at rest by default, with Oracle-managed keys.
+      </p>
+      <p className={p}>
+        The database is backed up nightly (backups kept for 14 days) and the whole server weekly
+        (kept for 27 days). All backups stay in the same Oracle Cloud region; the platform is not
+        currently replicated to a second region.
       </p>
 
       <h2 className={h2}>What we have not done yet</h2>

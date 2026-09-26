@@ -95,12 +95,9 @@ export default function PrivacyPage() {
           <strong>Stripe</strong> — payment processing and subscription billing;
         </li>
         <li>
-          <strong>Our database host</strong> — stores API key hashes, audit events and subscription
-          state (Postgres; [TODO(launch): name the specific host once selected]);
-        </li>
-        <li>
-          <strong>Our infrastructure/hosting provider</strong> — runs the application itself
-          ([TODO(launch): name once selected]);
+          <strong>Oracle Cloud Infrastructure</strong> — hosts the application and its Postgres
+          database (API key hashes, audit events and subscription state) on servers in Frankfurt,
+          Germany;
         </li>
         <li>
           <strong>The AI provider configured for Gateway</strong> — when you use Gateway, your
@@ -116,14 +113,17 @@ export default function PrivacyPage() {
       <p className={p}>
         We retain account and audit data for as long as your organisation&rsquo;s account is active,
         and for a limited period afterward as needed for legal, tax, or dispute-resolution purposes.
-        [TODO(launch): specific retention periods per data category not yet decided.]
+        Our database is backed up nightly (backups kept for 14 days) and the whole server weekly
+        (kept for 27 days), so data you delete can remain in backups for up to 27 days before it is
+        overwritten. [TODO(launch): specific retention periods per data category not yet decided.]
       </p>
 
       <h2 className={h2}>5. Cookies</h2>
       <p className={p}>
         We use cookies required for authentication (set by Clerk) and, where used, essential session
-        state. We do not currently use third-party advertising or cross-site tracking cookies.
-        [TODO(launch): update this section if analytics/marketing cookies are added.]
+        state. We do not currently use analytics, third-party advertising, or cross-site tracking
+        cookies.
+        {/* Must change if analytics or marketing scripts are ever added to any app. */}
       </p>
 
       <h2 className={h2}>6. Your rights</h2>
