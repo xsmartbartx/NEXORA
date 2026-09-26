@@ -46,7 +46,11 @@ export async function suspendProduct(
 }
 
 /** Resumes a suspended product. A no-op (still audit-logged) if it wasn't suspended — an admin double-clicking "resume" isn't an error case. */
-export async function resumeProduct(orgId: string, product: string, actorId: string): Promise<void> {
+export async function resumeProduct(
+  orgId: string,
+  product: string,
+  actorId: string,
+): Promise<void> {
   await db
     .delete(productSuspensions)
     .where(and(eq(productSuspensions.orgId, orgId), eq(productSuspensions.product, product)));

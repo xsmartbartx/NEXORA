@@ -61,8 +61,8 @@ export default async function AdminCustomerPage({ params }: PageProps<"/admin/[o
       <div className="mt-10">
         <h2 className="text-lg font-semibold">Product access</h2>
         <p className="mt-1 text-sm text-muted-foreground">
-          Independent of plan — suspending here blocks the product even if the customer&rsquo;s
-          plan would otherwise allow it.
+          Independent of plan — suspending here blocks the product even if the customer&rsquo;s plan
+          would otherwise allow it.
         </p>
         <div className="mt-4 grid gap-4 sm:grid-cols-2">
           {customer.products.map((usage) => (

@@ -22,7 +22,9 @@ export function ProductControl({
   const [isPending, startTransition] = useTransition();
 
   const pct =
-    usage.limit === null ? null : Math.min(100, Math.round((usage.used / Math.max(usage.limit, 1)) * 100));
+    usage.limit === null
+      ? null
+      : Math.min(100, Math.round((usage.used / Math.max(usage.limit, 1)) * 100));
 
   function submitSuspend() {
     if (!reason.trim()) {
@@ -102,9 +104,12 @@ export function ProductControl({
 
         {mode === "confirm-suspend" ? (
           <div className="flex flex-col gap-2">
-            <label className="text-sm text-muted-foreground" htmlFor={`reason-${usage.product.slug}`}>
-              Why is {usage.product.name} being suspended for this customer? This is required and
-              is not shown to the customer — only that access was suspended.
+            <label
+              className="text-sm text-muted-foreground"
+              htmlFor={`reason-${usage.product.slug}`}
+            >
+              Why is {usage.product.name} being suspended for this customer? This is required and is
+              not shown to the customer — only that access was suspended.
             </label>
             <textarea
               id={`reason-${usage.product.slug}`}
@@ -116,12 +121,7 @@ export function ProductControl({
             />
             {error ? <p className="text-sm text-destructive">{error}</p> : null}
             <div className="flex gap-2">
-              <Button
-                variant="destructive"
-                size="sm"
-                onClick={submitSuspend}
-                disabled={isPending}
-              >
+              <Button variant="destructive" size="sm" onClick={submitSuspend} disabled={isPending}>
                 {isPending ? "Suspending…" : "Confirm suspension"}
               </Button>
               <Button
@@ -150,7 +150,12 @@ export function ProductControl({
               <Button size="sm" onClick={submitResume} disabled={isPending}>
                 {isPending ? "Resuming…" : "Confirm resume"}
               </Button>
-              <Button variant="ghost" size="sm" onClick={() => setMode("idle")} disabled={isPending}>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setMode("idle")}
+                disabled={isPending}
+              >
                 Cancel
               </Button>
             </div>

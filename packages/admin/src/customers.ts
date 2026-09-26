@@ -67,7 +67,12 @@ function usageForProducts(
     for (const feature of product.features) {
       const featureUsed = usageByAction.get(`${feature}.completed`) ?? 0;
       const featureLimit = plan.limits[feature] ?? null;
-      const featureRatio = featureLimit === null ? (featureUsed > 0 ? 0 : -1) : featureUsed / Math.max(featureLimit, 1);
+      const featureRatio =
+        featureLimit === null
+          ? featureUsed > 0
+            ? 0
+            : -1
+          : featureUsed / Math.max(featureLimit, 1);
       if (featureRatio > ratio) {
         ratio = featureRatio;
         used = featureUsed;
@@ -192,7 +197,8 @@ export async function getCustomer(orgId: string): Promise<CustomerDetail | null>
       name:
         [membership.publicUserData?.firstName, membership.publicUserData?.lastName]
           .filter(Boolean)
-          .join(" ") || (membership.publicUserData?.identifier ?? "Unknown"),
+          .join(" ") ||
+        (membership.publicUserData?.identifier ?? "Unknown"),
       role: membership.role,
     })),
     recentEvents,

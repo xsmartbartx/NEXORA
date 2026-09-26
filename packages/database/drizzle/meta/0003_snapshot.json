@@ -292,16 +292,12 @@
         "subscriptions_org_id_unique": {
           "name": "subscriptions_org_id_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "org_id"
-          ]
+          "columns": ["org_id"]
         },
         "subscriptions_stripe_subscription_id_unique": {
           "name": "subscriptions_stripe_subscription_id_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "stripe_subscription_id"
-          ]
+          "columns": ["stripe_subscription_id"]
         }
       },
       "policies": {},
