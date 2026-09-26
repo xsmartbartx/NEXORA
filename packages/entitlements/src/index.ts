@@ -1,4 +1,6 @@
 import { getOrgPlan } from "@nexora/billing";
+import { db, productSuspensions } from "@nexora/database";
+import { and, eq } from "drizzle-orm";
 import { countOrgEvents, startOfCurrentBillingPeriod } from "@nexora/telemetry";
 
 export interface EntitlementCheck {
@@ -6,6 +8,11 @@ export interface EntitlementCheck {
   reason?: string;
   limit?: number | null;
   used?: number;
+}
+
+/** The product a feature key belongs to: `"sentinel.scan"` → `"sentinel"`. */
+function productForFeature(feature: string): string {
+  return feature.split(".")[0] ?? feature;
 }
 
 /**
@@ -22,6 +29,23 @@ export interface EntitlementCheck {
  * follows that convention when it logs via `@nexora/telemetry`.
  */
 export async function checkEntitlement(orgId: string, feature: string): Promise<EntitlementCheck> {
+  const [suspension] = await db
+    .select({ reason: productSuspensions.reason })
+    .from(productSuspensions)
+    .where(
+      and(
+        eq(productSuspensions.orgId, orgId),
+        eq(productSuspensions.product, productForFeature(feature)),
+      ),
+    )
+    .limit(1);
+  if (suspension) {
+    return {
+      allowed: false,
+      reason: "Access to this product has been suspended by NEXORA. Contact support.",
+    };
+  }
+
   const plan = await getOrgPlan(orgId);
   const limit = plan.limits[feature];
 

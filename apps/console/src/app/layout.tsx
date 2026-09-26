@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { AppClerkProvider } from "@nexora/auth/client";
+import { isAdmin } from "@nexora/auth/server";
 import { AppShell } from "@nexora/shell";
 
 const geistSans = Geist({
@@ -32,12 +33,19 @@ const navItems = [
   { label: "Billing", href: "/billing" },
 ];
 
-export default function RootLayout({ children }: LayoutProps<"/">) {
+export default async function RootLayout({ children }: LayoutProps<"/">) {
+  // Staff-only, so it's appended rather than listed statically — a
+  // customer never sees a link to a surface they'd get a 404 from anyway
+  // (see `requireAdmin`'s comment), and the check here is the cheap,
+  // non-throwing one built for exactly this.
+  const admin = await isAdmin();
+  const items = admin ? [...navItems, { label: "Admin", href: "/admin" }] : navItems;
+
   return (
     <html lang="en" className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}>
       <body className="min-h-full">
         <AppClerkProvider>
-          <AppShell appName="Console" navItems={navItems}>
+          <AppShell appName="Console" navItems={items}>
             {children}
           </AppShell>
         </AppClerkProvider>

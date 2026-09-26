@@ -1,0 +1,25 @@
+{
+  "name": "@nexora/admin",
+  "version": "0.1.0",
+  "private": true,
+  "description": "NEXORA-staff cross-organisation views and controls (customer list, per-product suspension). The one package allowed to break the org-scoping rule every other read model follows (§12.3) — everything it exports is for the staff admin surface only, never a customer-facing page.",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@nexora/auth": "*",
+    "@nexora/billing": "*",
+    "@nexora/database": "*",
+    "@nexora/registry": "*",
+    "@nexora/telemetry": "*",
+    "drizzle-orm": "^0.45.3"
+  },
+  "devDependencies": {
+    "@types/node": "^20",
+    "typescript": "^5"
+  }
+}

@@ -1,4 +1,4 @@
-import { jsonb, pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core";
+import { jsonb, pgTable, text, timestamp, uniqueIndex, uuid } from "drizzle-orm/pg-core";
 
 /**
  * Machine identity (§6.4). `orgId`/`createdBy` are Clerk ids (`org_...`,
@@ -55,9 +55,35 @@ export const subscriptions = pgTable("subscriptions", {
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
 });
 
+/**
+ * NEXORA-staff control, not a customer-facing setting (§4.1 Entitlements
+ * still owns plan limits; this is a second, independent gate ahead of
+ * those — a plan limit says "how much", this says "at all"). Presence of a
+ * row for `(orgId, product)` means that product is suspended for that
+ * organisation, regardless of plan; absence means normal, plan-governed
+ * access. Un-suspending deletes the row rather than flipping a status
+ * column — there is nothing to represent between "suspended" and "not" for
+ * a given product, and the history of who suspended/resumed it and why
+ * already lives in `audit_events` (logged by the admin package itself).
+ */
+export const productSuspensions = pgTable(
+  "product_suspensions",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    orgId: text("org_id").notNull(),
+    product: text("product").notNull(),
+    reason: text("reason").notNull(),
+    suspendedBy: text("suspended_by").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [uniqueIndex("product_suspensions_org_product_idx").on(table.orgId, table.product)],
+);
+
 export type ApiKey = typeof apiKeys.$inferSelect;
 export type NewApiKey = typeof apiKeys.$inferInsert;
 export type AuditEvent = typeof auditEvents.$inferSelect;
 export type NewAuditEvent = typeof auditEvents.$inferInsert;
 export type Subscription = typeof subscriptions.$inferSelect;
 export type NewSubscription = typeof subscriptions.$inferInsert;
+export type ProductSuspension = typeof productSuspensions.$inferSelect;
+export type NewProductSuspension = typeof productSuspensions.$inferInsert;

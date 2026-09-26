@@ -5,4 +5,4 @@ export type { SignatureVerifyResult, StripeEvent } from "./webhook";
 export { createCheckoutSession } from "./checkout";
 export type { CreateCheckoutSessionInput } from "./checkout";
 export { getStripeClient, isStripeConfigured } from "./stripe-client";
-export { getOrgPlan, getOrgSubscription } from "./subscription";
+export { getOrgPlan, getOrgSubscription, resolvePlanForSubscription } from "./subscription";
