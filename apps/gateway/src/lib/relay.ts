@@ -73,7 +73,7 @@ export async function relayChatRequest(input: RelayRequest): Promise<RelayResult
         "anthropic-version": "2023-06-01",
       },
       body: JSON.stringify({
-        model: input.model ?? "claude-3-5-haiku-latest",
+        model: input.model ?? process.env.GATEWAY_DEFAULT_MODEL ?? "claude-haiku-4-5",
         max_tokens: input.max_tokens ?? 256,
         messages: input.messages,
       }),
