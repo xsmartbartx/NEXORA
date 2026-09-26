@@ -1,0 +1,47 @@
+name: Uptime
+
+# Probes every public endpoint of NEXORA and Vigilo. A failed run is the
+# alert: GitHub emails the repository owner when a scheduled workflow fails.
+on:
+  schedule:
+    - cron: "*/15 * * * *"
+  workflow_dispatch:
+
+jobs:
+  probe:
+    name: Probe public endpoints
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Check endpoints
+        run: |
+          endpoints=(
+            https://onenexora.com
+            https://account.onenexora.com
+            https://console.onenexora.com
+            https://status.onenexora.com
+            https://api.onenexora.com/v1/health
+            https://docs.onenexora.com
+            https://developers.onenexora.com
+            https://sentinel.onenexora.com
+            https://cspm.onenexora.com
+            https://gateway.onenexora.com
+            https://vigilo.onenexora.com
+            https://vigilo-api.onenexora.com/healthz
+          )
+          failed=0
+          for url in "${endpoints[@]}"; do
+            # Retries absorb a single dropped connection; only a sustained
+            # failure (or a 5xx) should page anyone. Redirects are not
+            # followed: signed-out app pages 307 to Clerk's hosted sign-in,
+            # which answers bots with a Cloudflare 403.
+            code=$(curl -s -o /dev/null -w "%{http_code}" --max-time 20 \
+              --retry 3 --retry-delay 10 --retry-all-errors "$url" || true)
+            if [[ "$code" =~ ^(2|3) ]]; then
+              echo "OK   $code $url"
+            else
+              echo "::error::DOWN $code $url"
+              failed=1
+            fi
+          done
+          exit $failed

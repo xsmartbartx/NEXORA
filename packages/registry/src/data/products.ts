@@ -84,7 +84,7 @@ export const products: Product[] = [
     visibility: "public",
     featured: true,
     url: "https://vigilo.onenexora.com",
-    health_source: "https://vigilo-api.duckdns.org/healthz",
+    health_source: "https://vigilo-api.onenexora.com/healthz",
     icon: "vigilo",
     owner: "Platform Team",
   },
