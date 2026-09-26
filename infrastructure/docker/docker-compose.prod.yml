@@ -18,6 +18,11 @@
 # (nexora-<service>-1).
 name: nexora
 
+# Secrets: .env.prod is read only for ${VAR} interpolation (--env-file),
+# never loaded wholesale into a container. Each service lists exactly the
+# secrets its code reads — Stripe's secret key reaches only console
+# (checkout), the webhook secret only api, the upstream AI key only
+# gateway. Add a secret to a service only when its code needs it.
 services:
   postgres:
     image: postgres:16-alpine
@@ -55,7 +60,6 @@ services:
         NEXT_PUBLIC_DOCS_URL: https://docs.onenexora.com
         NEXT_PUBLIC_DEVELOPERS_URL: https://developers.onenexora.com
         NEXT_PUBLIC_NEXORA_ENV: production
-    env_file: .env.prod
 
   account:
     build:
@@ -73,7 +77,9 @@ services:
         NEXT_PUBLIC_DEVELOPERS_URL: https://developers.onenexora.com
         NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY}
         NEXT_PUBLIC_NEXORA_ENV: production
-    env_file: .env.prod
+    environment:
+      CLERK_SECRET_KEY: ${CLERK_SECRET_KEY}
+      NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY}
 
   console:
     build:
@@ -91,8 +97,12 @@ services:
         NEXT_PUBLIC_DEVELOPERS_URL: https://developers.onenexora.com
         NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY}
         NEXT_PUBLIC_NEXORA_ENV: production
-    env_file: .env.prod
     environment:
+      CLERK_SECRET_KEY: ${CLERK_SECRET_KEY}
+      NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY}
+      STRIPE_SECRET_KEY: ${STRIPE_SECRET_KEY}
+      STRIPE_PRICE_ID_PRO: ${STRIPE_PRICE_ID_PRO}
+      NEXORA_ADMIN_EMAILS: ${NEXORA_ADMIN_EMAILS}
       DATABASE_URL: postgres://postgres:${POSTGRES_PASSWORD}@postgres:5432/nexora
     depends_on:
       db-migrate:
@@ -110,7 +120,6 @@ services:
         NEXT_PUBLIC_CONSOLE_URL: https://console.onenexora.com
         NEXT_PUBLIC_STATUS_URL: https://status.onenexora.com
         NEXT_PUBLIC_NEXORA_ENV: production
-    env_file: .env.prod
     # The host's nightly backup script (/opt/backups/backup-all.sh) writes
     # its last-success timestamp here; /api/backup reports its freshness.
     volumes:
@@ -125,8 +134,9 @@ services:
         APP_PORT: "3004"
         NEXT_PUBLIC_DOCS_URL: https://docs.onenexora.com
         NEXT_PUBLIC_NEXORA_ENV: production
-    env_file: .env.prod
     environment:
+      STRIPE_WEBHOOK_SECRET: ${STRIPE_WEBHOOK_SECRET}
+      STRIPE_PRICE_ID_PRO: ${STRIPE_PRICE_ID_PRO}
       DATABASE_URL: postgres://postgres:${POSTGRES_PASSWORD}@postgres:5432/nexora
     depends_on:
       db-migrate:
@@ -146,7 +156,6 @@ services:
         NEXT_PUBLIC_CSPM_URL: https://cspm.onenexora.com
         NEXT_PUBLIC_GATEWAY_URL: https://gateway.onenexora.com
         NEXT_PUBLIC_NEXORA_ENV: production
-    env_file: .env.prod
 
   developers:
     build:
@@ -160,7 +169,6 @@ services:
         NEXT_PUBLIC_API_URL: https://api.onenexora.com
         NEXT_PUBLIC_DOCS_URL: https://docs.onenexora.com
         NEXT_PUBLIC_NEXORA_ENV: production
-    env_file: .env.prod
 
   sentinel:
     build:
@@ -175,8 +183,9 @@ services:
         NEXT_PUBLIC_DOCS_URL: https://docs.onenexora.com
         NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY}
         NEXT_PUBLIC_NEXORA_ENV: production
-    env_file: .env.prod
     environment:
+      CLERK_SECRET_KEY: ${CLERK_SECRET_KEY}
+      NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY}
       DATABASE_URL: postgres://postgres:${POSTGRES_PASSWORD}@postgres:5432/nexora
     depends_on:
       db-migrate:
@@ -195,8 +204,9 @@ services:
         NEXT_PUBLIC_DOCS_URL: https://docs.onenexora.com
         NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY}
         NEXT_PUBLIC_NEXORA_ENV: production
-    env_file: .env.prod
     environment:
+      CLERK_SECRET_KEY: ${CLERK_SECRET_KEY}
+      NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY}
       DATABASE_URL: postgres://postgres:${POSTGRES_PASSWORD}@postgres:5432/nexora
     depends_on:
       db-migrate:
@@ -215,8 +225,10 @@ services:
         NEXT_PUBLIC_DOCS_URL: https://docs.onenexora.com
         NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY}
         NEXT_PUBLIC_NEXORA_ENV: production
-    env_file: .env.prod
     environment:
+      CLERK_SECRET_KEY: ${CLERK_SECRET_KEY}
+      NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY}
+      GATEWAY_UPSTREAM_API_KEY: ${GATEWAY_UPSTREAM_API_KEY}
       DATABASE_URL: postgres://postgres:${POSTGRES_PASSWORD}@postgres:5432/nexora
     depends_on:
       db-migrate:
