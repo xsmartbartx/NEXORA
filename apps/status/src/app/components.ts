@@ -3,48 +3,66 @@ export type ComponentStatus = "operational" | "degraded" | "down";
 export interface StatusComponent {
   name: string;
   description: string;
-  status: ComponentStatus;
-  /** Where a future automated poller would check (§4.1's Health service) — not polled yet. */
-  healthUrl?: string;
+  /**
+   * What the poller requests. A dedicated health endpoint where the app has
+   * one (Tenant Contract T-6), otherwise its public root. Omitted only for
+   * this status app itself — if the page renders, it's up.
+   */
+  checkUrl?: string;
 }
 
 /**
- * Manually maintained (§11, Phase 2 deliverable: "status app with manual
- * component definitions"). Sentinel and CSPM (Phase 4) publish a real
- * `/api/health` endpoint each (Tenant Contract T-6) — `healthUrl` records
- * where, so wiring an automated poller later is a data change here, not a
- * rewrite. Nothing polls them yet; update `status` by hand until the
- * Health service (§4.1) exists to do it.
+ * Every component is checked through its real public URL (DNS, TLS, the
+ * edge proxy, then the app), so an outage anywhere on that path shows up
+ * here — see ./health.ts for how a response maps to a status.
  */
 export const components: StatusComponent[] = [
-  { name: "Website", description: "onenexora.com", status: "operational" },
-  { name: "Account", description: "account.onenexora.com", status: "operational" },
-  { name: "Console", description: "console.onenexora.com", status: "operational" },
+  { name: "Website", description: "onenexora.com", checkUrl: "https://onenexora.com" },
+  {
+    name: "Account",
+    description: "account.onenexora.com",
+    checkUrl: "https://account.onenexora.com",
+  },
+  {
+    name: "Console",
+    description: "console.onenexora.com",
+    checkUrl: "https://console.onenexora.com",
+  },
   {
     name: "API",
     description: "api.onenexora.com",
-    status: "operational",
-    healthUrl: "https://api.onenexora.com/v1/health",
+    checkUrl: "https://api.onenexora.com/v1/health",
   },
-  { name: "Docs", description: "docs.onenexora.com", status: "operational" },
-  { name: "Developers", description: "developers.onenexora.com", status: "operational" },
-  { name: "Status", description: "status.onenexora.com", status: "operational" },
+  { name: "Docs", description: "docs.onenexora.com", checkUrl: "https://docs.onenexora.com" },
+  {
+    name: "Developers",
+    description: "developers.onenexora.com",
+    checkUrl: "https://developers.onenexora.com",
+  },
+  { name: "Status", description: "status.onenexora.com" },
   {
     name: "Sentinel",
     description: "sentinel.onenexora.com",
-    status: "operational",
-    healthUrl: "https://sentinel.onenexora.com/api/health",
+    checkUrl: "https://sentinel.onenexora.com/api/health",
   },
   {
     name: "CSPM",
     description: "cspm.onenexora.com",
-    status: "operational",
-    healthUrl: "https://cspm.onenexora.com/api/health",
+    checkUrl: "https://cspm.onenexora.com/api/health",
   },
   {
     name: "Gateway",
     description: "gateway.onenexora.com",
-    status: "operational",
-    healthUrl: "https://gateway.onenexora.com/api/health",
+    checkUrl: "https://gateway.onenexora.com/api/health",
+  },
+  {
+    name: "Vigilo",
+    description: "vigilo.onenexora.com",
+    checkUrl: "https://vigilo.onenexora.com",
+  },
+  {
+    name: "Vigilo API",
+    description: "vigilo-api.onenexora.com",
+    checkUrl: "https://vigilo-api.onenexora.com/healthz",
   },
 ];
