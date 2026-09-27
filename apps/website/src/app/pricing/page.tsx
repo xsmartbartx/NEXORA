@@ -105,9 +105,9 @@ const products: ProductPricing[] = [
       },
     ],
   },
-  // NeuraWall plans mirror the "Pricing" sheet of NeuraWall_financial_marketing_model_2026.xlsx.
-  // There's no self-serve billing yet, so paid plans go to sales; node counts,
-  // retention and support levels are licence terms, not limits the product enforces.
+  // NeuraWall plans mirror the "Pricing" sheet of NeuraWall_financial_marketing_model_2026.xlsx
+  // and NeuraWall's own plan table (neurawall/modules/billing/plans.py), which bills them
+  // through Stripe and enforces node, retention and AI limits. Dedicated is sold by sales.
   {
     product: "NeuraWall",
     summary: "AI-assisted firewall with human-approved, signed enforcement policy.",
@@ -136,7 +136,7 @@ const products: ProductPricing[] = [
           "Email support, 2 business days",
           "Self-hosted or managed",
         ],
-        cta: neurawallSales("Pro"),
+        cta: { label: "Upgrade in NeuraWall", href: `${neurawallUrl}/billing` },
       },
       {
         name: "Business",
@@ -149,7 +149,7 @@ const products: ProductPricing[] = [
           "Priority support, 1 business day",
           "Managed or self-hosted",
         ],
-        cta: neurawallSales("Business"),
+        cta: { label: "Upgrade in NeuraWall", href: `${neurawallUrl}/billing` },
         highlighted: true,
       },
       {
@@ -163,7 +163,7 @@ const products: ProductPricing[] = [
           "SLA and priority support",
           "Managed or self-hosted",
         ],
-        cta: neurawallSales("Enterprise"),
+        cta: { label: "Upgrade in NeuraWall", href: `${neurawallUrl}/billing` },
       },
       {
         name: "Enterprise Dedicated",
