@@ -13,6 +13,7 @@ services:
     networks:
       - nexora_default
       - vigilo-self-host_default
+      - neurawall_default
     volumes:
       - ./Caddyfile:/etc/caddy/Caddyfile:ro
       - edge_caddy_data:/data
@@ -22,6 +23,8 @@ networks:
   nexora_default:
     external: true
   vigilo-self-host_default:
+    external: true
+  neurawall_default:
     external: true
 
 volumes:

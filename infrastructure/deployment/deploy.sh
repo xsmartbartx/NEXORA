@@ -6,12 +6,13 @@
 #
 #   deploy.sh nexora website console     # NEXORA services (docker-compose.prod.yml)
 #   deploy.sh vigilo web api             # Vigilo services (its COMPOSE_FILE in .env)
+#   deploy.sh neurawall control-plane    # NeuraWall (/opt/neurawall, deploy/compose/nexora-host.yml)
 #   deploy.sh edge                       # reload the shared Caddy config
 #
 # Waits up to 30 minutes for a running deploy to finish, then gives up.
 set -euo pipefail
 
-project="${1:?usage: deploy.sh nexora|vigilo|edge [service...]}"
+project="${1:?usage: deploy.sh nexora|vigilo|neurawall|edge [service...]}"
 shift
 
 exec 9>/opt/.platform-deploy.lock
@@ -35,12 +36,19 @@ case "$project" in
     sudo docker compose build "$@"
     sudo docker compose up -d --no-deps "$@"
     ;;
+  neurawall)
+    [ "$#" -gt 0 ] || { echo "Name the NeuraWall services to deploy." >&2; exit 2; }
+    cd /opt/neurawall && git pull --ff-only
+    compose=(sudo docker compose --env-file .env -f deploy/compose/nexora-host.yml)
+    "${compose[@]}" build "$@"
+    "${compose[@]}" up -d --no-deps "$@"
+    ;;
   edge)
     cd /opt/nexora && git pull --ff-only
     sudo docker exec edge-caddy-1 caddy reload --config /etc/caddy/Caddyfile
     ;;
   *)
-    echo "Unknown project: $project (expected nexora, vigilo or edge)." >&2
+    echo "Unknown project: $project (expected nexora, vigilo, neurawall or edge)." >&2
     exit 2
     ;;
 esac
