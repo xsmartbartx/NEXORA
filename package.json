@@ -2,7 +2,7 @@
   "name": "nexora-platform",
   "version": "0.1.0",
   "private": true,
-  "description": "NEXORA — Build What's Next. Monorepo for the NEXORA platform: website, console, account, docs and shared packages.",
+  "description": "NEXORA \u2014 Build What's Next. Monorepo for the NEXORA platform: website, console, account, docs and shared packages.",
   "workspaces": [
     "apps/*",
     "packages/*"
@@ -19,9 +19,14 @@
   "devDependencies": {
     "picomatch": "^4.0.7",
     "prettier": "^3.4.2",
-    "vitest": "^3.2.7"
+    "vitest": "^4.1.11"
   },
   "engines": {
     "node": ">=20"
+  },
+  "overrides": {
+    "@esbuild-kit/core-utils": {
+      "esbuild": "^0.25.12"
+    }
   }
 }
