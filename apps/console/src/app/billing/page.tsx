@@ -3,9 +3,10 @@ import Link from "next/link";
 import { requireOrg } from "@nexora/auth/server";
 import { getOrgPlan, getOrgSubscription, PLANS, type Plan } from "@nexora/billing";
 import { countOrgEvents, startOfCurrentBillingPeriod } from "@nexora/telemetry";
-import { Badge } from "@nexora/ui";
+import { Badge, buttonVariants, cn } from "@nexora/ui";
 import type { Subscription } from "@nexora/database";
 import { CheckoutButton } from "./checkout-button";
+import { openBillingPortal } from "./actions";
 
 export const metadata: Metadata = {
   title: "Billing",
@@ -44,7 +45,7 @@ async function loadBillingData(orgId: string): Promise<BillingData | null> {
 }
 
 export default async function BillingPage(props: PageProps<"/billing">) {
-  const { orgId } = await requireOrg();
+  const { orgId, orgRole } = await requireOrg();
   const data = await loadBillingData(orgId);
   const searchParams = await props.searchParams;
   const checkoutStatus = searchParams.checkout;
@@ -75,7 +76,7 @@ export default async function BillingPage(props: PageProps<"/billing">) {
             Database not reachable. Set DATABASE_URL to a real Postgres instance to see billing.
           </div>
         ) : (
-          <BillingContent data={data} />
+          <BillingContent data={data} isOrgAdmin={orgRole === "org:admin"} />
         )}
       </div>
 
@@ -97,7 +98,7 @@ export default async function BillingPage(props: PageProps<"/billing">) {
   );
 }
 
-function BillingContent({ data }: { data: BillingData }) {
+function BillingContent({ data, isOrgAdmin }: { data: BillingData; isOrgAdmin: boolean }) {
   const { plan, subscription, usageEntries } = data;
   const proPlan = PLANS.find((p) => p.id === "pro");
   const hasProPrice = Boolean(proPlan?.stripePriceIds.month || proPlan?.stripePriceIds.year);
@@ -125,6 +126,25 @@ function BillingContent({ data }: { data: BillingData }) {
         {canUpgrade ? (
           <div className="mt-6">
             <CheckoutButton plan={proPlan} />
+          </div>
+        ) : null}
+        {subscription?.stripeCustomerId ? (
+          <div className="mt-6">
+            {isOrgAdmin ? (
+              <form action={openBillingPortal}>
+                <button type="submit" className={cn(buttonVariants({ variant: "secondary" }))}>
+                  Manage or cancel
+                </button>
+                <p className="mt-2 text-xs text-muted-foreground">
+                  Cancel, change card or download invoices on Stripe. After cancelling you keep Pro
+                  until the end of the paid period.
+                </p>
+              </form>
+            ) : (
+              <p className="text-sm text-muted-foreground">
+                Ask an organisation admin to change or cancel the subscription.
+              </p>
+            )}
           </div>
         ) : null}
       </div>

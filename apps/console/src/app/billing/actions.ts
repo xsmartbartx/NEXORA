@@ -2,7 +2,12 @@
 
 import { redirect } from "next/navigation";
 import { requireOrg } from "@nexora/auth/server";
-import { createCheckoutSession, getPlan } from "@nexora/billing";
+import {
+  createCheckoutSession,
+  createPortalSession,
+  getOrgSubscription,
+  getPlan,
+} from "@nexora/billing";
 
 const consoleUrl = process.env.NEXT_PUBLIC_CONSOLE_URL ?? "http://localhost:3002";
 
@@ -26,6 +31,30 @@ export async function startCheckout(formData: FormData): Promise<void> {
     priceId,
     successUrl: `${consoleUrl}/billing?checkout=success`,
     cancelUrl: `${consoleUrl}/billing?checkout=cancelled`,
+  });
+
+  redirect(url);
+}
+
+/**
+ * Opens Stripe's Customer Portal for the active organisation's own
+ * subscription — the customer id comes from our subscriptions row, never
+ * the form. Org admins only: the subscription belongs to the whole
+ * organisation, so a regular member mustn't be able to cancel it.
+ */
+export async function openBillingPortal(): Promise<void> {
+  const { orgId, orgRole } = await requireOrg();
+  if (orgRole !== "org:admin") {
+    throw new Error("Only organisation admins can manage the subscription.");
+  }
+  const subscription = await getOrgSubscription(orgId);
+  if (!subscription?.stripeCustomerId) {
+    throw new Error("This organisation has no subscription to manage.");
+  }
+
+  const url = await createPortalSession({
+    customerId: subscription.stripeCustomerId,
+    returnUrl: `${consoleUrl}/billing`,
   });
 
   redirect(url);
