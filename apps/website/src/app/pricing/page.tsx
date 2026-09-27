@@ -1,15 +1,17 @@
 import type { Metadata } from "next";
+import { siteConfig } from "@/lib/site-config";
 import { getPlan } from "@nexora/billing/plans";
 import { buttonVariants, cn } from "@nexora/ui";
 
 export const metadata: Metadata = {
   title: "Pricing",
   description:
-    "Free to start. NEXORA Pro and Vigilo Pro are $29 a month, or $290 a year — two months free.",
+    "Free to start. NEXORA Pro, Vigilo Pro and NeuraWall Pro are $29 a month, or $290 a year — two months free.",
 };
 
 const consoleUrl = process.env.NEXT_PUBLIC_CONSOLE_URL ?? "https://console.onenexora.com";
 const vigiloUrl = "https://vigilo.onenexora.com";
+const neurawallUrl = "https://neurawall.onenexora.com";
 
 interface Tier {
   name: string;
@@ -86,6 +88,44 @@ const products: ProductPricing[] = [
           "White-label reports",
         ],
         cta: { label: "Upgrade in Vigilo", href: `${vigiloUrl}/dashboard` },
+        highlighted: true,
+      },
+    ],
+  },
+  // NeuraWall has no self-serve billing yet: Pro is sold by licence, so its
+  // CTA goes to sales rather than a checkout. Features list only what the
+  // product does today; node counts are licence terms, not enforced limits.
+  {
+    product: "NeuraWall",
+    summary: "AI-assisted firewall with human-approved, signed enforcement policy.",
+    tiers: [
+      {
+        name: "Free",
+        monthlyCents: 0,
+        yearlyCents: 0,
+        features: [
+          "1 enforcement node",
+          "Anomaly and L7 threat detection",
+          "Offline rule drafting and triage",
+          "Signed policy bundles and audit trail",
+        ],
+        cta: { label: "Start free", href: neurawallUrl },
+      },
+      {
+        name: "Pro",
+        monthlyCents: 2900,
+        yearlyCents: 29000,
+        features: [
+          "Up to 25 enforcement nodes",
+          "Claude-powered triage, rule drafting and incident narration",
+          "Canary rollout with automatic rollback",
+          "Four-eyes approval and role-based access",
+          "Email support",
+        ],
+        cta: {
+          label: "Contact sales",
+          href: `mailto:${siteConfig.contactEmail}?subject=NeuraWall%20Pro`,
+        },
         highlighted: true,
       },
     ],
