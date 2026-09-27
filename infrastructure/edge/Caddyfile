@@ -63,6 +63,6 @@ vigilo-api.onenexora.com {
 	reverse_proxy vigilo-self-host-api-1:8000
 }
 
-nerawall.onenexora.com {
+neurawall.onenexora.com {
 	reverse_proxy neurawall-control-plane-1:8080
 }
