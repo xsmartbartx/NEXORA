@@ -102,6 +102,7 @@ services:
       NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY}
       STRIPE_SECRET_KEY: ${STRIPE_SECRET_KEY}
       STRIPE_PRICE_ID_PRO: ${STRIPE_PRICE_ID_PRO}
+      STRIPE_PRICE_ID_PRO_YEARLY: ${STRIPE_PRICE_ID_PRO_YEARLY:-}
       NEXORA_ADMIN_EMAILS: ${NEXORA_ADMIN_EMAILS}
       DATABASE_URL: postgres://postgres:${POSTGRES_PASSWORD}@postgres:5432/nexora
     depends_on:
@@ -137,6 +138,7 @@ services:
     environment:
       STRIPE_WEBHOOK_SECRET: ${STRIPE_WEBHOOK_SECRET}
       STRIPE_PRICE_ID_PRO: ${STRIPE_PRICE_ID_PRO}
+      STRIPE_PRICE_ID_PRO_YEARLY: ${STRIPE_PRICE_ID_PRO_YEARLY:-}
       # Clerk's organization.deleted webhook (/v1/webhooks/clerk) cancels the
       # org's Stripe subscription before purging its data, so api needs both.
       STRIPE_SECRET_KEY: ${STRIPE_SECRET_KEY}

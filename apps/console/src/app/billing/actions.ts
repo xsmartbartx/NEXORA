@@ -2,7 +2,7 @@
 
 import { redirect } from "next/navigation";
 import { requireOrg } from "@nexora/auth/server";
-import { createCheckoutSession } from "@nexora/billing";
+import { createCheckoutSession, getPlan } from "@nexora/billing";
 
 const consoleUrl = process.env.NEXT_PUBLIC_CONSOLE_URL ?? "http://localhost:3002";
 
@@ -14,8 +14,12 @@ const consoleUrl = process.env.NEXT_PUBLIC_CONSOLE_URL ?? "http://localhost:3002
  */
 export async function startCheckout(formData: FormData): Promise<void> {
   const { orgId } = await requireOrg();
-  const priceId = String(formData.get("priceId") ?? "");
-  if (!priceId) throw new Error("Missing priceId.");
+  // The browser only chooses the interval; the price itself comes from the
+  // plan catalog, so a tampered form can't check out on some other price in
+  // the Stripe account.
+  const interval = formData.get("interval") === "year" ? "year" : "month";
+  const priceId = getPlan("pro").stripePriceIds[interval];
+  if (!priceId) throw new Error(`No Stripe price configured for Pro (${interval}).`);
 
   const url = await createCheckoutSession({
     orgId,

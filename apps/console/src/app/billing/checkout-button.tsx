@@ -1,5 +1,5 @@
 import { buttonVariants, cn } from "@nexora/ui";
-import { isStripeConfigured } from "@nexora/billing";
+import { isStripeConfigured, type Plan } from "@nexora/billing";
 import { startCheckout } from "./actions";
 
 /**
@@ -8,7 +8,7 @@ import { startCheckout } from "./actions";
  * flow is: submit → server action creates a Checkout Session → redirect to
  * Stripe → Stripe redirects back to `successUrl`/`cancelUrl`.
  */
-export function CheckoutButton({ priceId }: { priceId: string }) {
+export function CheckoutButton({ plan }: { plan: Plan }) {
   if (!isStripeConfigured()) {
     return (
       <p className="text-sm text-muted-foreground">
@@ -17,12 +17,32 @@ export function CheckoutButton({ priceId }: { priceId: string }) {
     );
   }
 
+  const { month, year } = plan.priceCents;
   return (
-    <form action={startCheckout}>
-      <input type="hidden" name="priceId" value={priceId} />
-      <button type="submit" className={cn(buttonVariants({ size: "md" }))}>
-        Upgrade to Pro
-      </button>
-    </form>
+    <div className="flex flex-wrap gap-3">
+      {plan.stripePriceIds.month ? (
+        <form action={startCheckout}>
+          <input type="hidden" name="interval" value="month" />
+          <button type="submit" className={cn(buttonVariants({ size: "md" }))}>
+            Upgrade to {plan.name} — {formatUsd(month)}/month
+          </button>
+        </form>
+      ) : null}
+      {plan.stripePriceIds.year ? (
+        <form action={startCheckout}>
+          <input type="hidden" name="interval" value="year" />
+          <button
+            type="submit"
+            className={cn(buttonVariants({ size: "md", variant: "secondary" }))}
+          >
+            {formatUsd(year)}/year — 2 months free
+          </button>
+        </form>
+      ) : null}
+    </div>
   );
+}
+
+function formatUsd(cents: number): string {
+  return `$${(cents / 100).toLocaleString("en-US")}`;
 }

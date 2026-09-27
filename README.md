@@ -143,19 +143,11 @@ would be exactly the kind of fabricated scope this build avoids elsewhere.
 [`packages/database/README.md`](packages/database/README.md) for
 migrations). `apps/console` needs `STRIPE_SECRET_KEY` to create real
 Checkout Sessions, and `apps/api` needs `STRIPE_WEBHOOK_SECRET` to verify
-and process subscription events — both apps also need `STRIPE_PRICE_ID_PRO`
-set to a real Price id, and all three require a real Stripe account with
-that price created in its dashboard first. Until configured, every
+and process subscription events — both apps also need `STRIPE_PRICE_ID_PRO` and
+`STRIPE_PRICE_ID_PRO_YEARLY` set to the "NEXORA Pro" product's monthly
+($29) and yearly ($290) Price ids, created in the Stripe dashboard first. Until configured, every
 protected route across every app renders a clear "Setup required" or "not
 reachable" message instead of crashing.
-
-**Two more placeholders**, flagged `TODO(launch)` at
-[`apps/website/src/lib/site-config.ts`](apps/website/src/lib/site-config.ts):
-
-- `onenexora.com` is not registered/DNS-configured yet — every app's URL env
-  vars fall back to its intended `*.onenexora.com` subdomain.
-- `hello@onenexora.com` is not a verified, monitored inbox — it's the site's
-  only contact method (`/company#contact`).
 
 **Legal.** [`/legal`](apps/website/src/app/legal) has a real Terms of
 Service, Privacy Policy and Security Statement — not filler text, but a

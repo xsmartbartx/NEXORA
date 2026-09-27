@@ -100,7 +100,8 @@ export default async function BillingPage(props: PageProps<"/billing">) {
 function BillingContent({ data }: { data: BillingData }) {
   const { plan, subscription, usageEntries } = data;
   const proPlan = PLANS.find((p) => p.id === "pro");
-  const canUpgrade = plan.id !== "pro" && proPlan?.stripePriceId;
+  const hasProPrice = Boolean(proPlan?.stripePriceIds.month || proPlan?.stripePriceIds.year);
+  const canUpgrade = plan.id !== "pro" && proPlan && hasProPrice;
 
   return (
     <>
@@ -123,7 +124,7 @@ function BillingContent({ data }: { data: BillingData }) {
         ) : null}
         {canUpgrade ? (
           <div className="mt-6">
-            <CheckoutButton priceId={proPlan!.stripePriceId!} />
+            <CheckoutButton plan={proPlan} />
           </div>
         ) : null}
       </div>

@@ -37,7 +37,10 @@ export function verifyStripeSignature(
 
 function planIdForStripePrice(stripePriceId: string | undefined): string {
   if (!stripePriceId) return DEFAULT_PLAN_ID;
-  return PLANS.find((plan) => plan.stripePriceId === stripePriceId)?.id ?? DEFAULT_PLAN_ID;
+  return (
+    PLANS.find((plan) => Object.values(plan.stripePriceIds).includes(stripePriceId))?.id ??
+    DEFAULT_PLAN_ID
+  );
 }
 
 /**

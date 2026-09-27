@@ -1,11 +1,8 @@
 /**
- * TODO(launch): every number and name in this file is a PLACEHOLDER, not a
- * business decision — pricing, plan names and limits need a real answer
- * from the business, not from me. This file exists so Entitlements has a
- * real plan to check against and Console has a real plan to render, but
- * `priceCents`, `stripePriceId` and every `limits` value below are
- * illustrative only. Replace them — and create matching prices in the
- * Stripe dashboard — before anyone can actually subscribe.
+ * The plan catalog: Free, and Pro at $29/month or $290/year (two months
+ * free). Stripe price IDs are env-configured because they differ per Stripe
+ * account and mode (test vs live) — create them under one "NEXORA Pro"
+ * product, one monthly and one yearly recurring price.
  *
  * `limits[feature]`: requests allowed per organisation per calendar month.
  * `null` means unlimited. `feature` keys match the telemetry action
@@ -13,12 +10,15 @@
  * e.g. `"sentinel.scan"`), so a plan change here takes effect immediately —
  * no product code changes.
  */
+export type BillingInterval = "month" | "year";
+
 export interface Plan {
   id: string;
   name: string;
-  priceCents: number | null;
-  /** Stripe price ID for this plan — env-configured since it's created per-environment in the Stripe dashboard. `null` for the free plan (no checkout needed). */
-  stripePriceId: string | null;
+  /** Price per billing interval, in US cents. */
+  priceCents: Record<BillingInterval, number>;
+  /** Stripe price ID per interval — env-configured since prices are created per Stripe account and mode. `null` for the free plan (no checkout needed) or an interval that isn't configured. */
+  stripePriceIds: Record<BillingInterval, string | null>;
   limits: Record<string, number | null>;
 }
 
@@ -26,8 +26,8 @@ export const PLANS: Plan[] = [
   {
     id: "free",
     name: "Free",
-    priceCents: 0,
-    stripePriceId: null,
+    priceCents: { month: 0, year: 0 },
+    stripePriceIds: { month: null, year: null },
     limits: {
       "sentinel.scan": 20,
       "cspm.scan": 20,
@@ -37,8 +37,11 @@ export const PLANS: Plan[] = [
   {
     id: "pro",
     name: "Pro",
-    priceCents: 2900,
-    stripePriceId: process.env.STRIPE_PRICE_ID_PRO ?? null,
+    priceCents: { month: 2900, year: 29000 },
+    stripePriceIds: {
+      month: process.env.STRIPE_PRICE_ID_PRO || null,
+      year: process.env.STRIPE_PRICE_ID_PRO_YEARLY || null,
+    },
     limits: {
       "sentinel.scan": null,
       "cspm.scan": null,
