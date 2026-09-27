@@ -65,4 +65,9 @@ export const components: StatusComponent[] = [
     description: "vigilo-api.onenexora.com",
     checkUrl: "https://vigilo-api.onenexora.com/healthz",
   },
+  {
+    name: "NeuraWall",
+    description: "neurawall.onenexora.com",
+    checkUrl: "https://neurawall.onenexora.com/readyz",
+  },
 ];

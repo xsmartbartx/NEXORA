@@ -88,4 +88,22 @@ export const products: Product[] = [
     icon: "vigilo",
     owner: "Platform Team",
   },
+  {
+    id: "prod_neurawall",
+    slug: "neurawall",
+    name: "NeuraWall",
+    short_name: "NeuraWall",
+    tagline: "An AI-assisted firewall that never lets a model silently drop your traffic.",
+    description:
+      "NeuraWall scores network flows with a statistical anomaly engine and L7 detectors (injection, DGA, DNS tunnelling, C2 beaconing, exfiltration, TLS fingerprint spoofing), then lets Claude triage alerts and draft narrowly scoped rules. Only human-approved rules enforce, via Ed25519-signed policy bundles that nodes verify themselves, with canary rollout and a tamper-evident audit trail. Enforcement nodes run an agent next to a Zeek sensor with nftables. Independently built and hosted — not yet on Core identity/entitlements, so it's `beta` here rather than a deeper platform integration.",
+    category: "security",
+    platform_pillar: "security",
+    lifecycle: "beta",
+    visibility: "public",
+    featured: true,
+    url: "https://neurawall.onenexora.com",
+    health_source: "https://neurawall.onenexora.com/readyz",
+    icon: "neurawall",
+    owner: "Platform Team",
+  },
 ];

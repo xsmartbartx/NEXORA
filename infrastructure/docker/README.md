@@ -67,7 +67,7 @@ images anyway (one at a time, not all in parallel on one machine).
 `docker-compose.prod.yml` is a single-VM topology (e.g. one OCI
 instance) with Postgres bundled and no ports published. TLS and routing
 live in [`infrastructure/edge/`](../edge/): one Caddy stack for the whole
-host, shared with Vigilo, which joins each project's Docker network and
+host, shared with Vigilo and NeuraWall, which joins each project's Docker network and
 routes every `*.onenexora.com` subdomain to its container. Only that
 Caddy binds 80/443.
 
@@ -139,8 +139,10 @@ Caddy binds 80/443.
    ```
 
    Then start the edge proxy. It declares both this project's network and
-   Vigilo's (`vigilo-self-host_default`) as external, so Vigilo's stack has
-   to be up first too, or `up` fails on the missing network:
+   Vigilo's (`vigilo-self-host_default`) and NeuraWall's (`neurawall_default`)
+   as external, so those stacks have to be up first too, or `up` fails on the
+   missing network. NeuraWall runs from `/opt/neurawall` and deploys with
+   `deploy.sh neurawall control-plane`:
 
    ```bash
    docker compose -f infrastructure/edge/docker-compose.yml up -d
@@ -195,7 +197,7 @@ Actually built and run, not just written:
   `--build-arg`, confirmed `sitemap.xml` served from the running
   container used that real domain, not the `localhost` fallback.
 - `infrastructure/edge/` — running in production on the shared OCI
-  instance, serving every NEXORA and Vigilo domain with a Let's Encrypt
+  instance, serving every NEXORA, Vigilo and NeuraWall domain with a Let's Encrypt
   certificate, proxying across both projects' networks.
 - `docker-compose.prod.yml`'s variable interpolation — validated with
   `docker compose config` against a real `.env.prod`-shaped file, confirmed
