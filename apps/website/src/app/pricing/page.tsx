@@ -6,12 +6,19 @@ import { buttonVariants, cn } from "@nexora/ui";
 export const metadata: Metadata = {
   title: "Pricing",
   description:
-    "Free to start. NEXORA Pro, Vigilo Pro and NeuraWall Pro are $29 a month, or $290 a year — two months free.",
+    "Free to start. NEXORA Pro and Vigilo Pro are $29 a month; NeuraWall plans run from $149 a month to dedicated enterprise deployments. Yearly billing gives two months free.",
 };
 
 const consoleUrl = process.env.NEXT_PUBLIC_CONSOLE_URL ?? "https://console.onenexora.com";
 const vigiloUrl = "https://vigilo.onenexora.com";
 const neurawallUrl = "https://neurawall.onenexora.com";
+
+function neurawallSales(plan: string): Tier["cta"] {
+  return {
+    label: "Contact sales",
+    href: `mailto:${siteConfig.contactEmail}?subject=${encodeURIComponent(`NeuraWall ${plan}`)}`,
+  };
+}
 
 interface Tier {
   name: string;
@@ -20,12 +27,18 @@ interface Tier {
   features: string[];
   cta: { label: string; href: string };
   highlighted?: boolean;
+  /** Replaces the formatted monthly price, e.g. for a quoted range. */
+  priceLabel?: string;
+  /** Replaces the "or $X / year" line. */
+  yearlyNote?: string;
 }
 
 interface ProductPricing {
   product: string;
   summary: string;
   tiers: Tier[];
+  /** Shown under the tier cards, e.g. professional services. */
+  note?: string;
 }
 
 function formatLimit(limit: number | null | undefined, unit: string): string {
@@ -92,43 +105,82 @@ const products: ProductPricing[] = [
       },
     ],
   },
-  // NeuraWall has no self-serve billing yet: Pro is sold by licence, so its
-  // CTA goes to sales rather than a checkout. Features list only what the
-  // product does today; node counts are licence terms, not enforced limits.
+  // NeuraWall plans mirror the "Pricing" sheet of NeuraWall_financial_marketing_model_2026.xlsx.
+  // There's no self-serve billing yet, so paid plans go to sales; node counts,
+  // retention and support levels are licence terms, not limits the product enforces.
   {
     product: "NeuraWall",
     summary: "AI-assisted firewall with human-approved, signed enforcement policy.",
     tiers: [
       {
-        name: "Free",
+        name: "Community",
         monthlyCents: 0,
         yearlyCents: 0,
         features: [
           "1 enforcement node",
-          "Anomaly and L7 threat detection",
-          "Offline rule drafting and triage",
-          "Signed policy bundles and audit trail",
+          "7-day flow retention",
+          "Offline AI advisor",
+          "Community support",
+          "Self-hosted",
         ],
         cta: { label: "Start free", href: neurawallUrl },
       },
       {
         name: "Pro",
-        monthlyCents: 2900,
-        yearlyCents: 29000,
+        monthlyCents: 14900,
+        yearlyCents: 149000,
         features: [
-          "Up to 25 enforcement nodes",
-          "Claude-powered triage, rule drafting and incident narration",
-          "Canary rollout with automatic rollback",
-          "Four-eyes approval and role-based access",
-          "Email support",
+          "5 enforcement nodes",
+          "7-day flow retention",
+          "Optional Claude AI (usage billed separately)",
+          "Email support, 2 business days",
+          "Self-hosted or managed",
         ],
-        cta: {
-          label: "Contact sales",
-          href: `mailto:${siteConfig.contactEmail}?subject=NeuraWall%20Pro`,
-        },
+        cta: neurawallSales("Pro"),
+      },
+      {
+        name: "Business",
+        monthlyCents: 49900,
+        yearlyCents: 499000,
+        features: [
+          "25 enforcement nodes",
+          "30-day flow retention",
+          "Claude AI usage budget included",
+          "Priority support, 1 business day",
+          "Managed or self-hosted",
+        ],
+        cta: neurawallSales("Business"),
         highlighted: true,
       },
+      {
+        name: "Enterprise",
+        monthlyCents: 300000,
+        yearlyCents: 3000000,
+        features: [
+          "100 enforcement nodes",
+          "90-day flow retention",
+          "Claude AI usage budget included",
+          "SLA and priority support",
+          "Managed or self-hosted",
+        ],
+        cta: neurawallSales("Enterprise"),
+      },
+      {
+        name: "Enterprise Dedicated",
+        monthlyCents: 500000,
+        yearlyCents: 0,
+        priceLabel: "$5,000–15,000",
+        yearlyNote: "Quoted per deployment",
+        features: [
+          "Custom node count and retention",
+          "Dedicated deployment",
+          "Custom AI configuration",
+          "SLA and guided onboarding",
+        ],
+        cta: neurawallSales("Enterprise Dedicated"),
+      },
     ],
+    note: "Professional services — architecture, deployment and training — at $125 per hour.",
   },
 ];
 
@@ -153,7 +205,12 @@ export default function PricingPage() {
           <section key={product.product}>
             <h2 className="text-2xl font-semibold tracking-tight">{product.product}</h2>
             <p className="mt-2 text-muted-foreground">{product.summary}</p>
-            <div className="mt-6 grid gap-4 md:grid-cols-2">
+            <div
+              className={cn(
+                "mt-6 grid gap-4 md:grid-cols-2",
+                product.tiers.length > 2 && "lg:grid-cols-3",
+              )}
+            >
               {product.tiers.map((tier) => (
                 <div
                   key={tier.name}
@@ -165,14 +222,15 @@ export default function PricingPage() {
                   <h3 className="text-lg font-semibold">{tier.name}</h3>
                   <p className="mt-3">
                     <span className="text-4xl font-semibold tracking-tight">
-                      {formatUsd(tier.monthlyCents)}
+                      {tier.priceLabel ?? formatUsd(tier.monthlyCents)}
                     </span>
                     <span className="text-muted-foreground"> / month</span>
                   </p>
                   <p className="mt-1 h-5 text-sm text-muted-foreground">
-                    {tier.yearlyCents > 0
-                      ? `or ${formatUsd(tier.yearlyCents)} / year — two months free`
-                      : ""}
+                    {tier.yearlyNote ??
+                      (tier.yearlyCents > 0
+                        ? `or ${formatUsd(tier.yearlyCents)} / year — two months free`
+                        : "")}
                   </p>
                   <ul className="mt-6 flex flex-1 flex-col gap-2 text-sm">
                     {tier.features.map((feature) => (
@@ -199,6 +257,7 @@ export default function PricingPage() {
                 </div>
               ))}
             </div>
+            {product.note && <p className="mt-4 text-sm text-muted-foreground">{product.note}</p>}
           </section>
         ))}
       </div>
