@@ -85,7 +85,10 @@ export async function applySubscriptionEvent(event: StripeEvent): Promise<void> 
 
   if (existing) {
     await db.update(subscriptions).set(values).where(eq(subscriptions.orgId, orgId));
-  } else {
+  } else if (event.type !== "customer.subscription.deleted") {
+    // A deletion for an org with no row means the org itself was deleted
+    // (purgeOrganizationData cancels the subscription, then Stripe notifies us) —
+    // re-inserting it would resurrect the purged org's billing state.
     await db.insert(subscriptions).values(values);
   }
 }

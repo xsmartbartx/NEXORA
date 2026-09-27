@@ -5,4 +5,5 @@ export type { SignatureVerifyResult, StripeEvent } from "./webhook";
 export { createCheckoutSession } from "./checkout";
 export type { CreateCheckoutSessionInput } from "./checkout";
 export { getStripeClient, isStripeConfigured } from "./stripe-client";
+export { purgeOrganizationData, purgeUserData } from "./account-deletion";
 export { getOrgPlan, getOrgSubscription, resolvePlanForSubscription } from "./subscription";

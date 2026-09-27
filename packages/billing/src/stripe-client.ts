@@ -2,7 +2,9 @@ import Stripe from "stripe";
 
 /** `STRIPE_SECRET_KEY` is only needed where a Checkout Session is created (Console) — never by the webhook route, which verifies with `STRIPE_WEBHOOK_SECRET` alone via `Stripe.webhooks` (a static method, no client instance required). */
 export function isStripeConfigured(): boolean {
-  return Boolean(process.env.STRIPE_SECRET_KEY?.startsWith("sk_"));
+  const key = process.env.STRIPE_SECRET_KEY;
+  // Restricted keys (rk_) work for everything this app does, and are what production uses.
+  return Boolean(key?.startsWith("sk_") || key?.startsWith("rk_"));
 }
 
 let client: Stripe | null = null;
