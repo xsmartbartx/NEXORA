@@ -137,6 +137,10 @@ services:
     environment:
       STRIPE_WEBHOOK_SECRET: ${STRIPE_WEBHOOK_SECRET}
       STRIPE_PRICE_ID_PRO: ${STRIPE_PRICE_ID_PRO}
+      # Clerk's organization.deleted webhook (/v1/webhooks/clerk) cancels the
+      # org's Stripe subscription before purging its data, so api needs both.
+      STRIPE_SECRET_KEY: ${STRIPE_SECRET_KEY}
+      CLERK_WEBHOOK_SIGNING_SECRET: ${CLERK_WEBHOOK_SIGNING_SECRET:-}
       DATABASE_URL: postgres://postgres:${POSTGRES_PASSWORD}@postgres:5432/nexora
     depends_on:
       db-migrate:
