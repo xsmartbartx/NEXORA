@@ -55,12 +55,12 @@ export async function applySubscriptionEvent(event: StripeEvent): Promise<void> 
   if (!event.type.startsWith("customer.subscription.")) return;
 
   const subscription = event.data.object as Stripe.Subscription;
+  // The Stripe account is shared with Vigilo, whose subscriptions carry
+  // `vigilo_account_email` instead of `orgId` — not ours to apply. Ignore
+  // rather than error: a non-2xx makes Stripe retry for days and then
+  // disable this endpoint for every product.
   const orgId = subscription.metadata?.orgId;
-  if (!orgId) {
-    throw new Error(
-      "Subscription webhook has no orgId in metadata — Console's checkout must pass it.",
-    );
-  }
+  if (!orgId) return;
 
   const item = subscription.items.data[0];
   const planId = planIdForStripePrice(item?.price.id);

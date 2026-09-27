@@ -62,7 +62,7 @@ export async function checkEntitlement(orgId: string, feature: string): Promise<
   if (used >= limit) {
     return {
       allowed: false,
-      reason: `Monthly limit reached (${used}/${limit} on the ${plan.name} plan). Upgrade in Console → Billing.`,
+      reason: `Monthly limit reached (${used}/${limit} on the ${plan.name} plan). It resets at the start of next month.`,
       limit,
       used,
     };

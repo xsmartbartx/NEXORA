@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { requireOrg } from "@nexora/auth/server";
 import { getOrgPlan, getOrgSubscription, PLANS, type Plan } from "@nexora/billing";
 import { countOrgEvents, startOfCurrentBillingPeriod } from "@nexora/telemetry";
@@ -85,12 +86,12 @@ export default async function BillingPage(props: PageProps<"/billing">) {
           deletes its API keys, usage history and billing state. Admins can do this from the
           organisation settings.
         </p>
-        <a
+        <Link
           href="/organisation"
           className="mt-4 inline-block text-sm font-medium text-destructive hover:underline"
         >
           Go to organisation settings to delete it
-        </a>
+        </Link>
       </div>
     </div>
   );
@@ -124,10 +125,6 @@ function BillingContent({ data }: { data: BillingData }) {
           <div className="mt-6">
             <CheckoutButton priceId={proPlan!.stripePriceId!} />
           </div>
-        ) : !proPlan?.stripePriceId ? (
-          <p className="mt-6 text-sm text-muted-foreground">
-            Upgrading isn&rsquo;t available yet — STRIPE_PRICE_ID_PRO isn&rsquo;t configured.
-          </p>
         ) : null}
       </div>
 
