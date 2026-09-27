@@ -23,7 +23,9 @@ WORKDIR /repo
 COPY package.json package-lock.json ./
 COPY apps ./apps
 COPY packages ./packages
-RUN npm ci
+# The lockfile is written by npm 11; node:22 ships npm 10, whose `npm ci`
+# rejects it (nested `overrides` resolve differently). Keep in step with CI.
+RUN npm install -g npm@11.12.1 && npm ci
 
 ARG APP_NAME
 RUN test -n "$APP_NAME" || (echo "APP_NAME build-arg is required" && exit 1)

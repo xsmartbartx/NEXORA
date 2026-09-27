@@ -24,6 +24,10 @@ jobs:
           node-version: 22
           cache: npm
 
+      # Match the npm 11 the lockfile is written with (node 22 ships npm 10).
+      - name: Install npm 11
+        run: npm install -g npm@11.12.1
+
       - name: Install dependencies
         run: npm ci
 
