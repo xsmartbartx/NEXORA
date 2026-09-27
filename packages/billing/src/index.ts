@@ -4,6 +4,7 @@ export { applySubscriptionEvent, verifyStripeSignature } from "./webhook";
 export type { SignatureVerifyResult, StripeEvent } from "./webhook";
 export { createCheckoutSession } from "./checkout";
 export type { CreateCheckoutSessionInput } from "./checkout";
+export { createPortalSession } from "./portal";
 export { getStripeClient, isStripeConfigured } from "./stripe-client";
 export { purgeOrganizationData, purgeUserData } from "./account-deletion";
 export { getOrgPlan, getOrgSubscription, resolvePlanForSubscription } from "./subscription";
