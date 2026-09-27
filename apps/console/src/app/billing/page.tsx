@@ -77,6 +77,21 @@ export default async function BillingPage(props: PageProps<"/billing">) {
           <BillingContent data={data} />
         )}
       </div>
+
+      <div className="mt-12 border-t border-border pt-8">
+        <h2 className="text-lg font-semibold">Close account</h2>
+        <p className="mt-2 text-sm text-muted-foreground">
+          Deleting your organisation cancels any paid subscription immediately and permanently
+          deletes its API keys, usage history and billing state. Admins can do this from the
+          organisation settings.
+        </p>
+        <a
+          href="/organisation"
+          className="mt-4 inline-block text-sm font-medium text-destructive hover:underline"
+        >
+          Go to organisation settings to delete it
+        </a>
+      </div>
     </div>
   );
 }
