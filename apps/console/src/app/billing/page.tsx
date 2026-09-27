@@ -55,11 +55,7 @@ export default async function BillingPage(props: PageProps<"/billing">) {
       </span>
       <h1 className="mt-2 text-3xl font-semibold tracking-tight">Billing</h1>
       <p className="mt-2 max-w-xl text-muted-foreground">
-        Plan names and limits are placeholders (§4.1: Billing feeds Entitlements) — see{" "}
-        <code className="rounded bg-muted px-1.5 py-0.5 font-mono text-xs">
-          packages/billing/src/plans.ts
-        </code>
-        .
+        Your organisation&rsquo;s plan and usage for the current billing period.
       </p>
 
       {checkoutStatus === "success" ? (
