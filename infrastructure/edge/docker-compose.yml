@@ -15,7 +15,10 @@ services:
       - vigilo-self-host_default
       - neurawall_default
     volumes:
-      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      # Mount the directory, not the single file: `git pull` replaces Caddyfile with a
+      # new inode, and a single-file bind mount keeps showing the old one, so
+      # `deploy.sh edge` would silently reload stale config.
+      - ./:/etc/caddy:ro
       - edge_caddy_data:/data
       - edge_caddy_config:/config
 
