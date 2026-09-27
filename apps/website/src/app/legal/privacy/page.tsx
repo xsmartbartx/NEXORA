@@ -191,10 +191,7 @@ export default function PrivacyPage() {
       </p>
 
       <h2 className={h2}>10. Contact</h2>
-      <p className={p}>
-        Questions about this policy can be sent to {siteConfig.legalEmail}. Registered address:{" "}
-        {siteConfig.legalAddress}.
-      </p>
+      <p className={p}>Questions about this policy can be sent to {siteConfig.legalEmail}.</p>
     </div>
   );
 }

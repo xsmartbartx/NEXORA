@@ -191,10 +191,7 @@ export default function TermsPage() {
       </p>
 
       <h2 className={h2}>14. Contact</h2>
-      <p className={p}>
-        Questions about these Terms can be sent to {siteConfig.legalEmail}. Registered address:{" "}
-        {siteConfig.legalAddress}.
-      </p>
+      <p className={p}>Questions about these Terms can be sent to {siteConfig.legalEmail}.</p>
     </div>
   );
 }

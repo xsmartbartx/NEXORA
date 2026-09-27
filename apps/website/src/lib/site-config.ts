@@ -1,10 +1,10 @@
 /**
- * TODO(launch): confirm the hello@/legal@/security@ inboxes below are real,
- * monitored addresses — the legal pages and security policy promise
- * replies from them.
+ * The hello@/legal@/security@ addresses are aliases of the
+ * nexora@onenexora.com Workspace mailbox.
  *
- * TODO(launch): legalEntityName and legalAddress are placeholders — no
- * registered entity exists yet. Fill them in once one does. A lawyer must
+ * NEXORA is run by a private individual, so legalEntityName is their name
+ * and no postal address is published; contact is by email. Replace it
+ * once a business is registered. A lawyer must
  * review the /legal pages before any of this is treated as binding — see
  * the notice banner rendered on each of them.
  */
@@ -14,7 +14,6 @@ export const siteConfig = {
   legalEmail: "legal@onenexora.com",
   securityEmail: "security@onenexora.com",
   siteUrl: process.env.NEXT_PUBLIC_SITE_URL ?? "https://onenexora.com",
-  legalEntityName: "[LEGAL ENTITY NAME — NOT YET INCORPORATED]",
+  legalEntityName: "Bartłomiej Wroński",
   legalJurisdiction: "the Republic of Poland",
-  legalAddress: "[REGISTERED BUSINESS ADDRESS — TBD]",
 };
