@@ -37,6 +37,19 @@ services:
       timeout: 3s
       retries: 15
 
+  # Shared distributed rate-limit counter for apps/api and apps/gateway
+  # (packages/api-kit/src/rate-limit.ts) — one bucket per API key across
+  # every replica, instead of each replica counting its own. No password:
+  # not published to the host, reachable only from this compose network.
+  redis:
+    image: redis:7-alpine
+    command: ["redis-server", "--save", "", "--appendonly", "no"]
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 2s
+      timeout: 3s
+      retries: 15
+
   db-migrate:
     build:
       context: ../..
@@ -145,9 +158,12 @@ services:
       STRIPE_SECRET_KEY: ${STRIPE_SECRET_KEY}
       CLERK_WEBHOOK_SIGNING_SECRET: ${CLERK_WEBHOOK_SIGNING_SECRET:-}
       DATABASE_URL: postgres://postgres:${POSTGRES_PASSWORD}@postgres:5432/nexora
+      REDIS_URL: redis://redis:6379
     depends_on:
       db-migrate:
         condition: service_completed_successfully
+      redis:
+        condition: service_healthy
 
   docs:
     build:
@@ -237,9 +253,12 @@ services:
       NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY}
       GATEWAY_UPSTREAM_API_KEY: ${GATEWAY_UPSTREAM_API_KEY}
       DATABASE_URL: postgres://postgres:${POSTGRES_PASSWORD}@postgres:5432/nexora
+      REDIS_URL: redis://redis:6379
     depends_on:
       db-migrate:
         condition: service_completed_successfully
+      redis:
+        condition: service_healthy
 
 volumes:
   nexora-postgres-data:

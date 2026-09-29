@@ -5,6 +5,7 @@ import { isClerkConfigured } from "@nexora/auth/config";
 import { cn, LogoMark } from "@nexora/ui";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { CommandPalette, COMMAND_PALETTE_OPEN_EVENT } from "./command-palette";
 import { EnvironmentBadge } from "./environment-badge";
 import { ProductSwitcher } from "./product-switcher";
 import { platformLinks } from "./platform-links";
@@ -33,6 +34,7 @@ export function AppShell({ appName, navItems, children }: AppShellProps) {
   return (
     <div className="flex min-h-screen flex-col bg-background text-foreground">
       <ClerkNotConfiguredNotice />
+      <CommandPalette navItems={navItems} />
       <header className="border-b border-border">
         <div className="flex h-16 items-center gap-4 px-6">
           <ProductSwitcher />
@@ -64,6 +66,17 @@ export function AppShell({ appName, navItems, children }: AppShellProps) {
           </nav>
 
           <div className="ml-auto flex items-center gap-3">
+            <button
+              type="button"
+              onClick={() => window.dispatchEvent(new Event(COMMAND_PALETTE_OPEN_EVENT))}
+              className="hidden items-center gap-2 rounded-md border border-border px-2.5 py-1.5 text-xs text-muted-foreground hover:bg-accent hover:text-foreground sm:flex"
+              aria-label="Open command palette"
+            >
+              Search
+              <kbd className="rounded border border-border bg-muted px-1 font-mono text-[10px]">
+                ⌘K
+              </kbd>
+            </button>
             <EnvironmentBadge />
             {isClerkConfigured() ? (
               <>

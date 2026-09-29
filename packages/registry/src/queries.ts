@@ -1,8 +1,10 @@
+import { changelogEntries } from "./data/changelog";
 import { experiments } from "./data/experiments";
 import { productIntegrations } from "./data/integrations";
 import { marketplaceListings } from "./data/marketplace-listings";
 import { products } from "./data/products";
 import type {
+  ChangelogEntry,
   Experiment,
   MarketplaceListing,
   MarketplaceListingKind,
@@ -87,6 +89,16 @@ export function getProductIntegrations(productSlug: string): ProductIntegration[
 
 export function getAllProductIntegrations(): ProductIntegration[] {
   return productIntegrations;
+}
+
+/** Every changelog entry, newest first. */
+export function getChangelog(): ChangelogEntry[] {
+  return [...changelogEntries].sort((a, b) => (a.date < b.date ? 1 : -1));
+}
+
+/** A single product's changelog entries, newest first. */
+export function getChangelogForProduct(productSlug: string): ChangelogEntry[] {
+  return getChangelog().filter((entry) => entry.product === productSlug);
 }
 
 /**

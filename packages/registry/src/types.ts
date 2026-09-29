@@ -129,3 +129,20 @@ export interface Experiment {
   link: string;
   publishedAt: string;
 }
+
+export type ChangelogEntryKind = "added" | "changed" | "fixed" | "removed";
+
+/**
+ * One dated, factual line about what actually shipped — not a marketing
+ * summary. `product` is the slug of an existing `Product` this entry
+ * belongs to; omitted for platform-wide entries (Core, Console, infra)
+ * that don't belong to any single product.
+ */
+export interface ChangelogEntry {
+  id: string;
+  date: string;
+  product?: string;
+  kind: ChangelogEntryKind;
+  title: string;
+  description?: string;
+}

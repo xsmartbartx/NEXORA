@@ -1,4 +1,5 @@
 import type {
+  ChangelogEntryKind,
   MarketplaceListingKind,
   PlatformPillar,
   ProductCategory,
@@ -39,4 +40,11 @@ export const marketplaceKindLabels: Record<MarketplaceListingKind, string> = {
   model: "Models",
   integration: "Integrations",
   tool: "Tools",
+};
+
+export const changelogKindLabels: Record<ChangelogEntryKind, string> = {
+  added: "Added",
+  changed: "Changed",
+  fixed: "Fixed",
+  removed: "Removed",
 };

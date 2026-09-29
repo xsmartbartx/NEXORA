@@ -3,6 +3,7 @@ import type { ComponentStatus, StatusComponent } from "./components";
 export interface ComponentResult {
   name: string;
   description: string;
+  category: StatusComponent["category"];
   status: ComponentStatus;
   /** Round-trip time of the successful attempt; null when down or not probed. */
   latencyMs: number | null;
@@ -40,7 +41,11 @@ async function attempt(url: string): Promise<number | null> {
 
 /** One retry, so a single dropped connection doesn't flash "Down" publicly. */
 export async function probe(component: StatusComponent): Promise<ComponentResult> {
-  const base = { name: component.name, description: component.description };
+  const base = {
+    name: component.name,
+    description: component.description,
+    category: component.category,
+  };
   if (!component.checkUrl) return { ...base, status: "operational", latencyMs: null };
 
   const latencyMs = (await attempt(component.checkUrl)) ?? (await attempt(component.checkUrl));

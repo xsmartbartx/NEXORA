@@ -16,6 +16,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     "/marketplace",
     "/solutions",
     "/labs",
+    "/changelog",
     "/pricing",
     "/company",
     "/legal",

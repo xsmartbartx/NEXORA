@@ -1,4 +1,6 @@
 export type {
+  ChangelogEntry,
+  ChangelogEntryKind,
   Experiment,
   ExperimentKind,
   MarketplaceListing,
@@ -19,6 +21,8 @@ export type {
 export {
   getAllProducts,
   getAllProductIntegrations,
+  getChangelog,
+  getChangelogForProduct,
   getExperimentBySlug,
   getExperiments,
   getFeaturedProducts,
@@ -36,6 +40,7 @@ export {
 
 export {
   categoryLabels,
+  changelogKindLabels,
   lifecycleLabels,
   marketplaceKindLabels,
   pillarLabels,
