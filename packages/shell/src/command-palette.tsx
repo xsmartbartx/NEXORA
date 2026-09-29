@@ -73,7 +73,9 @@ export function CommandPalette({ navItems }: { navItems: ShellNavItem[] }) {
       return {
         label: product.short_name,
         group: "Products",
-        href: isLive ? (product.app_url ?? product.url) : `${links.website}/products/${product.slug}`,
+        href: isLive
+          ? (product.app_url ?? product.url)
+          : `${links.website}/products/${product.slug}`,
         hint: lifecycleLabels[product.lifecycle],
       };
     });

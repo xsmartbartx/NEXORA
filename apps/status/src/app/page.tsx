@@ -1,5 +1,10 @@
 import { Badge, Card, cn } from "@nexora/ui";
-import { categoryLabel, components, type ComponentCategory, type ComponentStatus } from "./components";
+import {
+  categoryLabel,
+  components,
+  type ComponentCategory,
+  type ComponentStatus,
+} from "./components";
 import { getStatusSnapshot, overallStatus, type ComponentResult } from "./health";
 
 // Probed live on request (with a short shared cache in ./health.ts), never
@@ -28,9 +33,7 @@ const headline: Record<ComponentStatus, string> = {
 /** Platform, then Products, then Infrastructure — matches `components.ts`'s declared order within each group. */
 const categoryOrder: ComponentCategory[] = ["platform", "products", "infrastructure"];
 
-function groupByCategory(
-  results: ComponentResult[],
-): [ComponentCategory, ComponentResult[]][] {
+function groupByCategory(results: ComponentResult[]): [ComponentCategory, ComponentResult[]][] {
   return categoryOrder
     .map((category): [ComponentCategory, ComponentResult[]] => [
       category,
