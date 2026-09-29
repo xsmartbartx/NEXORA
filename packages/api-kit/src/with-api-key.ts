@@ -20,7 +20,7 @@ export async function withApiKey(
   const auth = await authenticateApiKey(request);
   if (!auth.ok) return apiError(auth.status, auth.code, auth.message);
 
-  const rate = checkRateLimit(auth.key.keyId, namespace);
+  const rate = await checkRateLimit(auth.key.keyId, namespace);
   const rateLimitHeaders = {
     "X-RateLimit-Limit": String(rate.limit),
     "X-RateLimit-Remaining": String(rate.remaining),
