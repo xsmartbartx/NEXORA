@@ -43,7 +43,20 @@ services:
   # not published to the host, reachable only from this compose network.
   redis:
     image: redis:7-alpine
-    command: ["redis-server", "--save", "", "--appendonly", "no"]
+    # Counters only (every key has a TTL): no persistence, and a hard memory
+    # cap on the shared host that evicts the soonest-expiring keys first.
+    command:
+      [
+        "redis-server",
+        "--save",
+        "",
+        "--appendonly",
+        "no",
+        "--maxmemory",
+        "64mb",
+        "--maxmemory-policy",
+        "volatile-ttl",
+      ]
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 2s

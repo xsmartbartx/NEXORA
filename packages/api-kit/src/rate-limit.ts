@@ -52,19 +52,25 @@ function checkRateLimitMemory(bucketKey: string): RateLimitResult {
 }
 
 /**
- * `INCR` is atomic across concurrent requests hitting the same bucket, so
- * two replicas incrementing at once still land on distinct counts rather
- * than racing. Only the request that takes the count to 1 sets the
- * expiry — otherwise every hit would push the window back out and the
- * limit would never actually reset.
+ * INCR, the window's expiry and the TTL read run as one MULTI transaction,
+ * so the counter can never be left without an expiry (a crash or dropped
+ * connection between a separate INCR and PEXPIRE would otherwise block
+ * that key forever). `PEXPIRE ... NX` (Redis 7) only sets the expiry when
+ * the key has none — later hits in the window don't push the reset out.
  */
 async function checkRateLimitRedis(bucketKey: string, redis: Redis): Promise<RateLimitResult> {
   const now = Date.now();
-  const count = await redis.incr(bucketKey);
-  if (count === 1) {
-    await redis.pexpire(bucketKey, WINDOW_MS);
+  const results = await redis
+    .multi()
+    .incr(bucketKey)
+    .pexpire(bucketKey, WINDOW_MS, "NX")
+    .pttl(bucketKey)
+    .exec();
+  if (!results || results.some(([err]) => err)) {
+    throw new Error("Redis rate-limit transaction failed");
   }
-  const ttl = await redis.pttl(bucketKey);
+  const count = Number(results[0]![1]);
+  const ttl = Number(results[2]![1]);
   const resetAt = now + (ttl > 0 ? ttl : WINDOW_MS);
   const remaining = MAX_REQUESTS_PER_WINDOW - count;
   return {
@@ -86,7 +92,17 @@ function getRedis(): Redis | null {
     return null;
   }
 
-  redisClient = new Redis(url, { lazyConnect: true, maxRetriesPerRequest: 1 });
+  // Fail fast rather than queue: with the offline queue off and short
+  // timeouts, a down Redis costs a request a few hundred ms at most before
+  // checkRateLimit falls back to memory, instead of ioredis's default 10s
+  // connect wait on every call. The client keeps reconnecting in the
+  // background and is used again as soon as Redis is back.
+  redisClient = new Redis(url, {
+    connectTimeout: 500,
+    commandTimeout: 500,
+    maxRetriesPerRequest: 0,
+    enableOfflineQueue: false,
+  });
   // Without a listener, ioredis rethrows connection errors as an unhandled
   // 'error' event and crashes the process; checkRateLimit's own try/catch
   // is what actually handles a failed request, this just keeps the client

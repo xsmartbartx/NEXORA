@@ -32,23 +32,26 @@ describe("checkRateLimit (in-memory, no REDIS_URL)", () => {
 });
 
 describe("checkRateLimit (Redis-backed)", () => {
-  const incr = vi.fn();
-  const pexpire = vi.fn();
-  const pttl = vi.fn();
+  const exec = vi.fn();
+  const calls: unknown[][] = [];
 
   beforeEach(() => {
     vi.resetModules();
     process.env.REDIS_URL = "redis://localhost:6379";
-    incr.mockReset();
-    pexpire.mockReset();
-    pttl.mockReset();
+    exec.mockReset();
+    calls.length = 0;
 
     // A plain function, not an arrow function: `new Redis(...)` in the
-    // module under test requires something callable with `new`, and
-    // returning an object from it is what supplies the mocked instance.
+    // module under test requires something callable with `new`.
     vi.doMock("ioredis", () => ({
       Redis: vi.fn().mockImplementation(function MockRedis() {
-        return { incr, pexpire, pttl, on: vi.fn() };
+        const tx = {
+          incr: (...args: unknown[]) => (calls.push(["incr", ...args]), tx),
+          pexpire: (...args: unknown[]) => (calls.push(["pexpire", ...args]), tx),
+          pttl: (...args: unknown[]) => (calls.push(["pttl", ...args]), tx),
+          exec,
+        };
+        return { multi: () => tx, on: vi.fn() };
       }),
     }));
   });
@@ -58,30 +61,31 @@ describe("checkRateLimit (Redis-backed)", () => {
     vi.doUnmock("ioredis");
   });
 
-  it("sets the window's expiry only on the first hit", async () => {
-    incr.mockResolvedValueOnce(1);
-    pttl.mockResolvedValueOnce(60_000);
+  it("increments and sets the expiry in one transaction, only if unset", async () => {
+    exec.mockResolvedValueOnce([
+      [null, 1],
+      [null, 1],
+      [null, 60_000],
+    ]);
     const { checkRateLimit } = await import("./rate-limit");
 
     const result = await checkRateLimit("key-1", "api");
 
-    expect(pexpire).toHaveBeenCalledWith("ratelimit:api:key-1", 60_000);
+    expect(calls).toEqual([
+      ["incr", "ratelimit:api:key-1"],
+      ["pexpire", "ratelimit:api:key-1", 60_000, "NX"],
+      ["pttl", "ratelimit:api:key-1"],
+    ]);
+    expect(exec).toHaveBeenCalledTimes(1);
     expect(result).toMatchObject({ limited: false, remaining: 59 });
   });
 
-  it("does not re-set expiry on subsequent hits in the same window", async () => {
-    incr.mockResolvedValueOnce(2);
-    pttl.mockResolvedValueOnce(45_000);
-    const { checkRateLimit } = await import("./rate-limit");
-
-    await checkRateLimit("key-1", "api");
-
-    expect(pexpire).not.toHaveBeenCalled();
-  });
-
   it("reports limited once the shared Redis counter exceeds the max", async () => {
-    incr.mockResolvedValueOnce(61);
-    pttl.mockResolvedValueOnce(10_000);
+    exec.mockResolvedValueOnce([
+      [null, 61],
+      [null, 0],
+      [null, 10_000],
+    ]);
     const { checkRateLimit } = await import("./rate-limit");
 
     const result = await checkRateLimit("key-1", "api");
@@ -90,7 +94,21 @@ describe("checkRateLimit (Redis-backed)", () => {
   });
 
   it("falls back to the in-memory limiter when Redis throws", async () => {
-    incr.mockRejectedValueOnce(new Error("ECONNREFUSED"));
+    exec.mockRejectedValueOnce(new Error("ECONNREFUSED"));
+    const { checkRateLimit, resetRateLimitMemory } = await import("./rate-limit");
+    resetRateLimitMemory();
+
+    const result = await checkRateLimit("key-1", "api");
+
+    expect(result).toMatchObject({ limited: false, remaining: 59 });
+  });
+
+  it("falls back when a command inside the transaction errors", async () => {
+    exec.mockResolvedValueOnce([
+      [new Error("OOM"), null],
+      [null, 0],
+      [null, -1],
+    ]);
     const { checkRateLimit, resetRateLimitMemory } = await import("./rate-limit");
     resetRateLimitMemory();
 
