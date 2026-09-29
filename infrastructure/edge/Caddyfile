@@ -15,11 +15,24 @@
 # attached to both projects' networks at once. Full container names are
 # globally unique on the host, so there's no ambiguity.
 
+# Apps with no Next.js Server Actions reject any request carrying the
+# Server Action header. Internet-wide scanners send it to probe for the
+# React Server Components RCE (CVE-2025-55182); the apps are patched, but
+# each probe otherwise reaches Next.js and is logged as an error. Only
+# import this into sites whose code has no "use server" — console,
+# sentinel, cspm and gateway use Server Actions and must not get it.
+(no_server_actions) {
+	@server_action header Next-Action *
+	respond @server_action 403
+}
+
 onenexora.com, www.onenexora.com {
+	import no_server_actions
 	reverse_proxy nexora-website-1:3000
 }
 
 account.onenexora.com {
+	import no_server_actions
 	reverse_proxy nexora-account-1:3001
 }
 
@@ -28,18 +41,22 @@ console.onenexora.com {
 }
 
 status.onenexora.com {
+	import no_server_actions
 	reverse_proxy nexora-status-1:3003
 }
 
 api.onenexora.com {
+	import no_server_actions
 	reverse_proxy nexora-api-1:3004
 }
 
 docs.onenexora.com {
+	import no_server_actions
 	reverse_proxy nexora-docs-1:3005
 }
 
 developers.onenexora.com {
+	import no_server_actions
 	reverse_proxy nexora-developers-1:3006
 }
 
@@ -56,6 +73,7 @@ gateway.onenexora.com {
 }
 
 vigilo.onenexora.com {
+	import no_server_actions
 	reverse_proxy vigilo-self-host-web-1:3000
 }
 
