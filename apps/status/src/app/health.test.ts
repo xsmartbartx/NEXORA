@@ -1,7 +1,12 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { getStatusSnapshot, overallStatus, probe, resetStatusCache } from "./health";
 
-const component = { name: "API", description: "api", checkUrl: "https://api.test/health" };
+const component = {
+  name: "API",
+  description: "api",
+  category: "platform" as const,
+  checkUrl: "https://api.test/health",
+};
 
 describe("probe", () => {
   const fetchMock = vi.fn();
@@ -46,7 +51,9 @@ describe("probe", () => {
   });
 
   it("treats a component without a check URL as operational, unprobed", async () => {
-    expect(await probe({ name: "Status", description: "status" })).toMatchObject({
+    expect(
+      await probe({ name: "Status", description: "status", category: "platform" }),
+    ).toMatchObject({
       status: "operational",
       latencyMs: null,
     });
@@ -69,6 +76,7 @@ describe("overallStatus", () => {
   const r = (status: "operational" | "degraded" | "down") => ({
     name: "x",
     description: "x",
+    category: "platform" as const,
     status,
     latencyMs: null,
   });

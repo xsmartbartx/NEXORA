@@ -1,4 +1,5 @@
 import { categoryLabels, productHref, type Product } from "@nexora/registry";
+import { cardVariants } from "@nexora/ui";
 import Link from "next/link";
 import { LifecycleBadge } from "./lifecycle-badge";
 
@@ -6,7 +7,7 @@ export function ProductCard({ product }: { product: Product }) {
   return (
     <Link
       href={productHref(product)}
-      className="group flex flex-col gap-3 rounded-xl border border-border bg-card p-6 transition-colors hover:border-primary/50"
+      className={cardVariants({ interactive: true, className: "group flex flex-col gap-3" })}
     >
       <div className="flex items-start justify-between gap-3">
         <div>
