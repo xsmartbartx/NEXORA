@@ -37,23 +37,30 @@ export const auditEvents = pgTable("audit_events", {
 });
 
 /**
- * One row per organisation, mirroring Stripe's subscription resource
- * (§4.1 Billing: "feeds Entitlements — never deciding access directly").
- * This table is the read model Entitlements checks against; Stripe's
- * webhooks (packages/billing) are the only writer. No row means the org is
- * on the default (free) plan.
+ * One row per (organisation, product) — Sentinel, CSPM and Gateway are
+ * billed and tiered independently (packages/billing/src/plans.ts), so an
+ * org can be Pro on one and Free on another. Mirrors Stripe's subscription
+ * resource (§4.1 Billing: "feeds Entitlements — never deciding access
+ * directly"). This table is the read model Entitlements checks against;
+ * Stripe's webhooks (packages/billing) are the only writer. No row for a
+ * given product means that product is on its default (free) plan.
  */
-export const subscriptions = pgTable("subscriptions", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  orgId: text("org_id").notNull().unique(),
-  planId: text("plan_id").notNull(),
-  status: text("status").notNull(),
-  stripeSubscriptionId: text("stripe_subscription_id").notNull().unique(),
-  stripeCustomerId: text("stripe_customer_id").notNull(),
-  currentPeriodEnd: timestamp("current_period_end", { withTimezone: true }),
-  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
-  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
-});
+export const subscriptions = pgTable(
+  "subscriptions",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    orgId: text("org_id").notNull(),
+    product: text("product").notNull(),
+    planId: text("plan_id").notNull(),
+    status: text("status").notNull(),
+    stripeSubscriptionId: text("stripe_subscription_id").notNull().unique(),
+    stripeCustomerId: text("stripe_customer_id").notNull(),
+    currentPeriodEnd: timestamp("current_period_end", { withTimezone: true }),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [uniqueIndex("subscriptions_org_product_idx").on(table.orgId, table.product)],
+);
 
 /**
  * NEXORA-staff control, not a customer-facing setting (§4.1 Entitlements

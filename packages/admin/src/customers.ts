@@ -1,6 +1,6 @@
 import { eq } from "drizzle-orm";
 import { clerkClient } from "@nexora/auth/server";
-import { PLANS, resolvePlanForSubscription, type Plan } from "@nexora/billing";
+import { isProductId, resolvePlanForSubscription, type Plan, type ProductId } from "@nexora/billing";
 import {
   db,
   productSuspensions,
@@ -14,6 +14,8 @@ import { getUsageByOrg } from "./usage";
 
 export interface ProductUsage {
   product: ControllableProduct;
+  plan: Plan;
+  subscription: Subscription | null;
   /** Highest used/limit ratio across the product's features — what a summary row needs; the detail page breaks it down per feature. */
   used: number;
   limit: number | null;
@@ -27,8 +29,6 @@ export interface CustomerSummary {
   imageUrl: string;
   membersCount: number;
   createdAt: Date;
-  plan: Plan;
-  subscription: Subscription | null;
   products: ProductUsage[];
 }
 
@@ -53,11 +53,20 @@ export interface CustomerDetail extends CustomerSummary {
 
 function usageForProducts(
   products: ControllableProduct[],
-  plan: Plan,
+  subscriptionByProduct: Map<ProductId, Subscription>,
   usageByAction: Map<string, number>,
   suspendedSlugs: Set<string>,
 ): ProductUsage[] {
   return products.map((product) => {
+    // getControllableProducts() derives its list from PLANS' own limit
+    // keys (packages/admin/src/products.ts), so every slug here is
+    // necessarily one of the billed ProductIds.
+    if (!isProductId(product.slug)) {
+      throw new Error(`Controllable product "${product.slug}" isn't a billed product.`);
+    }
+    const subscription = subscriptionByProduct.get(product.slug) ?? null;
+    const plan = resolvePlanForSubscription(subscription, product.slug);
+
     // A product can have several metered features; a customer-facing
     // summary needs one number, so take the feature closest to its limit
     // (most-constrained first) rather than an arbitrary first entry.
@@ -79,8 +88,23 @@ function usageForProducts(
         limit = featureLimit;
       }
     }
-    return { product, used, limit, suspended: suspendedSlugs.has(product.slug) };
+    return {
+      product,
+      plan,
+      subscription,
+      used,
+      limit,
+      suspended: suspendedSlugs.has(product.slug),
+    };
   });
+}
+
+function groupByProduct(rows: Subscription[]): Map<ProductId, Subscription> {
+  const map = new Map<ProductId, Subscription>();
+  for (const row of rows) {
+    if (isProductId(row.product)) map.set(row.product, row);
+  }
+  return map;
 }
 
 /**
@@ -105,7 +129,11 @@ export async function listCustomers(): Promise<CustomerSummary[]> {
     db.select().from(subscriptions),
     db.select().from(productSuspensions),
   ]);
-  const subscriptionByOrg = new Map(subscriptionRows.map((row) => [row.orgId, row]));
+  const subscriptionsByOrg = new Map<string, Subscription[]>();
+  for (const row of subscriptionRows) {
+    if (!subscriptionsByOrg.has(row.orgId)) subscriptionsByOrg.set(row.orgId, []);
+    subscriptionsByOrg.get(row.orgId)!.push(row);
+  }
   const suspendedByOrg = new Map<string, Set<string>>();
   for (const row of suspensionRows) {
     if (!suspendedByOrg.has(row.orgId)) suspendedByOrg.set(row.orgId, new Set());
@@ -118,26 +146,20 @@ export async function listCustomers(): Promise<CustomerSummary[]> {
   );
   const usageByOrg = await getUsageByOrg(allFeatureCompletedActions, startOfCurrentBillingPeriod());
 
-  return organizations.map((org) => {
-    const subscription = subscriptionByOrg.get(org.id) ?? null;
-    const plan = resolvePlanForSubscription(subscription);
-    return {
-      orgId: org.id,
-      name: org.name,
-      slug: org.slug,
-      imageUrl: org.imageUrl,
-      membersCount: org.membersCount ?? 0,
-      createdAt: new Date(org.createdAt),
-      plan,
-      subscription,
-      products: usageForProducts(
-        controllableProducts,
-        plan,
-        usageByOrg.get(org.id) ?? new Map(),
-        suspendedByOrg.get(org.id) ?? new Set(),
-      ),
-    };
-  });
+  return organizations.map((org) => ({
+    orgId: org.id,
+    name: org.name,
+    slug: org.slug,
+    imageUrl: org.imageUrl,
+    membersCount: org.membersCount ?? 0,
+    createdAt: new Date(org.createdAt),
+    products: usageForProducts(
+      controllableProducts,
+      groupByProduct(subscriptionsByOrg.get(org.id) ?? []),
+      usageByOrg.get(org.id) ?? new Map(),
+      suspendedByOrg.get(org.id) ?? new Set(),
+    ),
+  }));
 }
 
 /** Same shape as `listCustomers`, for one organisation, plus its members and recent activity — what the customer detail page needs that the list doesn't. */
@@ -160,8 +182,6 @@ export async function getCustomer(orgId: string): Promise<CustomerDetail | null>
     listOrgEvents(orgId, 30),
   ]);
 
-  const subscription = subscriptionRows[0] ?? null;
-  const plan = resolvePlanForSubscription(subscription);
   const suspendedSlugs = new Set(suspensionRows.map((row) => row.product));
   const suspensions = new Map<string, ProductSuspensionInfo>(
     suspensionRows.map((row) => [
@@ -183,11 +203,9 @@ export async function getCustomer(orgId: string): Promise<CustomerDetail | null>
     imageUrl: organization.imageUrl,
     membersCount: organization.membersCount ?? memberships.data.length,
     createdAt: new Date(organization.createdAt),
-    plan,
-    subscription,
     products: usageForProducts(
       controllableProducts,
-      plan,
+      groupByProduct(subscriptionRows),
       usageByOrg.get(orgId) ?? new Map(),
       suspendedSlugs,
     ),

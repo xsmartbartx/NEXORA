@@ -1,4 +1,4 @@
-import { getOrgPlan } from "@nexora/billing";
+import { getOrgPlan, isProductId, type ProductId } from "@nexora/billing";
 import { db, productSuspensions } from "@nexora/database";
 import { and, eq } from "drizzle-orm";
 import { countOrgEvents, startOfCurrentBillingPeriod } from "@nexora/telemetry";
@@ -11,8 +11,12 @@ export interface EntitlementCheck {
 }
 
 /** The product a feature key belongs to: `"sentinel.scan"` → `"sentinel"`. */
-function productForFeature(feature: string): string {
-  return feature.split(".")[0] ?? feature;
+function productForFeature(feature: string): ProductId {
+  const slug = feature.split(".")[0] ?? feature;
+  if (!isProductId(slug)) {
+    throw new Error(`"${feature}" isn't a feature of any billed product (got "${slug}").`);
+  }
+  return slug;
 }
 
 /**
@@ -29,15 +33,11 @@ function productForFeature(feature: string): string {
  * follows that convention when it logs via `@nexora/telemetry`.
  */
 export async function checkEntitlement(orgId: string, feature: string): Promise<EntitlementCheck> {
+  const product = productForFeature(feature);
   const [suspension] = await db
     .select({ reason: productSuspensions.reason })
     .from(productSuspensions)
-    .where(
-      and(
-        eq(productSuspensions.orgId, orgId),
-        eq(productSuspensions.product, productForFeature(feature)),
-      ),
-    )
+    .where(and(eq(productSuspensions.orgId, orgId), eq(productSuspensions.product, product)))
     .limit(1);
   if (suspension) {
     return {
@@ -46,7 +46,7 @@ export async function checkEntitlement(orgId: string, feature: string): Promise<
     };
   }
 
-  const plan = await getOrgPlan(orgId);
+  const plan = await getOrgPlan(orgId, product);
   const limit = plan.limits[feature];
 
   // Not a metered feature on this plan's catalog — nothing to check.

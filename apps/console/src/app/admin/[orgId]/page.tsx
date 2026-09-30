@@ -10,12 +10,6 @@ export const metadata: Metadata = {
   title: "Admin — Customer",
 };
 
-function statusVariant(status: string | undefined): "success" | "warning" | "neutral" {
-  if (status === "active" || status === "trialing") return "success";
-  if (!status) return "neutral";
-  return "warning";
-}
-
 export default async function AdminCustomerPage({ params }: PageProps<"/admin/[orgId]">) {
   await requireAdmin();
   const { orgId } = await params;
@@ -39,24 +33,30 @@ export default async function AdminCustomerPage({ params }: PageProps<"/admin/[o
             {customer.orgId} · {customer.slug}
           </p>
         </div>
-        <div className="flex items-center gap-2">
-          <Badge variant="brand">{customer.plan.name}</Badge>
-          <Badge variant={statusVariant(customer.subscription?.status)}>
-            {customer.subscription?.status ?? "free"}
-          </Badge>
+        <div className="flex flex-wrap items-center gap-2">
+          {customer.products.map((usage) => (
+            <Badge key={usage.product.slug} variant="brand">
+              {usage.product.name}: {usage.plan.name}
+            </Badge>
+          ))}
         </div>
       </div>
 
-      {customer.subscription?.stripeCustomerId ? (
-        <a
-          href={`https://dashboard.stripe.com/customers/${customer.subscription.stripeCustomerId}`}
-          target="_blank"
-          rel="noreferrer"
-          className="mt-3 inline-block text-sm text-primary hover:underline"
-        >
-          View in Stripe →
-        </a>
-      ) : null}
+      {(() => {
+        const stripeCustomerId = customer.products.find(
+          (usage) => usage.subscription?.stripeCustomerId,
+        )?.subscription?.stripeCustomerId;
+        return stripeCustomerId ? (
+          <a
+            href={`https://dashboard.stripe.com/customers/${stripeCustomerId}`}
+            target="_blank"
+            rel="noreferrer"
+            className="mt-3 inline-block text-sm text-primary hover:underline"
+          >
+            View in Stripe →
+          </a>
+        ) : null;
+      })()}
 
       <div className="mt-10">
         <h2 className="text-lg font-semibold">Product access</h2>

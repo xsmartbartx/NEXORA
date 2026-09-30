@@ -1,7 +1,14 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { requireOrg } from "@nexora/auth/server";
-import { getOrgPlan, getOrgSubscription, PLANS, type Plan } from "@nexora/billing";
+import {
+  getOrgPlan,
+  getOrgSubscription,
+  getPlansForProduct,
+  PRODUCT_IDS,
+  type Plan,
+  type ProductId,
+} from "@nexora/billing";
 import { countOrgEvents, startOfCurrentBillingPeriod } from "@nexora/telemetry";
 import { Badge, buttonVariants, cn } from "@nexora/ui";
 import type { Subscription } from "@nexora/database";
@@ -12,33 +19,31 @@ export const metadata: Metadata = {
   title: "Billing",
 };
 
-interface UsageEntry {
-  feature: string;
-  limit: number | null;
-  used: number;
-}
-
-interface BillingData {
+interface ProductBillingData {
+  product: ProductId;
   plan: Plan;
   subscription: Subscription | null;
-  usageEntries: UsageEntry[];
+  tiers: Plan[];
+  used: number;
 }
 
 // Data fetching is deliberately kept out of any JSX — React doesn't render
 // synchronously, so a try/catch wrapped around JSX construction wouldn't
 // actually protect rendering (caught by react-hooks/error-boundaries).
-async function loadBillingData(orgId: string): Promise<BillingData | null> {
+async function loadBillingData(orgId: string): Promise<ProductBillingData[] | null> {
   try {
-    const [plan, subscription] = await Promise.all([getOrgPlan(orgId), getOrgSubscription(orgId)]);
     const periodStart = startOfCurrentBillingPeriod();
-    const usageEntries = await Promise.all(
-      Object.entries(plan.limits).map(async ([feature, limit]) => ({
-        feature,
-        limit,
-        used: await countOrgEvents(orgId, `${feature}.completed`, periodStart),
-      })),
+    return await Promise.all(
+      PRODUCT_IDS.map(async (product) => {
+        const [plan, subscription] = await Promise.all([
+          getOrgPlan(orgId, product),
+          getOrgSubscription(orgId, product),
+        ]);
+        const [feature] = Object.keys(plan.limits);
+        const used = feature ? await countOrgEvents(orgId, `${feature}.completed`, periodStart) : 0;
+        return { product, plan, subscription, tiers: getPlansForProduct(product), used };
+      }),
     );
-    return { plan, subscription, usageEntries };
   } catch {
     return null;
   }
@@ -49,15 +54,16 @@ export default async function BillingPage(props: PageProps<"/billing">) {
   const data = await loadBillingData(orgId);
   const searchParams = await props.searchParams;
   const checkoutStatus = searchParams.checkout;
+  const hasAnySubscription = data?.some((d) => d.subscription) ?? false;
 
   return (
-    <div className="mx-auto max-w-2xl px-6 py-12">
+    <div className="mx-auto max-w-4xl px-6 py-12">
       <span className="font-mono text-xs uppercase tracking-widest text-muted-foreground">
         Billing
       </span>
       <h1 className="mt-2 text-3xl font-semibold tracking-tight">Billing</h1>
       <p className="mt-2 max-w-xl text-muted-foreground">
-        Your organisation&rsquo;s plan and usage for the current billing period.
+        Sentinel, CSPM and Gateway are billed independently — pick the tier each one needs.
       </p>
 
       {checkoutStatus === "success" ? (
@@ -76,14 +82,39 @@ export default async function BillingPage(props: PageProps<"/billing">) {
             Database not reachable. Set DATABASE_URL to a real Postgres instance to see billing.
           </div>
         ) : (
-          <BillingContent data={data} isOrgAdmin={orgRole === "org:admin"} />
+          <div className="flex flex-col gap-10">
+            {data.map((entry) => (
+              <ProductBilling key={entry.product} data={entry} isOrgAdmin={orgRole === "org:admin"} />
+            ))}
+          </div>
         )}
       </div>
+
+      {hasAnySubscription ? (
+        <div className="mt-10 border-t border-border pt-6">
+          {orgRole === "org:admin" ? (
+            <form action={openBillingPortal}>
+              <button type="submit" className={cn(buttonVariants({ variant: "secondary" }))}>
+                Manage or cancel in Stripe
+              </button>
+              <p className="mt-2 text-xs text-muted-foreground">
+                Change card, download invoices, or cancel any product&rsquo;s subscription — one
+                portal for everything above. After cancelling a product you keep it until the end
+                of its paid period.
+              </p>
+            </form>
+          ) : (
+            <p className="text-sm text-muted-foreground">
+              Ask an organisation admin to change or cancel a subscription.
+            </p>
+          )}
+        </div>
+      ) : null}
 
       <div className="mt-12 border-t border-border pt-8">
         <h2 className="text-lg font-semibold">Close account</h2>
         <p className="mt-2 text-sm text-muted-foreground">
-          Deleting your organisation cancels any paid subscription immediately and permanently
+          Deleting your organisation cancels every paid subscription immediately and permanently
           deletes its API keys, usage history and billing state. Admins can do this from the
           organisation settings.
         </p>
@@ -98,70 +129,63 @@ export default async function BillingPage(props: PageProps<"/billing">) {
   );
 }
 
-function BillingContent({ data, isOrgAdmin }: { data: BillingData; isOrgAdmin: boolean }) {
-  const { plan, subscription, usageEntries } = data;
-  const proPlan = PLANS.find((p) => p.id === "pro");
-  const hasProPrice = Boolean(proPlan?.stripePriceIds.month || proPlan?.stripePriceIds.year);
-  const canUpgrade = plan.id !== "pro" && proPlan && hasProPrice;
+const productLabel: Record<ProductId, string> = {
+  sentinel: "Sentinel",
+  cspm: "CSPM",
+  gateway: "Gateway",
+};
+
+function ProductBilling({ data, isOrgAdmin }: { data: ProductBillingData; isOrgAdmin: boolean }) {
+  const { product, plan, subscription, tiers, used } = data;
+  const [feature] = Object.keys(plan.limits);
+  const limit = feature ? plan.limits[feature] : null;
 
   return (
-    <>
-      <div className="rounded-xl border border-border bg-card p-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <p className="text-sm text-muted-foreground">Current plan</p>
-            <p className="mt-1 text-2xl font-semibold">{plan.name}</p>
-          </div>
-          {subscription ? (
-            <Badge variant="brand">{subscription.status}</Badge>
-          ) : (
-            <Badge variant="neutral">no subscription</Badge>
-          )}
-        </div>
-        {subscription?.currentPeriodEnd ? (
-          <p className="mt-3 text-sm text-muted-foreground">
-            Renews {subscription.currentPeriodEnd.toLocaleDateString()}
-          </p>
-        ) : null}
-        {canUpgrade ? (
-          <div className="mt-6">
-            <CheckoutButton plan={proPlan} />
-          </div>
-        ) : null}
-        {subscription?.stripeCustomerId ? (
-          <div className="mt-6">
-            {isOrgAdmin ? (
-              <form action={openBillingPortal}>
-                <button type="submit" className={cn(buttonVariants({ variant: "secondary" }))}>
-                  Manage or cancel
-                </button>
-                <p className="mt-2 text-xs text-muted-foreground">
-                  Cancel, change card or download invoices on Stripe. After cancelling you keep Pro
-                  until the end of the paid period.
-                </p>
-              </form>
-            ) : (
-              <p className="text-sm text-muted-foreground">
-                Ask an organisation admin to change or cancel the subscription.
-              </p>
-            )}
-          </div>
-        ) : null}
+    <div>
+      <div className="flex items-center justify-between">
+        <h2 className="text-xl font-semibold">{productLabel[product]}</h2>
+        {subscription ? (
+          <Badge variant="brand">{subscription.status}</Badge>
+        ) : (
+          <Badge variant="neutral">free</Badge>
+        )}
       </div>
+      <p className="mt-1 text-sm text-muted-foreground">
+        {plan.name} plan — {used}
+        {limit === null ? "" : ` / ${limit}`} used this period
+        {subscription?.currentPeriodEnd
+          ? ` · renews ${subscription.currentPeriodEnd.toLocaleDateString()}`
+          : ""}
+      </p>
 
-      <div className="mt-8">
-        <h2 className="text-lg font-semibold">Usage this period</h2>
-        <div className="mt-4 flex flex-col divide-y divide-border rounded-xl border border-border">
-          {usageEntries.map((entry) => (
-            <div key={entry.feature} className="flex items-center justify-between gap-4 p-4">
-              <span className="font-mono text-sm">{entry.feature}</span>
-              <span className="text-sm text-muted-foreground">
-                {entry.used} {entry.limit === null ? "" : `/ ${entry.limit}`}
-              </span>
+      <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-5">
+        {tiers.map((tier) => {
+          const isCurrent = tier.id === plan.id;
+          const [tierFeature] = Object.keys(tier.limits);
+          const tierLimit = tierFeature ? tier.limits[tierFeature] : null;
+          return (
+            <div
+              key={tier.id}
+              className={cn(
+                "flex flex-col rounded-lg border p-3",
+                isCurrent ? "border-primary/60 bg-primary/5" : "border-border",
+              )}
+            >
+              <p className="text-sm font-semibold">{tier.name}</p>
+              <p className="mt-1 text-xs text-muted-foreground">
+                {tierLimit === null ? "Unlimited" : tierLimit.toLocaleString("en-US")}
+              </p>
+              {isCurrent ? (
+                <p className="mt-2 text-xs font-medium text-primary">Current</p>
+              ) : isOrgAdmin ? (
+                <div className="mt-2">
+                  <CheckoutButton plan={tier} />
+                </div>
+              ) : null}
             </div>
-          ))}
-        </div>
+          );
+        })}
       </div>
-    </>
+    </div>
   );
 }
