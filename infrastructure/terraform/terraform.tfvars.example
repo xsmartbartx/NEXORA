@@ -1,0 +1,11 @@
+# Copy to terraform.tfvars and fill in. Never commit terraform.tfvars itself.
+
+tenancy_ocid     = "ocid1.tenancy.oc1..replace-me"
+user_ocid        = "ocid1.user.oc1..replace-me"
+fingerprint      = "replace:with:your:api:key:fingerprint"
+private_key_path = "~/.oci/terraform_oci_api_key.pem"
+region           = "eu-frankfurt-1"
+
+# The public half of the SSH key already installed on the instance —
+# not a new key, just documenting the one already in use.
+ssh_authorized_key = "ssh-rsa AAAA... ssh-key-2026-09-25"
