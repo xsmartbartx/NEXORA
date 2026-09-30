@@ -34,7 +34,8 @@ export async function startCheckout(formData: FormData): Promise<void> {
   // price in the Stripe account.
   const interval = formData.get("interval") === "year" ? "year" : "month";
   const priceId = getPlan(product, tierRaw).stripePriceIds[interval];
-  if (!priceId) throw new Error(`No Stripe price configured for ${product} ${tierRaw} (${interval}).`);
+  if (!priceId)
+    throw new Error(`No Stripe price configured for ${product} ${tierRaw} (${interval}).`);
 
   const existingStripeCustomerId = await getOrgStripeCustomerId(orgId);
 

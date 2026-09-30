@@ -37,7 +37,9 @@ describe("plan catalog", () => {
   it("scopes each product's limits to its own feature key only", () => {
     for (const product of PRODUCT_IDS) {
       for (const tier of getPlansForProduct(product)) {
-        expect(Object.keys(tier.limits)).toEqual([`${product}.${product === "gateway" ? "proxy" : "scan"}`]);
+        expect(Object.keys(tier.limits)).toEqual([
+          `${product}.${product === "gateway" ? "proxy" : "scan"}`,
+        ]);
       }
     }
   });

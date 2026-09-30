@@ -84,7 +84,11 @@ export default async function BillingPage(props: PageProps<"/billing">) {
         ) : (
           <div className="flex flex-col gap-10">
             {data.map((entry) => (
-              <ProductBilling key={entry.product} data={entry} isOrgAdmin={orgRole === "org:admin"} />
+              <ProductBilling
+                key={entry.product}
+                data={entry}
+                isOrgAdmin={orgRole === "org:admin"}
+              />
             ))}
           </div>
         )}
@@ -99,8 +103,8 @@ export default async function BillingPage(props: PageProps<"/billing">) {
               </button>
               <p className="mt-2 text-xs text-muted-foreground">
                 Change card, download invoices, or cancel any product&rsquo;s subscription — one
-                portal for everything above. After cancelling a product you keep it until the end
-                of its paid period.
+                portal for everything above. After cancelling a product you keep it until the end of
+                its paid period.
               </p>
             </form>
           ) : (

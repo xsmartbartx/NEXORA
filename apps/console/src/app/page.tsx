@@ -46,9 +46,7 @@ export default async function ConsoleOverview() {
         <div className="rounded-xl border border-border bg-card p-6">
           <p className="text-sm text-muted-foreground">Plans</p>
           <p className="mt-2 text-sm">
-            {overview
-              ? overview.plans.map((p) => `${p.product}: ${p.planName}`).join(" · ")
-              : "—"}
+            {overview ? overview.plans.map((p) => `${p.product}: ${p.planName}`).join(" · ") : "—"}
           </p>
           <Link href="/billing" className="mt-1 inline-block text-xs text-primary hover:underline">
             Manage billing →

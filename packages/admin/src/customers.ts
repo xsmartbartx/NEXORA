@@ -1,6 +1,11 @@
 import { eq } from "drizzle-orm";
 import { clerkClient } from "@nexora/auth/server";
-import { isProductId, resolvePlanForSubscription, type Plan, type ProductId } from "@nexora/billing";
+import {
+  isProductId,
+  resolvePlanForSubscription,
+  type Plan,
+  type ProductId,
+} from "@nexora/billing";
 import {
   db,
   productSuspensions,

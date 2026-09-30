@@ -37,8 +37,7 @@ export async function purgeOrganizationData(orgId: string): Promise<void> {
         await getStripeClient().subscriptions.cancel(subscription.stripeSubscriptionId);
       } catch (err) {
         const alreadyGone =
-          err instanceof Stripe.errors.StripeInvalidRequestError &&
-          err.code === "resource_missing";
+          err instanceof Stripe.errors.StripeInvalidRequestError && err.code === "resource_missing";
         if (!alreadyGone) throw err;
       }
     }
