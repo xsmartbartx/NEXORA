@@ -7,6 +7,38 @@ import type { ChangelogEntry } from "../types";
  */
 export const changelogEntries: ChangelogEntry[] = [
   {
+    id: "chg_rate_limit_redis",
+    date: "2026-09-29",
+    kind: "changed",
+    title: "API rate limiting is now shared across replicas",
+    description:
+      "apps/api and apps/gateway count requests against a Redis-backed counter instead of each instance's own in-memory count, with automatic fallback if Redis is unreachable.",
+  },
+  {
+    id: "chg_command_palette",
+    date: "2026-09-29",
+    kind: "added",
+    title: "Global Command Palette (⌘K)",
+    description:
+      "Console, Account, Sentinel, CSPM and Gateway now share a searchable Cmd/Ctrl+K palette covering the current app's nav, the rest of the platform, and every product — alongside the existing product switcher.",
+  },
+  {
+    id: "chg_changelog_page",
+    date: "2026-09-29",
+    kind: "added",
+    title: "This changelog",
+    description:
+      "onenexora.com/changelog is generated from the same registry every other public surface reads from, not hand-maintained separately.",
+  },
+  {
+    id: "chg_card_component",
+    date: "2026-09-29",
+    kind: "changed",
+    title: "Unified card styling across the platform",
+    description:
+      "A shared Card component in packages/ui replaces more than a dozen hand-duplicated copies of the same card styles across the website, status page and console.",
+  },
+  {
     id: "chg_status_grouping",
     date: "2026-09-29",
     kind: "changed",
