@@ -37,8 +37,8 @@ export default function BundlesPage() {
       </span>
       <h1 className="mt-3 text-4xl font-semibold tracking-tight">Build your NEXORA stack</h1>
       <p className="mt-4 max-w-2xl text-lg text-pretty text-muted-foreground">
-        Pick two or three products and check out together — one subscription, one combined price,
-        a real discount for buying them at once. Each product still keeps its own tier and quota.
+        Pick two or three products and check out together — one subscription, one combined price, a
+        real discount for buying them at once. Each product still keeps its own tier and quota.
       </p>
 
       <BundleBuilder products={productsPlans} />

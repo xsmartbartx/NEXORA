@@ -91,7 +91,10 @@ export function BundleBuilder({ products }: { products: BundleProductPlans[] }) 
                   className="mt-1 h-4 w-4 rounded border-border accent-primary"
                 />
                 <div className="flex-1">
-                  <label htmlFor={`bundle-${product.product}`} className="cursor-pointer font-semibold">
+                  <label
+                    htmlFor={`bundle-${product.product}`}
+                    className="cursor-pointer font-semibold"
+                  >
                     {product.label}
                   </label>
                   {isChecked ? (
@@ -136,7 +139,9 @@ export function BundleBuilder({ products }: { products: BundleProductPlans[] }) 
                 onClick={() => setIntervalValue("month")}
                 className={cn(
                   "rounded px-2 py-1",
-                  interval === "month" ? "bg-primary text-primary-foreground" : "text-muted-foreground",
+                  interval === "month"
+                    ? "bg-primary text-primary-foreground"
+                    : "text-muted-foreground",
                 )}
               >
                 Monthly
@@ -146,7 +151,9 @@ export function BundleBuilder({ products }: { products: BundleProductPlans[] }) 
                 onClick={() => setIntervalValue("year")}
                 className={cn(
                   "rounded px-2 py-1",
-                  interval === "year" ? "bg-primary text-primary-foreground" : "text-muted-foreground",
+                  interval === "year"
+                    ? "bg-primary text-primary-foreground"
+                    : "text-muted-foreground",
                 )}
               >
                 Yearly
@@ -165,7 +172,9 @@ export function BundleBuilder({ products }: { products: BundleProductPlans[] }) 
                   <span className="text-muted-foreground">
                     {product.label} {tier.name}
                   </span>
-                  <span>{formatUsd(interval === "year" ? tier.yearlyCents : tier.monthlyCents)}</span>
+                  <span>
+                    {formatUsd(interval === "year" ? tier.yearlyCents : tier.monthlyCents)}
+                  </span>
                 </div>
               ))}
 

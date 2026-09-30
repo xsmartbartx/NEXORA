@@ -23,6 +23,7 @@ const columns: { title: string; links: { label: string; href: string; external?:
       { label: "Marketplace", href: "/marketplace" },
       { label: "Solutions", href: "/solutions" },
       { label: "Labs", href: "/labs" },
+      { label: "Bundle Builder", href: "/bundles" },
       { label: "Changelog", href: "/changelog" },
     ],
   },
