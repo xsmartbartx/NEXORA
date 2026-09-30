@@ -120,7 +120,7 @@ export function BundleBuilder({ products }: { products: BundleProductPlans[] }) 
                     </p>
                   )}
                 </div>
-              </label>
+              </div>
             </Card>
           );
         })}
