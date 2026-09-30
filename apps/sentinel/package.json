@@ -13,6 +13,7 @@
     "@clerk/nextjs": "^7.9.4",
     "@nexora/auth": "*",
     "@nexora/entitlements": "*",
+    "@nexora/observability": "*",
     "@nexora/registry": "*",
     "@nexora/shell": "*",
     "@nexora/telemetry": "*",

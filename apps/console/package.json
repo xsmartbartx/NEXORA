@@ -16,6 +16,7 @@
     "@nexora/billing": "*",
     "@nexora/database": "*",
     "@nexora/entitlements": "*",
+    "@nexora/observability": "*",
     "@nexora/registry": "*",
     "@nexora/shell": "*",
     "@nexora/telemetry": "*",
