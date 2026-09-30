@@ -115,6 +115,7 @@ services:
         NEXT_PUBLIC_STATUS_URL: https://status.onenexora.com
         NEXT_PUBLIC_DOCS_URL: https://docs.onenexora.com
         NEXT_PUBLIC_DEVELOPERS_URL: https://developers.onenexora.com
+        NEXT_PUBLIC_SENTRY_DSN: ${NEXT_PUBLIC_SENTRY_DSN:-}
         NEXT_PUBLIC_NEXORA_ENV: production
 
   account:
@@ -132,6 +133,7 @@ services:
         NEXT_PUBLIC_DOCS_URL: https://docs.onenexora.com
         NEXT_PUBLIC_DEVELOPERS_URL: https://developers.onenexora.com
         NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY}
+        NEXT_PUBLIC_SENTRY_DSN: ${NEXT_PUBLIC_SENTRY_DSN:-}
         NEXT_PUBLIC_NEXORA_ENV: production
     environment:
       CLERK_SECRET_KEY: ${CLERK_SECRET_KEY}
@@ -152,6 +154,7 @@ services:
         NEXT_PUBLIC_DOCS_URL: https://docs.onenexora.com
         NEXT_PUBLIC_DEVELOPERS_URL: https://developers.onenexora.com
         NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY}
+        NEXT_PUBLIC_SENTRY_DSN: ${NEXT_PUBLIC_SENTRY_DSN:-}
         NEXT_PUBLIC_NEXORA_ENV: production
     environment:
       <<: *stripe-product-prices
@@ -176,6 +179,7 @@ services:
         NEXT_PUBLIC_ACCOUNT_URL: https://account.onenexora.com
         NEXT_PUBLIC_CONSOLE_URL: https://console.onenexora.com
         NEXT_PUBLIC_STATUS_URL: https://status.onenexora.com
+        NEXT_PUBLIC_SENTRY_DSN: ${NEXT_PUBLIC_SENTRY_DSN:-}
         NEXT_PUBLIC_NEXORA_ENV: production
     # The host's nightly backup script (/opt/backups/backup-all.sh) writes
     # its last-success timestamp here; /api/backup reports its freshness.
@@ -190,6 +194,7 @@ services:
         APP_NAME: api
         APP_PORT: "3004"
         NEXT_PUBLIC_DOCS_URL: https://docs.onenexora.com
+        NEXT_PUBLIC_SENTRY_DSN: ${NEXT_PUBLIC_SENTRY_DSN:-}
         NEXT_PUBLIC_NEXORA_ENV: production
     environment:
       <<: *stripe-product-prices
@@ -219,6 +224,7 @@ services:
         NEXT_PUBLIC_SENTINEL_URL: https://sentinel.onenexora.com
         NEXT_PUBLIC_CSPM_URL: https://cspm.onenexora.com
         NEXT_PUBLIC_GATEWAY_URL: https://gateway.onenexora.com
+        NEXT_PUBLIC_SENTRY_DSN: ${NEXT_PUBLIC_SENTRY_DSN:-}
         NEXT_PUBLIC_NEXORA_ENV: production
 
   developers:
@@ -232,6 +238,7 @@ services:
         NEXT_PUBLIC_CONSOLE_URL: https://console.onenexora.com
         NEXT_PUBLIC_API_URL: https://api.onenexora.com
         NEXT_PUBLIC_DOCS_URL: https://docs.onenexora.com
+        NEXT_PUBLIC_SENTRY_DSN: ${NEXT_PUBLIC_SENTRY_DSN:-}
         NEXT_PUBLIC_NEXORA_ENV: production
 
   sentinel:
@@ -246,6 +253,7 @@ services:
         NEXT_PUBLIC_STATUS_URL: https://status.onenexora.com
         NEXT_PUBLIC_DOCS_URL: https://docs.onenexora.com
         NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY}
+        NEXT_PUBLIC_SENTRY_DSN: ${NEXT_PUBLIC_SENTRY_DSN:-}
         NEXT_PUBLIC_NEXORA_ENV: production
     environment:
       CLERK_SECRET_KEY: ${CLERK_SECRET_KEY}
@@ -267,6 +275,7 @@ services:
         NEXT_PUBLIC_STATUS_URL: https://status.onenexora.com
         NEXT_PUBLIC_DOCS_URL: https://docs.onenexora.com
         NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY}
+        NEXT_PUBLIC_SENTRY_DSN: ${NEXT_PUBLIC_SENTRY_DSN:-}
         NEXT_PUBLIC_NEXORA_ENV: production
     environment:
       CLERK_SECRET_KEY: ${CLERK_SECRET_KEY}
@@ -288,6 +297,7 @@ services:
         NEXT_PUBLIC_STATUS_URL: https://status.onenexora.com
         NEXT_PUBLIC_DOCS_URL: https://docs.onenexora.com
         NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY}
+        NEXT_PUBLIC_SENTRY_DSN: ${NEXT_PUBLIC_SENTRY_DSN:-}
         NEXT_PUBLIC_NEXORA_ENV: production
     environment:
       CLERK_SECRET_KEY: ${CLERK_SECRET_KEY}

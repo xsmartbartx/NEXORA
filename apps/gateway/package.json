@@ -15,6 +15,7 @@
     "@nexora/auth": "*",
     "@nexora/database": "*",
     "@nexora/entitlements": "*",
+    "@nexora/observability": "*",
     "@nexora/shell": "*",
     "@nexora/telemetry": "*",
     "@nexora/ui": "*",
