@@ -1,5 +1,13 @@
 import { describe, expect, it } from "vitest";
-import { getPlan, getPlansForProduct, isProductId, PLAN_CATALOG, PRODUCT_IDS } from "./plans";
+import {
+  bundleDiscountPercent,
+  BUNDLE_DISCOUNTS,
+  getPlan,
+  getPlansForProduct,
+  isProductId,
+  PLAN_CATALOG,
+  PRODUCT_IDS,
+} from "./plans";
 
 describe("plan catalog", () => {
   it("has five tiers for every product, in ascending price order", () => {
@@ -68,5 +76,25 @@ describe("plan catalog", () => {
 
   it("PLAN_CATALOG and PRODUCT_IDS stay in sync", () => {
     expect(Object.keys(PLAN_CATALOG).sort()).toEqual([...PRODUCT_IDS].sort());
+  });
+});
+
+describe("bundle discount ladder", () => {
+  it("defines exactly the 2- and 3-product tiers", () => {
+    expect(BUNDLE_DISCOUNTS).toEqual({ 2: 8, 3: 12 });
+  });
+
+  it("gives no discount for a single product", () => {
+    expect(bundleDiscountPercent(1)).toBe(0);
+  });
+
+  it("gives 8% for two products and 12% for three", () => {
+    expect(bundleDiscountPercent(2)).toBe(8);
+    expect(bundleDiscountPercent(3)).toBe(12);
+  });
+
+  it("gives no discount outside the defined range (0, or more than the product count)", () => {
+    expect(bundleDiscountPercent(0)).toBe(0);
+    expect(bundleDiscountPercent(4)).toBe(0);
   });
 });

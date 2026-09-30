@@ -3,11 +3,14 @@
 import { redirect } from "next/navigation";
 import { requireOrg } from "@nexora/auth/server";
 import {
+  createBundleCheckoutSession,
   createCheckoutSession,
   createPortalSession,
   getOrgStripeCustomerId,
   getPlan,
   isProductId,
+  type BundleCheckoutItem,
+  type ProductId,
 } from "@nexora/billing";
 
 const consoleUrl = process.env.NEXT_PUBLIC_CONSOLE_URL ?? "http://localhost:3002";
@@ -43,6 +46,80 @@ export async function startCheckout(formData: FormData): Promise<void> {
     orgId,
     product,
     priceId,
+    existingStripeCustomerId,
+    successUrl: `${consoleUrl}/billing?checkout=success`,
+    cancelUrl: `${consoleUrl}/billing?checkout=cancelled`,
+  });
+
+  redirect(url);
+}
+
+function couponIdForProductCount(count: number): string | null {
+  if (count === 2) return process.env.STRIPE_COUPON_BUNDLE_2 || null;
+  if (count === 3) return process.env.STRIPE_COUPON_BUNDLE_3 || null;
+  return null;
+}
+
+/**
+ * The Bundle Builder's checkout (apps/website's /bundles page links here
+ * with `items` already chosen). One Checkout Session, one Stripe
+ * Subscription with every selected product's price as a line item, one
+ * Coupon for the combined discount (see `bundleDiscountPercent`) — the
+ * webhook (packages/billing/src/webhook.ts) splits the resulting
+ * subscription back into one `subscriptions` row per product.
+ */
+export async function startBundleCheckout(formData: FormData): Promise<void> {
+  const { orgId } = await requireOrg();
+
+  const itemsRaw = formData.get("items");
+  if (typeof itemsRaw !== "string") throw new Error("Missing bundle items.");
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(itemsRaw);
+  } catch {
+    throw new Error("Malformed bundle items.");
+  }
+  if (!Array.isArray(parsed) || parsed.length < 2) {
+    throw new Error("A bundle needs at least two products.");
+  }
+
+  const interval = formData.get("interval") === "year" ? "year" : "month";
+
+  // Re-resolve every price from the plan catalog server-side — same
+  // tamper-proofing as the single-product checkout above, just for each
+  // item instead of one.
+  const items: BundleCheckoutItem[] = parsed.map((entry) => {
+    if (
+      typeof entry !== "object" ||
+      entry === null ||
+      !("product" in entry) ||
+      !("tier" in entry) ||
+      typeof entry.product !== "string" ||
+      typeof entry.tier !== "string" ||
+      !isProductId(entry.product)
+    ) {
+      throw new Error("Malformed bundle item.");
+    }
+    const product: ProductId = entry.product;
+    const priceId = getPlan(product, entry.tier).stripePriceIds[interval];
+    if (!priceId) {
+      throw new Error(`No Stripe price configured for ${product} ${entry.tier} (${interval}).`);
+    }
+    return { product, priceId };
+  });
+
+  const distinctProducts = new Set(items.map((item) => item.product));
+  if (distinctProducts.size !== items.length) {
+    throw new Error("Each product can only appear once in a bundle.");
+  }
+
+  const couponId = couponIdForProductCount(items.length);
+  const existingStripeCustomerId = await getOrgStripeCustomerId(orgId);
+
+  const url = await createBundleCheckoutSession({
+    orgId,
+    items,
+    couponId,
     existingStripeCustomerId,
     successUrl: `${consoleUrl}/billing?checkout=success`,
     cancelUrl: `${consoleUrl}/billing?checkout=cancelled`,

@@ -226,6 +226,13 @@ export default function PricingPage() {
         Start free. Upgrade when you need more — monthly, or yearly for a discount. Prices in US
         dollars; cancel anytime.
       </p>
+      <p className="mt-4 text-sm text-muted-foreground">
+        Using two or three of Sentinel, CSPM and Gateway together?{" "}
+        <a href="/bundles" className="text-primary hover:underline">
+          Build a bundle
+        </a>{" "}
+        and check out for one combined, discounted price.
+      </p>
 
       <div className="mt-12 flex flex-col gap-16">
         {products.map((product) => (

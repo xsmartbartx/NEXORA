@@ -1,4 +1,6 @@
 export {
+  bundleDiscountPercent,
+  BUNDLE_DISCOUNTS,
   DEFAULT_TIER,
   getPlan,
   getPlansForProduct,
@@ -10,8 +12,12 @@ export {
 export type { BillingInterval, Plan, PlanTier, ProductId } from "./plans";
 export { applySubscriptionEvent, verifyStripeSignature } from "./webhook";
 export type { SignatureVerifyResult, StripeEvent } from "./webhook";
-export { createCheckoutSession } from "./checkout";
-export type { CreateCheckoutSessionInput } from "./checkout";
+export { createBundleCheckoutSession, createCheckoutSession } from "./checkout";
+export type {
+  BundleCheckoutItem,
+  CreateBundleCheckoutSessionInput,
+  CreateCheckoutSessionInput,
+} from "./checkout";
 export { createPortalSession } from "./portal";
 export { getStripeClient, isStripeConfigured } from "./stripe-client";
 export { purgeOrganizationData, purgeUserData } from "./account-deletion";
