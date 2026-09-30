@@ -53,3 +53,10 @@ infrastructure/terraform/terraform.tfstate
 infrastructure/terraform/terraform.tfstate.backup
 infrastructure/terraform/terraform.tfvars
 infrastructure/terraform/*.tfplan
+
+# Terraform directory
+.terraform/
+*.tfstate
+*.tfstate.*
+crash.log
+*.hcl
