@@ -121,3 +121,17 @@ export function getPlan(product: ProductId, tierId: string): Plan {
 export function isProductId(value: string): value is ProductId {
   return (PRODUCT_IDS as string[]).includes(value);
 }
+
+/**
+ * The bundle discount ladder (percent off): checking out for 2 products at
+ * once saves 8%, 3 products saves 12%. Deliberately shallow — the bundle's
+ * value is convenience and cross-sell, not a race to the bottom on margin,
+ * so this stays well short of stacking with the existing 20%-off-annual
+ * discount into something that guts a single product's own price.
+ */
+export const BUNDLE_DISCOUNTS: Record<number, number> = { 2: 8, 3: 12 };
+
+/** 0 for a single product (no bundle), else the ladder above. */
+export function bundleDiscountPercent(productCount: number): number {
+  return BUNDLE_DISCOUNTS[productCount] ?? 0;
+}
