@@ -11,31 +11,35 @@ const ENDED_STATUSES = new Set(["canceled", "incomplete_expired"]);
  * retried webhook. Invoices stay in Stripe, which keeps them under its own
  * terms, so tax-retention obligations don't depend on our rows.
  *
- * The Stripe subscription is cancelled first: deleting our row without that
- * would leave a closed organisation being billed with nothing to show for it.
+ * Every one of the organisation's Stripe subscriptions is cancelled first
+ * (Sentinel, CSPM and Gateway bill independently — packages/billing/src/plans.ts —
+ * so an org can have more than one): deleting our rows without that would
+ * leave a closed organisation being billed with nothing to show for it.
  */
 export async function purgeOrganizationData(orgId: string): Promise<void> {
-  const [subscription] = await db
+  const orgSubscriptions = await db
     .select({
       stripeSubscriptionId: subscriptions.stripeSubscriptionId,
       status: subscriptions.status,
     })
     .from(subscriptions)
-    .where(eq(subscriptions.orgId, orgId))
-    .limit(1);
+    .where(eq(subscriptions.orgId, orgId));
 
-  if (subscription && !ENDED_STATUSES.has(subscription.status)) {
+  const active = orgSubscriptions.filter((s) => !ENDED_STATUSES.has(s.status));
+  if (active.length > 0) {
     if (!isStripeConfigured()) {
       throw new Error(
-        "Cannot cancel the organisation's Stripe subscription: Stripe is not configured.",
+        "Cannot cancel the organisation's Stripe subscription(s): Stripe is not configured.",
       );
     }
-    try {
-      await getStripeClient().subscriptions.cancel(subscription.stripeSubscriptionId);
-    } catch (err) {
-      const alreadyGone =
-        err instanceof Stripe.errors.StripeInvalidRequestError && err.code === "resource_missing";
-      if (!alreadyGone) throw err;
+    for (const subscription of active) {
+      try {
+        await getStripeClient().subscriptions.cancel(subscription.stripeSubscriptionId);
+      } catch (err) {
+        const alreadyGone =
+          err instanceof Stripe.errors.StripeInvalidRequestError && err.code === "resource_missing";
+        if (!alreadyGone) throw err;
+      }
     }
   }
 

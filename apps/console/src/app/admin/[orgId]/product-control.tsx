@@ -7,6 +7,12 @@ import { resumeProductAction, suspendProductAction } from "./actions";
 
 type Mode = "idle" | "confirm-suspend" | "confirm-resume";
 
+function statusVariant(status: string | undefined): "success" | "warning" | "neutral" {
+  if (status === "active" || status === "trialing") return "success";
+  if (!status) return "neutral";
+  return "warning";
+}
+
 export function ProductControl({
   orgId,
   usage,
@@ -57,9 +63,12 @@ export function ProductControl({
             {usage.product.features.join(", ")}
           </p>
         </div>
-        <Badge variant={usage.suspended ? "warning" : "success"}>
-          {usage.suspended ? "suspended" : "active"}
-        </Badge>
+        <div className="flex items-center gap-2">
+          <Badge variant="brand">{usage.plan.name}</Badge>
+          <Badge variant={usage.suspended ? "warning" : statusVariant(usage.subscription?.status)}>
+            {usage.suspended ? "suspended" : (usage.subscription?.status ?? "free")}
+          </Badge>
+        </div>
       </div>
 
       <div className="mt-4">

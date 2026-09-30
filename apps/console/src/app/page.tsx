@@ -1,17 +1,30 @@
 import Link from "next/link";
 import { getAllProducts } from "@nexora/registry";
 import { requireOrg } from "@nexora/auth/server";
-import { getOrgPlan } from "@nexora/billing";
+import { getOrgPlan, PRODUCT_IDS } from "@nexora/billing";
 import { listApiKeys } from "./api-keys/actions";
+
+interface PlanSummary {
+  product: string;
+  planName: string;
+}
 
 // Data fetching stays out of JSX — see the same note on the Billing and
 // Analytics pages (react-hooks/error-boundaries).
 async function loadOverviewData(
   orgId: string,
-): Promise<{ planName: string; activeKeyCount: number } | null> {
+): Promise<{ plans: PlanSummary[]; activeKeyCount: number } | null> {
   try {
-    const [plan, keys] = await Promise.all([getOrgPlan(orgId), listApiKeys()]);
-    return { planName: plan.name, activeKeyCount: keys.filter((k) => !k.revokedAt).length };
+    const [plans, keys] = await Promise.all([
+      Promise.all(
+        PRODUCT_IDS.map(async (product) => ({
+          product,
+          planName: (await getOrgPlan(orgId, product)).name,
+        })),
+      ),
+      listApiKeys(),
+    ]);
+    return { plans, activeKeyCount: keys.filter((k) => !k.revokedAt).length };
   } catch {
     return null;
   }
@@ -31,8 +44,10 @@ export default async function ConsoleOverview() {
 
       <div className="mt-10 grid gap-4 sm:grid-cols-3">
         <div className="rounded-xl border border-border bg-card p-6">
-          <p className="text-sm text-muted-foreground">Current plan</p>
-          <p className="mt-2 text-2xl font-semibold">{overview?.planName ?? "—"}</p>
+          <p className="text-sm text-muted-foreground">Plans</p>
+          <p className="mt-2 text-sm">
+            {overview ? overview.plans.map((p) => `${p.product}: ${p.planName}`).join(" · ") : "—"}
+          </p>
           <Link href="/billing" className="mt-1 inline-block text-xs text-primary hover:underline">
             Manage billing →
           </Link>

@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { requireOrg } from "@nexora/auth/server";
-import { getOrgPlan } from "@nexora/billing";
+import { getOrgPlan, PRODUCT_IDS } from "@nexora/billing";
 import { getAllProducts } from "@nexora/registry";
 import {
   countOrgEvents,
@@ -28,13 +28,14 @@ interface ProductAnalytics {
 // doesn't actually protect rendering, since React doesn't render synchronously).
 async function loadAnalyticsData(orgId: string): Promise<ProductAnalytics[] | null> {
   try {
-    const plan = await getOrgPlan(orgId);
+    const plans = await Promise.all(PRODUCT_IDS.map((product) => getOrgPlan(orgId, product)));
+    const limitsByFeature = new Map(plans.flatMap((plan) => Object.entries(plan.limits)));
     const products = getAllProducts();
     const periodStart = startOfCurrentBillingPeriod();
     const since = new Date(Date.now() - SERIES_DAYS * 24 * 60 * 60 * 1000);
 
     return await Promise.all(
-      Object.entries(plan.limits).map(async ([feature, limit]) => {
+      Array.from(limitsByFeature.entries()).map(async ([feature, limit]) => {
         const product = products.find((p) => feature.startsWith(`${p.slug}.`));
         const action = `${feature}.completed`;
         const [usedThisPeriod, dailyRows] = await Promise.all([

@@ -20,12 +20,13 @@ function ProductMiniBadge({ product }: { product: CustomerSummary["products"][nu
     );
   }
   const nearLimit = product.limit !== null && product.used >= product.limit * 0.8;
+  const variant = nearLimit ? "warning" : statusVariant(product.subscription?.status);
   return (
     <Badge
-      variant={nearLimit ? "warning" : "neutral"}
-      title={`${product.product.name}: ${product.used}${product.limit === null ? "" : ` / ${product.limit}`}`}
+      variant={variant}
+      title={`${product.product.name}: ${product.plan.name} plan (${product.subscription?.status ?? "free"}), ${product.used}${product.limit === null ? "" : ` / ${product.limit}`}`}
     >
-      {product.product.name} · {product.used}
+      {product.product.name} · {product.plan.name} · {product.used}
       {product.limit === null ? "" : `/${product.limit}`}
     </Badge>
   );
@@ -74,10 +75,6 @@ export function CustomerTable({ customers }: { customers: CustomerSummary[] }) {
               </div>
 
               <div className="flex flex-wrap items-center gap-2 sm:justify-end">
-                <Badge variant="brand">{customer.plan.name}</Badge>
-                <Badge variant={statusVariant(customer.subscription?.status)}>
-                  {customer.subscription?.status ?? "free"}
-                </Badge>
                 {customer.products.map((p) => (
                   <ProductMiniBadge key={p.product.slug} product={p} />
                 ))}

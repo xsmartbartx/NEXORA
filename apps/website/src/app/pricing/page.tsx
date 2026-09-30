@@ -1,12 +1,12 @@
 import type { Metadata } from "next";
 import { siteConfig } from "@/lib/site-config";
-import { getPlan } from "@nexora/billing/plans";
+import { getPlansForProduct, type PlanTier, type ProductId } from "@nexora/billing/plans";
 import { buttonVariants, cn } from "@nexora/ui";
 
 export const metadata: Metadata = {
   title: "Pricing",
   description:
-    "Free to start. NEXORA Pro and Vigilo Pro are $29 a month; NeuraWall plans run from $149 a month to dedicated enterprise deployments. Yearly billing gives two months free.",
+    "Sentinel, CSPM and Gateway are each free to start, with independent Starter, Pro, Business and Scale tiers. Vigilo starts at $0; NeuraWall plans run from $149 a month to dedicated enterprise deployments. Yearly billing saves up to 20%.",
 };
 
 const consoleUrl = process.env.NEXT_PUBLIC_CONSOLE_URL ?? "https://console.onenexora.com";
@@ -47,36 +47,58 @@ function formatLimit(limit: number | null | undefined, unit: string): string {
     : `${limit.toLocaleString("en-US")} ${unit} / month`;
 }
 
-// NEXORA's tiers come from the same plan catalog Console bills and
+const productFeatureLabel: Record<ProductId, string> = {
+  sentinel: "Sentinel scans",
+  cspm: "CSPM scans",
+  gateway: "Gateway requests",
+};
+
+const productSummary: Record<ProductId, string> = {
+  sentinel: "Paste a log sample, find the anomalies worth a human's attention.",
+  cspm: "Paste your cloud config, get real posture findings back.",
+  gateway: "A governed, metered front door for every model call your org makes.",
+};
+
+// Each product's tiers come from the same plan catalog Console bills and
 // Entitlements enforce against, so this page can't drift from them.
-function nexoraTier(planId: "free" | "pro", highlighted = false): Tier {
-  const plan = getPlan(planId);
+// Business is the natural "recommended" tier for most teams; Scale exists
+// for the customer who'd otherwise need a custom quote.
+function productTiers(product: ProductId): ProductPricing {
+  const plans = getPlansForProduct(product);
+  const feature = `${product}.scan` in plans[0]!.limits ? `${product}.scan` : "gateway.proxy";
   return {
-    name: plan.name,
-    monthlyCents: plan.priceCents.month,
-    yearlyCents: plan.priceCents.year,
-    features: [
-      formatLimit(plan.limits["sentinel.scan"], "Sentinel scans"),
-      formatLimit(plan.limits["cspm.scan"], "CSPM scans"),
-      formatLimit(plan.limits["gateway.proxy"], "Gateway requests"),
-      "One subscription per organisation",
-    ],
-    cta:
-      planId === "free"
-        ? { label: "Start free", href: consoleUrl }
-        : { label: "Upgrade in Console", href: `${consoleUrl}/billing` },
-    highlighted,
+    product: productLabel[product],
+    summary: productSummary[product],
+    tiers: plans.map((plan) => ({
+      name: plan.name,
+      monthlyCents: plan.priceCents.month,
+      yearlyCents: plan.priceCents.year,
+      features: [
+        formatLimit(plan.limits[feature], productFeatureLabel[product]),
+        ...(plan.id === "business" ? ["Priority support"] : []),
+        ...(plan.id === "scale" ? ["Priority support", "SLA available"] : []),
+      ],
+      cta:
+        plan.id === "free"
+          ? { label: "Start free", href: consoleUrl }
+          : { label: `Upgrade in Console`, href: `${consoleUrl}/billing` },
+      highlighted: plan.id === ("business" satisfies PlanTier),
+    })),
   };
 }
+
+const productLabel: Record<ProductId, string> = {
+  sentinel: "Sentinel",
+  cspm: "CSPM",
+  gateway: "Gateway",
+};
 
 // Vigilo bills separately (its own backend); these mirror PLANS in the
 // Vigilo repo's packages/billing/src/vigilo_billing/plans.py.
 const products: ProductPricing[] = [
-  {
-    product: "NEXORA",
-    summary: "Sentinel, CSPM and Gateway under one plan for your organisation.",
-    tiers: [nexoraTier("free"), nexoraTier("pro", true)],
-  },
+  productTiers("sentinel"),
+  productTiers("cspm"),
+  productTiers("gateway"),
   {
     product: "Vigilo",
     summary: "Security and compliance scanning for your live web apps.",
@@ -188,6 +210,11 @@ function formatUsd(cents: number): string {
   return `$${(cents / 100).toLocaleString("en-US")}`;
 }
 
+/** Computed from the actual numbers rather than a hardcoded "two months free"/"20% off" string, since different products round their annual discount slightly differently. */
+function yearlyDiscountPct(monthlyCents: number, yearlyCents: number): number {
+  return Math.round((1 - yearlyCents / (monthlyCents * 12)) * 100);
+}
+
 export default function PricingPage() {
   return (
     <div className="mx-auto max-w-5xl px-6 py-20">
@@ -196,8 +223,8 @@ export default function PricingPage() {
       </span>
       <h1 className="mt-3 text-4xl font-semibold tracking-tight">Pricing</h1>
       <p className="mt-4 max-w-2xl text-lg text-pretty text-muted-foreground">
-        Start free. Upgrade when you need more — monthly, or yearly with two months free. Prices in
-        US dollars; cancel anytime.
+        Start free. Upgrade when you need more — monthly, or yearly for a discount. Prices in US
+        dollars; cancel anytime.
       </p>
 
       <div className="mt-12 flex flex-col gap-16">
@@ -207,8 +234,10 @@ export default function PricingPage() {
             <p className="mt-2 text-muted-foreground">{product.summary}</p>
             <div
               className={cn(
-                "mt-6 grid gap-4 md:grid-cols-2",
-                product.tiers.length > 2 && "lg:grid-cols-3",
+                "mt-6 grid gap-4 sm:grid-cols-2",
+                product.tiers.length >= 5
+                  ? "lg:grid-cols-5"
+                  : product.tiers.length > 2 && "lg:grid-cols-3",
               )}
             >
               {product.tiers.map((tier) => (
@@ -229,7 +258,7 @@ export default function PricingPage() {
                   <p className="mt-1 h-5 text-sm text-muted-foreground">
                     {tier.yearlyNote ??
                       (tier.yearlyCents > 0
-                        ? `or ${formatUsd(tier.yearlyCents)} / year — two months free`
+                        ? `or ${formatUsd(tier.yearlyCents)} / year — save ${yearlyDiscountPct(tier.monthlyCents, tier.yearlyCents)}%`
                         : "")}
                   </p>
                   <ul className="mt-6 flex flex-1 flex-col gap-2 text-sm">
