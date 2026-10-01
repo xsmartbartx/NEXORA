@@ -55,14 +55,14 @@ later, separate decision.
 
 ## Build status
 
-| Phase | Scope                                                     | Status        |
-| ----- | --------------------------------------------------------- | ------------- |
-| 0     | Foundations: monorepo, CI, design tokens, base UI package | ✅ Done       |
-| 1     | Product Registry and marketing website                    | ✅ Done       |
-| 2     | Identity, Account and Console                             | ✅ Done — live in production |
-| 3     | API, Docs and Developer surface                           | ✅ Done — live in production |
-| 4     | Sentinel and CSPM as platform tenants                     | ✅ Done — live in production |
-| 5     | Gateway, Billing and Labs                                 | ✅ Done — live in production |
+| Phase | Scope                                                     | Status                                               |
+| ----- | --------------------------------------------------------- | ---------------------------------------------------- |
+| 0     | Foundations: monorepo, CI, design tokens, base UI package | ✅ Done                                              |
+| 1     | Product Registry and marketing website                    | ✅ Done                                              |
+| 2     | Identity, Account and Console                             | ✅ Done — live in production                         |
+| 3     | API, Docs and Developer surface                           | ✅ Done — live in production                         |
+| 4     | Sentinel and CSPM as platform tenants                     | ✅ Done — live in production                         |
+| 5     | Gateway, Billing and Labs                                 | ✅ Done — live in production                         |
 | 6     | Marketplace and scale                                     | ✅ Done — two items deliberately deferred, see below |
 
 Every app is deployed to a real Oracle Cloud instance behind Caddy/HTTPS at
