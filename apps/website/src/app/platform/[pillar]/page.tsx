@@ -40,7 +40,7 @@ export default async function PillarPage(props: PageProps<"/platform/[pillar]">)
         &larr; Platform
       </Link>
 
-      <span className="mt-4 block font-mono text-xs uppercase tracking-widest text-primary">
+      <span className="mt-4 block font-mono text-xs uppercase tracking-widest text-muted-foreground">
         Pillar
       </span>
       <h1 className="mt-2 text-4xl font-semibold tracking-tight">{pillarLabels[pillar]}</h1>

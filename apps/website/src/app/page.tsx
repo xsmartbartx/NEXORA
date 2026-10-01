@@ -62,7 +62,7 @@ export default function Home() {
                 href={`/platform/${pillar}`}
                 className="group flex flex-col gap-2 rounded-xl border border-border bg-card p-6 transition-colors hover:border-primary/50"
               >
-                <span className="font-mono text-xs uppercase tracking-widest text-primary">
+                <span className="font-mono text-xs uppercase tracking-widest text-muted-foreground">
                   {pillarLabels[pillar]}
                 </span>
                 <p className="text-sm text-muted-foreground">{pillarTaglines[pillar]}</p>
