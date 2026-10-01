@@ -228,7 +228,7 @@ export default function PricingPage() {
       </p>
       <p className="mt-4 text-sm text-muted-foreground">
         Using two or three of Sentinel, CSPM and Gateway together?{" "}
-        <a href="/bundles" className="text-primary hover:underline">
+        <a href="/bundles" className="text-link hover:underline">
           Build a bundle
         </a>{" "}
         and check out for one combined, discounted price.

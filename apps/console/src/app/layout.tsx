@@ -29,6 +29,7 @@ const navItems = [
   { label: "Organisation", href: "/organisation" },
   { label: "API Keys", href: "/api-keys" },
   { label: "Usage", href: "/usage" },
+  { label: "Security", href: "/security" },
   { label: "Analytics", href: "/analytics" },
   { label: "Billing", href: "/billing" },
 ];

@@ -62,7 +62,7 @@ export default function Home() {
                 href={`/platform/${pillar}`}
                 className="group flex flex-col gap-2 rounded-xl border border-border bg-card p-6 transition-colors hover:border-primary/50"
               >
-                <span className="font-mono text-xs uppercase tracking-widest text-primary">
+                <span className="font-mono text-xs uppercase tracking-widest text-muted-foreground">
                   {pillarLabels[pillar]}
                 </span>
                 <p className="text-sm text-muted-foreground">{pillarTaglines[pillar]}</p>
@@ -80,7 +80,7 @@ export default function Home() {
           <div className="mx-auto max-w-6xl">
             <div className="flex items-end justify-between gap-4">
               <h2 className="text-2xl font-semibold tracking-tight">Featured products</h2>
-              <Link href="/products" className="text-sm font-medium text-primary hover:underline">
+              <Link href="/products" className="text-sm font-medium text-link hover:underline">
                 All products &rarr;
               </Link>
             </div>
@@ -102,7 +102,7 @@ export default function Home() {
                   today.
                 </p>
               </div>
-              <Link href="/labs" className="text-sm font-medium text-primary hover:underline">
+              <Link href="/labs" className="text-sm font-medium text-link hover:underline">
                 Visit Labs &rarr;
               </Link>
             </div>

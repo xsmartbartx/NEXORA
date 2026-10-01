@@ -18,6 +18,17 @@
   --primary: 245 82% 65%;
   --primary-foreground: 210 20% 98%;
 
+  /*
+   * Same hue as --primary, lightened for when it's the TEXT color sitting
+   * directly on --background/--card (links, the "beta" badge) rather than
+   * a solid button/border surface. --primary's 65% lightness was tuned for
+   * white text on top of it (4.5:1 against --primary-foreground, the
+   * minimum to pass) — reusing it as foreground text against our near-black
+   * surfaces computes to ~4.0:1, under WCAG AA. Flagged by PageSpeed
+   * Insights' contrast audit.
+   */
+  --link: 245 82% 74%;
+
   --secondary: 199 89% 58%;
   --secondary-foreground: 222 47% 5%;
 
@@ -61,6 +72,10 @@
 
   --primary: 245 75% 55%;
   --primary-foreground: 210 20% 98%;
+
+  /* Dark text on a light surface already clears 7:1 at --primary's own
+     lightness, unlike the dark theme — see the --link comment above .root's --primary. */
+  --link: 245 75% 55%;
 
   --secondary: 199 89% 45%;
   --secondary-foreground: 210 20% 98%;

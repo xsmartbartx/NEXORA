@@ -35,7 +35,7 @@ export default function MarketplacePage() {
         <h2 className="text-xl font-semibold">Apps</h2>
         <p className="mt-1 text-sm text-muted-foreground">
           Full NEXORA products — see the{" "}
-          <Link href="/products" className="text-primary hover:underline">
+          <Link href="/products" className="text-link hover:underline">
             Products
           </Link>{" "}
           catalogue for the complete picture, including lifecycle and category filters.
