@@ -18,4 +18,24 @@ export const experiments: Experiment[] = [
     link: "/labs/log-anomaly-baseline",
     publishedAt: "2026-09-23",
   },
+  {
+    id: "exp_ai_models_studio",
+    slug: "ai-models-studio",
+    title: "AI Models Studio",
+    summary:
+      "A model playground for fine-tuning and evaluation — an early, independently hosted exploration of what an AI Models product on NEXORA's AI pillar could look like. Not yet on Core identity/billing.",
+    kind: "open-source",
+    link: "https://github.com/xsmartbartx/AI-Models-Studio",
+    publishedAt: "2026-10-01",
+  },
+  {
+    id: "exp_ai_models_iaas",
+    slug: "ai-models-iaas",
+    title: "AI Models IaaS",
+    summary:
+      "Infrastructure-as-a-service groundwork for deploying and serving models — the counterpart to AI Models Studio. Independently hosted, not yet a NEXORA product.",
+    kind: "open-source",
+    link: "https://github.com/xsmartbartx/AI_Models-IaaS",
+    publishedAt: "2026-10-01",
+  },
 ];
