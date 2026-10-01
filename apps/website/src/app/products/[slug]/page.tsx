@@ -6,10 +6,16 @@ import {
   categoryLabels,
   getAllProducts,
   getProductBySlug,
+  getProductCapabilities,
+  getProductDocSections,
   getProductIntegrations,
+  getProductPlans,
   pillarLabels,
 } from "@nexora/registry";
 import { LifecycleBadge } from "@/components/lifecycle-badge";
+import { JsonLd } from "@/components/json-ld";
+
+const docsUrl = process.env.NEXT_PUBLIC_DOCS_URL ?? "https://docs.onenexora.com";
 
 export function generateStaticParams() {
   return getAllProducts().map((product) => ({ slug: product.slug }));
@@ -32,9 +38,23 @@ export default async function ProductDetailPage(props: PageProps<"/products/[slu
 
   const isLive = product.lifecycle !== "concept" && product.lifecycle !== "alpha";
   const integrations = getProductIntegrations(product.slug);
+  const capabilities = getProductCapabilities(product.slug);
+  const plans = getProductPlans(product.slug);
+  const docSections = getProductDocSections(product.slug);
 
   return (
     <div className="mx-auto max-w-3xl px-6 py-20">
+      <JsonLd
+        data={{
+          "@context": "https://schema.org",
+          "@type": "SoftwareApplication",
+          name: product.name,
+          description: product.tagline,
+          url: product.url,
+          applicationCategory: categoryLabels[product.category],
+          ...(product.version ? { softwareVersion: product.version } : {}),
+        }}
+      />
       <Link href="/products" className="text-sm text-muted-foreground hover:text-foreground">
         &larr; Products
       </Link>
@@ -52,6 +72,57 @@ export default async function ProductDetailPage(props: PageProps<"/products/[slu
       <div className="mt-8 max-w-2xl text-foreground/90">
         <p>{product.description}</p>
       </div>
+
+      {capabilities.length > 0 ? (
+        <div className="mt-8">
+          <h2 className="font-mono text-xs uppercase tracking-widest text-muted-foreground">
+            Capabilities
+          </h2>
+          <ul className="mt-3 flex flex-col gap-3">
+            {capabilities.map((capability) => (
+              <li key={capability.label}>
+                <p className="font-medium text-foreground">{capability.label}</p>
+                <p className="text-sm text-muted-foreground">{capability.description}</p>
+              </li>
+            ))}
+          </ul>
+        </div>
+      ) : null}
+
+      {plans.length > 0 ? (
+        <div className="mt-8">
+          <h2 className="font-mono text-xs uppercase tracking-widest text-muted-foreground">
+            Plans
+          </h2>
+          <ul className="mt-3 flex flex-wrap gap-2">
+            {plans.map((plan) => (
+              <li
+                key={plan.name}
+                className="rounded-full border border-border px-3 py-1 text-sm text-muted-foreground"
+              >
+                {plan.name} — {plan.price_reference} · {plan.limits}
+              </li>
+            ))}
+          </ul>
+        </div>
+      ) : null}
+
+      {docSections.length > 0 ? (
+        <div className="mt-8">
+          <h2 className="font-mono text-xs uppercase tracking-widest text-muted-foreground">
+            Documentation
+          </h2>
+          <ul className="mt-3 flex flex-col gap-2">
+            {docSections.map((section) => (
+              <li key={section.path}>
+                <a href={`${docsUrl}${section.path}`} className="text-sm text-link hover:underline">
+                  {section.title} &rarr;
+                </a>
+              </li>
+            ))}
+          </ul>
+        </div>
+      ) : null}
 
       {integrations.length > 0 ? (
         <div className="mt-8">

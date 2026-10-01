@@ -1,7 +1,10 @@
+import { productCapabilities } from "./data/capabilities";
 import { changelogEntries } from "./data/changelog";
+import { productDocSections } from "./data/doc-sections";
 import { experiments } from "./data/experiments";
 import { productIntegrations } from "./data/integrations";
 import { marketplaceListings } from "./data/marketplace-listings";
+import { productPlans } from "./data/product-plans";
 import { products } from "./data/products";
 import type {
   ChangelogEntry,
@@ -10,8 +13,11 @@ import type {
   MarketplaceListingKind,
   PlatformPillar,
   Product,
+  ProductCapability,
   ProductCategory,
+  ProductDocSection,
   ProductIntegration,
+  ProductPlan,
 } from "./types";
 
 /**
@@ -99,6 +105,25 @@ export function getChangelog(): ChangelogEntry[] {
 /** A single product's changelog entries, newest first. */
 export function getChangelogForProduct(productSlug: string): ChangelogEntry[] {
   return getChangelog().filter((entry) => entry.product === productSlug);
+}
+
+/** A product's capabilities, in display order. */
+export function getProductCapabilities(productSlug: string): ProductCapability[] {
+  return productCapabilities
+    .filter((capability) => capability.product === productSlug)
+    .sort((a, b) => a.order - b.order);
+}
+
+/** A product's plan reference rows (display-only — see `data/product-plans.ts`). */
+export function getProductPlans(productSlug: string): ProductPlan[] {
+  return productPlans.filter((plan) => plan.product === productSlug);
+}
+
+/** A product's doc sections, in display order. */
+export function getProductDocSections(productSlug: string): ProductDocSection[] {
+  return productDocSections
+    .filter((section) => section.product === productSlug)
+    .sort((a, b) => a.order - b.order);
 }
 
 /**
