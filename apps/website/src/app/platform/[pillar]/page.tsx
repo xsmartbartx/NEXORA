@@ -57,7 +57,7 @@ export default async function PillarPage(props: PageProps<"/platform/[pillar]">)
         ) : (
           <p className="mt-4 text-muted-foreground">
             No public product in this pillar yet. See{" "}
-            <Link href="/labs" className="text-primary hover:underline">
+            <Link href="/labs" className="text-link hover:underline">
               Labs
             </Link>{" "}
             for what is in progress.

@@ -5,7 +5,7 @@ export type BadgeVariant = "neutral" | "brand" | "warning" | "success";
 
 const variantClasses: Record<BadgeVariant, string> = {
   neutral: "border-border text-muted-foreground",
-  brand: "border-primary/40 text-primary",
+  brand: "border-primary/40 text-link",
   warning: "border-warning/40 text-warning",
   success: "border-success/40 text-success",
 };

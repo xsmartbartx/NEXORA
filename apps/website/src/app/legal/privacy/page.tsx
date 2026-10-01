@@ -171,7 +171,7 @@ export default function PrivacyPage() {
       <h2 className={h2}>7. Security</h2>
       <p className={p}>
         See our{" "}
-        <a href="/legal/security" className="text-primary hover:underline">
+        <a href="/legal/security" className="text-link hover:underline">
           Security Statement
         </a>{" "}
         for the concrete practices in place. No method of transmission or storage is completely

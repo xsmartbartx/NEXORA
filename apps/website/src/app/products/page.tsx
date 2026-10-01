@@ -75,7 +75,7 @@ export default async function ProductsPage(props: PageProps<"/products">) {
           <p className="text-muted-foreground">
             No public product{activeCategory ? ` in ${categoryLabels[activeCategory]}` : ""} yet.
           </p>
-          <Link href="/labs" className="mt-2 inline-block text-sm text-primary hover:underline">
+          <Link href="/labs" className="mt-2 inline-block text-sm text-link hover:underline">
             See what&rsquo;s in Labs &rarr;
           </Link>
         </div>
