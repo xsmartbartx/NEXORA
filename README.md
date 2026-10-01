@@ -59,17 +59,32 @@ later, separate decision.
 | ----- | --------------------------------------------------------- | ------------- |
 | 0     | Foundations: monorepo, CI, design tokens, base UI package | ✅ Done       |
 | 1     | Product Registry and marketing website                    | ✅ Done       |
-| 2     | Identity, Account and Console                             | ✅ Scaffolded |
-| 3     | API, Docs and Developer surface                           | ✅ Scaffolded |
-| 4     | Sentinel and CSPM as platform tenants                     | ✅ Scaffolded |
-| 5     | Gateway, Billing and Labs                                 | ✅ Scaffolded |
-| 6     | Marketplace and scale                                     | ✅ Scaffolded |
+| 2     | Identity, Account and Console                             | ✅ Done — live in production |
+| 3     | API, Docs and Developer surface                           | ✅ Done — live in production |
+| 4     | Sentinel and CSPM as platform tenants                     | ✅ Done — live in production |
+| 5     | Gateway, Billing and Labs                                 | ✅ Done — live in production |
+| 6     | Marketplace and scale                                     | ✅ Done — two items deliberately deferred, see below |
 
-"Scaffolded" means the code is real, builds/typechecks/lints clean, and
-degrades gracefully instead of crashing — but ships with placeholder Clerk,
-Postgres and Stripe credentials, so sign-in and checkout aren't usable until
-real ones are set. **Everything that doesn't need Clerk was verified
-against real infrastructure, not just typechecked:**
+Every app is deployed to a real Oracle Cloud instance behind Caddy/HTTPS at
+its real `onenexora.com` subdomain, running against real Clerk (including
+Google OAuth), real Postgres, and real Stripe in live mode (account
+activated, payments and payouts enabled) — not placeholder credentials.
+
+**The full visitor → sign-up → account → organisation → console → product →
+usage → billing → API flow has been walked end-to-end against this real
+production infrastructure** (2026-10-01): signed in via Google OAuth,
+loaded an existing organisation, opened Console and saw its real plans,
+API key count and live platform status; ran a real Sentinel scan from the
+product app and confirmed it appeared in Console's Usage feed seconds
+later; confirmed Console's Billing page reflects real Stripe usage counts
+and billing-period dates, not placeholder numbers; created a real API key,
+used it to authenticate a request against `api.onenexora.com` (confirmed
+by the real `X-RateLimit-*` response headers), then revoked it and
+confirmed the same request was rejected with 401 immediately after. No
+step in this chain renders a "Setup required" page in production.
+
+**Everything below was verified against real infrastructure, not just
+typechecked:**
 
 - **The API** — key creation, auth rejection, rate limiting and usage
   tracking, against a real local Postgres.
@@ -133,9 +148,32 @@ real partner listing is a data change when one is actually pursued —
 building the onboarding flow for a partner program that doesn't exist yet
 would be exactly the kind of fabricated scope this build avoids elsewhere.
 
-## Before this goes live
+## Production status
 
-**Identity, database and billing.** Every app that needs Clerk reads
+Live at [onenexora.com](https://onenexora.com) on a real Oracle Cloud
+instance (Frankfurt), behind Caddy/HTTPS, running real Clerk (with Google
+OAuth), real Postgres, and real Stripe in live mode — see
+`infrastructure/docker/docker-compose.prod.yml` for the deployed topology.
+`packages/api-kit`'s rate limiter is Redis-backed (`redis` service in that
+compose file) and shared across every replica of `api`/`gateway`, not the
+in-memory, per-instance limiter this section used to describe.
+
+**What's still genuinely open, not done:**
+
+- **Legal.** [`/legal`](apps/website/src/app/legal) has a real Terms of
+  Service, Privacy Policy and Security Statement — not filler text, but a
+  draft written by an AI assistant, not a lawyer, marked as such on every
+  page. It references a legal entity, jurisdiction and registered address
+  that don't exist yet (`site-config.ts`). A lawyer needs to review these
+  — for the jurisdictions NEXORA actually operates in, including whether
+  operating as an unregistered individual is sufficient for recurring
+  paid subscriptions, EU consumer withdrawal-right handling in Checkout,
+  and VAT/OSS registration — before they're anything more than a draft.
+- **Multi-region and partner marketplace listings** were deliberately not
+  pursued (see Phase 6 note below) — not gaps, just scope that was never
+  asked for.
+
+**Local development.** Every app that needs Clerk reads
 `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` and `CLERK_SECRET_KEY` from its own
 `.env.local` (copy each app's `.env.example`); `apps/console`, `apps/api`,
 `apps/sentinel`, `apps/cspm` and `apps/gateway` additionally need
@@ -147,29 +185,8 @@ and process subscription events — both apps also need `STRIPE_PRICE_ID_PRO` an
 `STRIPE_PRICE_ID_PRO_YEARLY` set to the "NEXORA Pro" product's monthly
 ($29) and yearly ($290) Price ids, created in the Stripe dashboard first. Until configured, every
 protected route across every app renders a clear "Setup required" or "not
-reachable" message instead of crashing.
-
-**Legal.** [`/legal`](apps/website/src/app/legal) has a real Terms of
-Service, Privacy Policy and Security Statement — not filler text, but a
-draft written by an AI assistant, not a lawyer, marked as such on every
-page and pending review. It references a legal entity, jurisdiction and
-registered address that don't exist yet (`site-config.ts`, same
-`TODO(launch)` pattern as pricing). A lawyer needs to review and approve
-these — for the jurisdictions NEXORA actually operates in — before
-they're anything more than a draft, and specifically before Stripe
-processes a live payment (Stripe's own merchant terms require a posted
-privacy policy and ToS).
-
-**Deployment.** Containers exist and are verified (see above), but where
-they actually run doesn't — no VPS, managed container platform, or CI
-deploy step is wired up yet, only local build/run. `packages/api-kit`'s
-rate limiter is in-memory (per-instance), noted in its own file comment,
-and needs a shared store (Redis/Upstash) before running more than one
-replica of `api`/`gateway`. If the eventual deploy target uses a real,
-non-`localhost` domain per app, see
-[`infrastructure/docker/README.md`](infrastructure/docker/README.md)'s
-"Build-time vs. runtime env" section before assuming the built images are
-ready to point at it.
+reachable" message instead of crashing — this is what a fresh local
+checkout looks like; production has all of this already set.
 
 ## Getting started
 
