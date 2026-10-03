@@ -6,6 +6,12 @@ on:
   pull_request:
     branches: [main]
 
+# Least-privilege default for the GITHUB_TOKEN every job gets — none of
+# these jobs call the GitHub API, they only check out the repo and
+# build/test it.
+permissions:
+  contents: read
+
 concurrency:
   group: ci-${{ github.ref }}
   cancel-in-progress: true
@@ -90,6 +96,13 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          # No later step needs an authenticated git operation — this job
+          # only builds/runs a container and uploads to Lighthouse CI's own
+          # temporary storage, so the checked-out credential has nothing to
+          # do here and shouldn't be left on disk for that external action
+          # to potentially touch.
+          persist-credentials: false
 
       - name: Build website image
         run: |
