@@ -190,7 +190,9 @@ checkout looks like; production has all of this already set.
 
 ## Getting started
 
-Requires Node.js 20+.
+Requires Node.js 20+ (CI and the Docker image use 22). On a fresh Mac, `brew bundle`
+installs the whole toolchain and `npm run doctor` checks it — see
+[`docs/development.md`](docs/development.md).
 
 ```bash
 npm install
@@ -216,6 +218,8 @@ the script.
 | `npm run typecheck`    | `tsc --noEmit` across every workspace      |
 | `npm run format`       | Formats the repository with Prettier       |
 | `npm run format:check` | Checks formatting without writing          |
+| `npm run test:api`     | Runs the API contract tests (Newman)       |
+| `npm run doctor`       | Checks your machine has the required tools |
 
 ## License
 

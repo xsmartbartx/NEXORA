@@ -1,0 +1,311 @@
+{
+  "info": {
+    "name": "NEXORA API",
+    "description": "Contract tests for apps/api (https://api.onenexora.com). Real endpoints only. Run with `npm run test:api` or import into Postman / Insomnia. Folders 1 and 2 need no API key and no database; folders 3 and 4 need a database-backed stack, and folder 4 needs a real `apiKey`.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "1. Public",
+      "item": [
+        {
+          "name": "GET /v1/health",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 200', function () { pm.response.to.have.status(200); });",
+                  "const body = pm.response.json();",
+                  "pm.test('reports ok', function () { pm.expect(body.status).to.eql('ok'); });",
+                  "pm.test('time is an ISO timestamp', function () { pm.expect(new Date(body.time).toISOString()).to.eql(body.time); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/v1/health",
+              "host": ["{{baseUrl}}"],
+              "path": ["v1", "health"]
+            },
+            "description": "Unauthenticated on purpose."
+          }
+        }
+      ]
+    },
+    {
+      "name": "2. Auth rejection (no key, no database needed)",
+      "item": [
+        {
+          "name": "GET /v1/products without a key",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 401', function () { pm.response.to.have.status(401); });",
+                  "const body = pm.response.json();",
+                  "pm.test('error contract: {error:{code,message,request_id}}', function () {",
+                  "  pm.expect(body.error).to.be.an('object');",
+                  "  pm.expect(body.error.code).to.be.a('string');",
+                  "  pm.expect(body.error.message).to.be.a('string');",
+                  "  pm.expect(body.error.request_id).to.match(/^[0-9a-f-]{36}$/);",
+                  "});",
+                  "pm.test('error code is missing_api_key', function () { pm.expect(body.error.code).to.eql('missing_api_key'); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/v1/products",
+              "host": ["{{baseUrl}}"],
+              "path": ["v1", "products"]
+            },
+            "description": ""
+          }
+        },
+        {
+          "name": "GET /v1/products/sentinel without a key",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 401', function () { pm.response.to.have.status(401); });",
+                  "const body = pm.response.json();",
+                  "pm.test('error contract: {error:{code,message,request_id}}', function () {",
+                  "  pm.expect(body.error).to.be.an('object');",
+                  "  pm.expect(body.error.code).to.be.a('string');",
+                  "  pm.expect(body.error.message).to.be.a('string');",
+                  "  pm.expect(body.error.request_id).to.match(/^[0-9a-f-]{36}$/);",
+                  "});",
+                  "pm.test('error code is missing_api_key', function () { pm.expect(body.error.code).to.eql('missing_api_key'); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/v1/products/sentinel",
+              "host": ["{{baseUrl}}"],
+              "path": ["v1", "products", "sentinel"]
+            },
+            "description": ""
+          }
+        },
+        {
+          "name": "GET /v1/products with a non-Bearer scheme",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 401', function () { pm.response.to.have.status(401); });",
+                  "const body = pm.response.json();",
+                  "pm.test('error contract: {error:{code,message,request_id}}', function () {",
+                  "  pm.expect(body.error).to.be.an('object');",
+                  "  pm.expect(body.error.code).to.be.a('string');",
+                  "  pm.expect(body.error.message).to.be.a('string');",
+                  "  pm.expect(body.error.request_id).to.match(/^[0-9a-f-]{36}$/);",
+                  "});",
+                  "pm.test('error code is missing_api_key', function () { pm.expect(body.error.code).to.eql('missing_api_key'); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Basic bm9wZTpub3Bl"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/v1/products",
+              "host": ["{{baseUrl}}"],
+              "path": ["v1", "products"]
+            },
+            "description": ""
+          }
+        }
+      ]
+    },
+    {
+      "name": "3. Invalid key (needs a database)",
+      "item": [
+        {
+          "name": "GET /v1/products with a bogus key",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 401', function () { pm.response.to.have.status(401); });",
+                  "const body = pm.response.json();",
+                  "pm.test('error contract: {error:{code,message,request_id}}', function () {",
+                  "  pm.expect(body.error).to.be.an('object');",
+                  "  pm.expect(body.error.code).to.be.a('string');",
+                  "  pm.expect(body.error.message).to.be.a('string');",
+                  "  pm.expect(body.error.request_id).to.match(/^[0-9a-f-]{36}$/);",
+                  "});",
+                  "pm.test('error code is invalid_api_key', function () { pm.expect(body.error.code).to.eql('invalid_api_key'); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer nx_live_not_a_real_key"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/v1/products",
+              "host": ["{{baseUrl}}"],
+              "path": ["v1", "products"]
+            },
+            "description": ""
+          }
+        }
+      ]
+    },
+    {
+      "name": "4. Authenticated (needs a real apiKey)",
+      "item": [
+        {
+          "name": "GET /v1/products",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 200', function () { pm.response.to.have.status(200); });",
+                  "const body = pm.response.json();",
+                  "pm.test('data is a non-empty array of public products', function () {",
+                  "  pm.expect(body.data).to.be.an('array').that.is.not.empty;",
+                  "  body.data.forEach(function (p) { pm.expect(p).to.include.keys('id','slug','name','tagline','category','platform_pillar','lifecycle','url'); });",
+                  "});",
+                  "pm.test('rate-limit headers are present', function () {",
+                  "  pm.expect(pm.response.headers.get('X-RateLimit-Limit')).to.match(/^\\d+$/);",
+                  "  pm.expect(pm.response.headers.get('X-RateLimit-Remaining')).to.match(/^\\d+$/);",
+                  "  pm.expect(pm.response.headers.get('X-RateLimit-Reset')).to.match(/^\\d+$/);",
+                  "});",
+                  "pm.collectionVariables.set('firstSlug', body.data[0].slug);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{apiKey}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/v1/products",
+              "host": ["{{baseUrl}}"],
+              "path": ["v1", "products"]
+            },
+            "description": ""
+          }
+        },
+        {
+          "name": "GET /v1/products/{slug}",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 200', function () { pm.response.to.have.status(200); });",
+                  "const body = pm.response.json();",
+                  "pm.test('returns the requested product with a description', function () {",
+                  "  pm.expect(body.data.slug).to.eql(pm.collectionVariables.get('firstSlug'));",
+                  "  pm.expect(body.data.description).to.be.a('string');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{apiKey}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/v1/products/{{firstSlug}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["v1", "products", "{{firstSlug}}"]
+            },
+            "description": "Uses the slug captured by the previous request, so run folder 4 in order."
+          }
+        },
+        {
+          "name": "GET /v1/products/{unknown slug}",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 404', function () { pm.response.to.have.status(404); });",
+                  "const body = pm.response.json();",
+                  "pm.test('error contract: {error:{code,message,request_id}}', function () {",
+                  "  pm.expect(body.error).to.be.an('object');",
+                  "  pm.expect(body.error.code).to.be.a('string');",
+                  "  pm.expect(body.error.message).to.be.a('string');",
+                  "  pm.expect(body.error.request_id).to.match(/^[0-9a-f-]{36}$/);",
+                  "});",
+                  "pm.test('error code is product_not_found', function () { pm.expect(body.error.code).to.eql('product_not_found'); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{apiKey}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/v1/products/definitely-not-a-product",
+              "host": ["{{baseUrl}}"],
+              "path": ["v1", "products", "definitely-not-a-product"]
+            },
+            "description": ""
+          }
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "firstSlug",
+      "value": ""
+    }
+  ]
+}

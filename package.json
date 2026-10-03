@@ -14,7 +14,9 @@
     "typecheck": "npm run typecheck --workspaces --if-present",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "test": "vitest run"
+    "test": "vitest run",
+    "test:api": "bash scripts/api-test.sh",
+    "doctor": "bash scripts/doctor.sh"
   },
   "devDependencies": {
     "picomatch": "^4.0.7",
