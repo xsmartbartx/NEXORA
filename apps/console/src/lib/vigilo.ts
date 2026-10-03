@@ -24,6 +24,15 @@ export async function fetchVigiloAccount(
   );
   const doFetch = options.fetchImpl ?? fetch;
   try {
+    // The Clerk token is a bearer credential: only ever send it over HTTPS
+    // (plain http only to localhost in development).
+    const url = new URL(baseUrl);
+    const isLocalDevelopmentHttp =
+      process.env.NODE_ENV === "development" &&
+      url.protocol === "http:" &&
+      (url.hostname === "localhost" || url.hostname === "127.0.0.1");
+    if (url.protocol !== "https:" && !isLocalDevelopmentHttp) return null;
+
     const response = await doFetch(`${baseUrl}/v1/me`, {
       headers: { Authorization: `Bearer ${token}`, Accept: "application/json" },
       signal: AbortSignal.timeout(options.timeoutMs ?? 4000),
@@ -33,12 +42,14 @@ export async function fetchVigiloAccount(
     const body: unknown = await response.json();
     const entitlements = (body as { entitlements?: Record<string, unknown> } | null)?.entitlements;
     if (!entitlements || typeof entitlements.plan_id !== "string") return null;
-    const numberOrNull = (value: unknown) => (typeof value === "number" ? value : null);
-    return {
-      planId: entitlements.plan_id,
-      scansPerMonthLimit: numberOrNull(entitlements.scans_per_month_limit),
-      targetsLimit: numberOrNull(entitlements.targets_limit),
-    };
+    // An explicit null means "unlimited"; a missing or wrongly typed limit is
+    // a malformed response, never silently shown as unlimited.
+    const isLimit = (value: unknown): value is number | null =>
+      value === null || typeof value === "number";
+    const scansPerMonthLimit = entitlements.scans_per_month_limit;
+    const targetsLimit = entitlements.targets_limit;
+    if (!isLimit(scansPerMonthLimit) || !isLimit(targetsLimit)) return null;
+    return { planId: entitlements.plan_id, scansPerMonthLimit, targetsLimit };
   } catch {
     return null;
   }

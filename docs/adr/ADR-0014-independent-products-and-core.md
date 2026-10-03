@@ -24,8 +24,11 @@ Integrate in phases, never rewriting a product's authentication or billing
 data in one step:
 
 1. **Shipped:** Console `/billing` shows Vigilo's plan, read from Vigilo's own
-   `GET /v1/me` with a Clerk token for the `vigilo-api` template. Vigilo
-   remains the source of truth for its subscription. NeuraWall is linked only.
+   `GET /v1/me` with a Clerk token for the `vigilo-api` template (sent over
+   HTTPS only). Vigilo remains the source of truth for its subscription, and no
+   existing billing data is migrated; however `/v1/me` provisions a free Vigilo
+   account for a first-time caller, so loading `/billing` can create that one
+   row. NeuraWall is linked only.
    Core's Stripe webhook already ignores prices that are not in the Core
    catalogue, so Vigilo's events cannot disturb Core subscriptions.
 2. **Next:** make Vigilo accept the Clerk organisation (`org_id` claim) and
@@ -41,7 +44,9 @@ data in one step:
 
 ## Consequences
 
-Customers see one sign-in and one billing page today without any change to
-Vigilo's production data. Phases 2 to 5 each touch production data or
+Console and Vigilo share one sign-in and Console shows Vigilo's plan; NeuraWall
+keeps its own authentication and is only linked. Existing Vigilo billing data is
+not migrated (a free account may be provisioned on first read, see phase 1).
+Phases 2 to 5 each touch production data or
 authentication in another repository and need their own review and rollback
 plan.
