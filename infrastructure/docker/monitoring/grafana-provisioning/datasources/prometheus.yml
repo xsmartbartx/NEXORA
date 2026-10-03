@@ -1,0 +1,13 @@
+# Auto-provisions Grafana's one datasource on first boot — no manual
+# "Add data source" click-through needed (infrastructure/docker/README.md's
+# "Monitoring" section). Grafana re-reads this directory on every start;
+# editing it after the fact just updates the existing datasource.
+apiVersion: 1
+
+datasources:
+  - name: Prometheus
+    type: prometheus
+    access: proxy
+    url: http://prometheus:9090
+    isDefault: true
+    editable: false

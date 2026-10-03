@@ -71,13 +71,13 @@ host, shared with Vigilo and NeuraWall, which joins each project's Docker networ
 routes every `*.onenexora.com` subdomain to its container. Only that
 Caddy binds 80/443.
 
-1. **DNS**: on whatever registrar manages `onenexora.com`, add 10 **A**
+1. **DNS**: on whatever registrar manages `onenexora.com`, add 11 **A**
    records — `@` (root), `www`, `account`, `console`, `status`, `api`,
-   `docs`, `developers`, `sentinel`, `cspm`, `gateway` — all pointing at
-   the OCI instance's public IPv4 address. Caddy requests a Let's Encrypt
-   certificate per domain on first request, so DNS has to actually
-   resolve before it can — expect the first hit to each subdomain to be
-   slow while that happens.
+   `docs`, `developers`, `sentinel`, `cspm`, `gateway`, `monitoring` — all
+   pointing at the OCI instance's public IPv4 address. Caddy requests a
+   Let's Encrypt certificate per domain on first request, so DNS has to
+   actually resolve before it can — expect the first hit to each
+   subdomain to be slow while that happens.
 
 2. **Open ports 80 and 443 — at both layers.** OCI blocks them by
    default at two independent layers, and both have to be opened or
@@ -171,6 +171,44 @@ unset one is genuinely `undefined` in `process.env` (verified directly,
 not assumed), so every app's own `?? "http://localhost:..."` fallback
 still works correctly for a local/test build with nothing passed.
 
+## Monitoring
+
+Three exporters feed one Prometheus, which Grafana reads — Postgres
+(connections, locks, size, replication: `postgres-exporter`), Redis
+(memory, evictions, hit rate: `redis-exporter`), and the VM itself (CPU,
+disk, load: `node-exporter`). None of these publish a host port; reached
+only via `https://monitoring.onenexora.com` through the edge Caddy stack
+(`infrastructure/edge/Caddyfile`), behind Grafana's own admin login
+(`GRAFANA_ADMIN_PASSWORD` in `.env.prod`).
+
+The Prometheus datasource is auto-provisioned
+(`monitoring/grafana-provisioning/datasources/prometheus.yml`) — no
+manual "Add data source" step. Dashboards are not pre-provisioned (no
+JSON checked in); import the community ones from Grafana's
+"Import via grafana.com ID" screen: **9628** (PostgreSQL), **763**
+(Redis), **1860** (Node Exporter Full) all work directly against this
+setup's metric names.
+
+**Most important Postgres metrics** (per
+`infrastructure/docker/monitoring/prometheus.yml`'s `postgres` job):
+`pg_stat_database_numbackends` (connections), `pg_stat_database_*` I/O
+counters (read/write), lock counts, and `pg_up` itself for whether the
+exporter can even reach Postgres — there's no managed-RDS equivalent of
+CPU/IOPS/storage metrics here (`node-exporter`'s host-level metrics are
+the closest substitute, since this VM runs the database directly, not
+behind a managed service).
+
+**Most important Redis metric**: cache hit ratio
+(`redis_keyspace_hits_total` / `(redis_keyspace_hits_total +
+redis_keyspace_misses_total)`) — not provided as a single number by the
+exporter, computed from those two counters in a Grafana panel or
+dashboard 763 above. Below ~50% generally means something's wrong with
+what's being cached or its TTLs; this deployment's own Redis use
+(`packages/api-kit`'s rate-limit counters) is counter storage, not an
+app cache, so "hit rate" here reads differently than a typical
+read-through cache — expect it to reflect rate-limit-key lookups, not
+content caching effectiveness.
+
 ## What's been verified
 
 Actually built and run, not just written:
@@ -204,6 +242,19 @@ Actually built and run, not just written:
   every `${...}` (the Postgres password, the Clerk publishable key) and
   every hardcoded `https://*.onenexora.com` build arg resolved to the
   actual value, not left as a literal `${VAR}` string.
+- The monitoring stack — built the exact same four images
+  (`postgres-exporter`, `redis-exporter`, `node-exporter`, `prometheus`,
+  `grafana`) against a real Postgres and Redis on a scratch network,
+  confirmed Prometheus's `/api/v1/targets` reports all three exporters
+  `"health": "up"`, confirmed `pg_up` and `redis_connected_clients`
+  return real values through a direct Prometheus query, and confirmed
+  the same query returns the same value through Grafana's own
+  datasource proxy (i.e. the full chain, not just each piece in
+  isolation) — with the Grafana datasource auto-provisioned, not
+  manually added for the test. Not yet confirmed: this exact config
+  running on the live OCI VM itself (`node-exporter`'s host-path mounts
+  in particular are worth re-checking there — Oracle Linux's layout was
+  assumed, not confirmed, to match what was tested locally).
 
 ## What this still is not
 
@@ -212,7 +263,10 @@ No orchestrator (no Kubernetes/ECS/etc config) and no secrets manager —
 for everything with no backup policy, and `packages/api-kit`'s rate
 limiter is in-memory (per-instance — see its own file comment) so it
 needs a shared store (Redis/Upstash) before running more than one replica
-of `api` or `gateway`. This gets you a real, verified container per app
+of `api` or `gateway`. The monitoring stack is dashboards and metrics
+visibility only — no Alertmanager, no notification channels (Slack/email/
+PagerDuty), no pre-built alert rules; someone has to actually open
+Grafana and look. This gets you a real, verified container per app
 and a real, verified way to run them together — including with real TLS
 on real subdomains — on one machine; scaling beyond one machine is a
 later, separate decision.
