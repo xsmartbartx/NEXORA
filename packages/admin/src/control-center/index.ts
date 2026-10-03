@@ -1,16 +1,18 @@
 import { collectChecklist } from "./checklist";
 import { collectCosts } from "./costs";
 import { collectActivation, collectClerk, collectRevenue } from "./business";
+import { collectVisitors } from "./analytics";
 import { collectBackup, collectDatabase, collectInfraMetrics, probeAll } from "./health";
 import { collectCi, collectSentry, summarizeLatency } from "./application";
 import { collectAccessSignals, collectCertificates, collectCodeSecurity } from "./security";
-import { NotConnected, collect } from "./result";
+import { collect } from "./result";
 
 export * from "./result";
 export * from "./endpoints";
 export * from "./health";
 export * from "./application";
 export * from "./security";
+export * from "./analytics";
 export * from "./business";
 export * from "./costs";
 export * from "./checklist";
@@ -55,12 +57,7 @@ export async function collectControlCenter() {
     collect(collectActivation),
     collect(collectCosts),
     collect(collectChecklist),
-    collect(async () => {
-      throw new NotConnected(
-        "Visitors (Google Analytics)",
-        "No GA4 reporting integration yet — open Google Analytics from the toolbox below.",
-      );
-    }),
+    collect(collectVisitors),
   ]);
 
   const latency =

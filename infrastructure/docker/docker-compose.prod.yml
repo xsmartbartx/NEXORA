@@ -247,6 +247,8 @@ services:
       SENTRY_AUTH_TOKEN: ${SENTRY_AUTH_TOKEN:-}
       SENTRY_ORG: ${SENTRY_ORG:-}
       SENTRY_API_BASE: ${SENTRY_API_BASE:-}
+      GA4_PROPERTY_ID: ${GA4_PROPERTY_ID:-}
+      GA4_SERVICE_ACCOUNT_B64: ${GA4_SERVICE_ACCOUNT_B64:-}
     depends_on:
       db-migrate:
         condition: service_completed_successfully
