@@ -1,0 +1,80 @@
+name: API tests
+
+# Newman runs tests/api's Postman collection (the same one you can import
+# into Postman or Insomnia by hand). Pull requests test a freshly built API
+# container; a manual run can also target production.
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: api-tests-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  container:
+    name: API contract (fresh container)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Build API image
+        run: |
+          docker build -f infrastructure/docker/Dockerfile \
+            --build-arg APP_NAME=api \
+            --build-arg APP_PORT=3004 \
+            -t nexora-api:ci .
+
+      # No database on purpose: the public and no-key rejection folders are
+      # exactly the ones that must work without one. The invalid-key and
+      # authenticated folders need Postgres and run against production.
+      - name: Start API
+        run: |
+          docker run -d --name nexora-api-ci -p 18084:3004 nexora-api:ci
+          for i in $(seq 1 20); do
+            code=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:18084/v1/health || echo "000")
+            [ "$code" = "200" ] && echo "OK: got 200" && exit 0
+            sleep 1
+          done
+          echo "FAILED: API never returned 200"
+          docker logs nexora-api-ci
+          exit 1
+
+      - name: Run collection
+        run: API_BASE_URL=http://localhost:18084 scripts/api-test.sh local
+
+  production:
+    name: API contract (production)
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      # The authenticated folder only runs when a NEXORA_API_KEY repository
+      # secret exists; without one, the script skips it.
+      - name: Run collection
+        env:
+          API_KEY: ${{ secrets.NEXORA_API_KEY }}
+        run: scripts/api-test.sh production
