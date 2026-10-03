@@ -49,6 +49,7 @@ const columns: { title: string; links: { label: string; href: string; external?:
       { label: "Terms of Service", href: "/legal/terms" },
       { label: "Privacy Policy", href: "/legal/privacy" },
       { label: "Security", href: "/legal/security" },
+      { label: "Security Architecture", href: "/security/architecture" },
     ],
   },
 ];

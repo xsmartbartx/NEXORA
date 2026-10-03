@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { buttonVariants } from "@nexora/ui";
 import { siteConfig } from "@/lib/site-config";
 
@@ -27,8 +28,15 @@ export default function CompanyPage() {
           NEXORA is built on — platform first, product second.
         </p>
         <p>
-          NEXORA is early. The platform foundation and this website are live; the first products are
-          in Labs, being built in the open rather than announced ahead of working software.
+          NEXORA is early, and says so plainly. The platform foundation, console, billing and the
+          first products — Sentinel, CSPM and Gateway — are live in beta, with deliberately narrow,
+          honestly-scoped feature sets. Vigilo and NeuraWall are independently built and hosted, and
+          further work is in Labs. There is no SLA yet, and we publish what is and is not in place
+          on the{" "}
+          <Link href="/security/architecture" className="text-link hover:underline">
+            security architecture
+          </Link>{" "}
+          page.
         </p>
       </div>
 

@@ -13,5 +13,7 @@ export const docsNav = [
   { label: "API Reference", href: "/api-reference" },
   { label: "Limits", href: "/limits" },
   { label: "SDKs & CLI", href: "/sdks" },
+  { label: "Security", href: "/security" },
+  { label: "Operations", href: "/operations" },
   { label: "Changelog", href: "/changelog" },
 ];
