@@ -234,7 +234,10 @@ onenexora.com` account the domain's own DNS runs on, using an **App
 Password** (`GRAFANA_SMTP_PASSWORD` — generate one at
 [myaccount.google.com/apppasswords](https://myaccount.google.com/apppasswords),
 never the account's real password), to `security@onenexora.com` and
-`bw141105@gmail.com`.
+`bw141105@gmail.com`. **Email is off until that variable is set in
+`.env.prod`** — Grafana still runs and rules still evaluate (alert state is
+visible in Grafana), but nothing is mailed. Set it, then recreate Grafana
+(`deploy.sh nexora grafana`) to turn email on.
 
 **Verified, not just configured**: built each rule against real
 Postgres/Redis/node-exporter containers on a scratch network, then
