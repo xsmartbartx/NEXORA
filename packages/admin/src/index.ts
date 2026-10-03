@@ -13,3 +13,5 @@ export type {
 export { resumeProduct, suspendProduct, UnknownProductError } from "./suspensions";
 
 export { getUsageByOrg } from "./usage";
+
+export * from "./control-center";

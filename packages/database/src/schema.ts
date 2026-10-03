@@ -1,4 +1,13 @@
-import { jsonb, pgTable, text, timestamp, uniqueIndex, uuid } from "drizzle-orm/pg-core";
+import {
+  index,
+  integer,
+  jsonb,
+  pgTable,
+  text,
+  timestamp,
+  uniqueIndex,
+  uuid,
+} from "drizzle-orm/pg-core";
 
 /**
  * Machine identity (§6.4). `orgId`/`createdBy` are Clerk ids (`org_...`,
@@ -86,6 +95,40 @@ export const productSuspensions = pgTable(
   (table) => [uniqueIndex("product_suspensions_org_product_idx").on(table.orgId, table.product)],
 );
 
+/**
+ * What the platform costs to run, entered by hand in the Control Center —
+ * there is no billing API worth wiring up for a handful of vendors (the
+ * Oracle Cloud host, domains, Workspace, ...). Amounts are US cents per
+ * `interval`. A cost that stops is ended (`endedAt`), not deleted, so
+ * past months stay explainable.
+ */
+export const opsCosts = pgTable("ops_costs", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  vendor: text("vendor").notNull(),
+  label: text("label").notNull().default(""),
+  amountCents: integer("amount_cents").notNull(),
+  interval: text("interval").notNull(),
+  createdBy: text("created_by").notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  endedAt: timestamp("ended_at", { withTimezone: true }),
+});
+
+/**
+ * One row each time the owner ticks off a recurring operational task
+ * (daily/weekly/monthly review). Task definitions live in code
+ * (packages/admin); this only records when one was last done.
+ */
+export const opsChecklistCompletions = pgTable(
+  "ops_checklist_completions",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    taskId: text("task_id").notNull(),
+    completedBy: text("completed_by").notNull(),
+    completedAt: timestamp("completed_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [index("ops_checklist_completions_task_idx").on(table.taskId, table.completedAt)],
+);
+
 export type ApiKey = typeof apiKeys.$inferSelect;
 export type NewApiKey = typeof apiKeys.$inferInsert;
 export type AuditEvent = typeof auditEvents.$inferSelect;
@@ -94,3 +137,6 @@ export type Subscription = typeof subscriptions.$inferSelect;
 export type NewSubscription = typeof subscriptions.$inferInsert;
 export type ProductSuspension = typeof productSuspensions.$inferSelect;
 export type NewProductSuspension = typeof productSuspensions.$inferInsert;
+export type OpsCost = typeof opsCosts.$inferSelect;
+export type NewOpsCost = typeof opsCosts.$inferInsert;
+export type OpsChecklistCompletion = typeof opsChecklistCompletions.$inferSelect;

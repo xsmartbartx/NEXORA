@@ -1,12 +1,22 @@
 export { db, schema } from "./client";
-export { apiKeys, auditEvents, productSuspensions, subscriptions } from "./schema";
+export {
+  apiKeys,
+  auditEvents,
+  opsChecklistCompletions,
+  opsCosts,
+  productSuspensions,
+  subscriptions,
+} from "./schema";
 export type {
   ApiKey,
   AuditEvent,
   NewApiKey,
   NewAuditEvent,
+  NewOpsCost,
   NewProductSuspension,
   NewSubscription,
+  OpsChecklistCompletion,
+  OpsCost,
   ProductSuspension,
   Subscription,
 } from "./schema";
