@@ -44,15 +44,9 @@ export default function QuickstartPage() {
       </pre>
 
       <p>
-        A successful response today looks like this — empty, because no product has graduated past{" "}
-        <code>concept</code>/<code>alpha</code> yet (the same reason <code>/products</code> on the
-        website is empty too):
-      </p>
-      <pre>
-        <code>{`{ "data": [] }`}</code>
-      </pre>
-      <p>
-        Once a product reaches <code>beta</code>, it shows up here with this shape:
+        A successful response lists every public product — Sentinel, CSPM, Gateway, Vigilo and
+        NeuraWall are all <code>beta</code> today. Each entry has this shape (truncated to one
+        product here):
       </p>
       <pre>
         <code>{`{
@@ -61,7 +55,7 @@ export default function QuickstartPage() {
       "id": "prod_sentinel",
       "slug": "sentinel",
       "name": "AI Cloud Log Sentinel",
-      "tagline": "AI-assisted log monitoring for cloud environments.",
+      "tagline": "Paste a log sample, find the ten lines worth reading.",
       "category": "security",
       "platform_pillar": "security",
       "lifecycle": "beta",
@@ -72,8 +66,8 @@ export default function QuickstartPage() {
       </pre>
 
       <p>
-        Either way, the call succeeded if you got a <code>200</code> back — that confirms your key
-        and organisation are real. Every response — success or error — carries{" "}
+        The call succeeded if you got a <code>200</code> back — that confirms your key and
+        organisation are real. Every response — success or error — carries{" "}
         <code>X-RateLimit-Limit</code>, <code>X-RateLimit-Remaining</code> and{" "}
         <code>X-RateLimit-Reset</code> headers. See <a href="/limits">Limits</a> for the numbers and{" "}
         <a href="/api-reference">API Reference</a> for every endpoint.

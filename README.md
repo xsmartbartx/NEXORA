@@ -133,10 +133,10 @@ typechecked:**
 Every product is honestly scoped: real statistical/rule-based/proxy logic
 on data or a request _you_ provide today, not the eventual live-connected
 vision — see each product's own page and the docs app's `/products` page
-for exactly what that means. **Plan names and prices are explicit
-placeholders** — see
-[`packages/billing/src/plans.ts`](packages/billing/src/plans.ts) — pricing
-is a business decision, not one this build makes for you.
+for exactly what that means. Plans and prices (Free/Starter/Pro/Business/Scale
+per product, annual at 20% off) are defined in
+[`packages/billing/src/plans.ts`](packages/billing/src/plans.ts) and are the
+live prices charged through Stripe.
 
 **Two Phase 6 deliverables were deliberately not pursued**, per the
 architecture doc's own conditional phrasing ("if demanded" / "if
