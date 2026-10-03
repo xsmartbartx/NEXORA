@@ -16,9 +16,11 @@ export interface VisitorSummary {
 interface ServiceAccount {
   client_email: string;
   private_key: string;
-  token_uri?: string;
 }
 
+// Fixed rather than read from the key file: the signed assertion goes to this
+// URL, so a key whose token_uri pointed elsewhere would send it there.
+const GOOGLE_TOKEN_URI = "https://oauth2.googleapis.com/token";
 const SCOPE = "https://www.googleapis.com/auth/analytics.readonly";
 const CACHE_MS = 5 * 60_000;
 
@@ -39,7 +41,7 @@ export function parseServiceAccount(encoded: string): ServiceAccount {
   if (!key.client_email || !key.private_key) {
     throw new Error("GA4_SERVICE_ACCOUNT_B64 is missing client_email or private_key");
   }
-  return { client_email: key.client_email, private_key: key.private_key, token_uri: key.token_uri };
+  return { client_email: key.client_email, private_key: key.private_key };
 }
 
 /** A signed RS256 JWT assertion for Google's service-account token exchange. */
@@ -49,7 +51,7 @@ export function signAssertion(account: ServiceAccount, nowSeconds: number): stri
     JSON.stringify({
       iss: account.client_email,
       scope: SCOPE,
-      aud: account.token_uri ?? "https://oauth2.googleapis.com/token",
+      aud: GOOGLE_TOKEN_URI,
       iat: nowSeconds,
       exp: nowSeconds + 3600,
     }),
@@ -97,12 +99,13 @@ const emptyWindow = (): VisitorWindow => ({ users: 0, sessions: 0, newUsers: 0 }
 
 let tokenCache: { token: string; expiresAt: number } | null = null;
 let reportCache: { at: number; data: VisitorSummary } | null = null;
+let reportInFlight: Promise<VisitorSummary> | null = null;
 
 async function accessToken(account: ServiceAccount): Promise<string> {
   const now = Date.now();
   if (tokenCache && tokenCache.expiresAt > now + 60_000) return tokenCache.token;
 
-  const response = await timedFetch(account.token_uri ?? "https://oauth2.googleapis.com/token", {
+  const response = await timedFetch(GOOGLE_TOKEN_URI, {
     method: "POST",
     headers: { "content-type": "application/x-www-form-urlencoded" },
     body: new URLSearchParams({
@@ -131,6 +134,14 @@ export async function collectVisitors(): Promise<VisitorSummary> {
 
   if (reportCache && Date.now() - reportCache.at < CACHE_MS) return reportCache.data;
 
+  // Concurrent callers (overlapping page loads) share one request.
+  reportInFlight ??= fetchReport(propertyId, encoded).finally(() => {
+    reportInFlight = null;
+  });
+  return reportInFlight;
+}
+
+async function fetchReport(propertyId: string, encoded: string): Promise<VisitorSummary> {
   const account = parseServiceAccount(encoded);
   const token = await accessToken(account);
   const response = await timedFetch(
@@ -140,8 +151,8 @@ export async function collectVisitors(): Promise<VisitorSummary> {
       headers: { authorization: `Bearer ${token}`, "content-type": "application/json" },
       body: JSON.stringify({
         dateRanges: [
-          { startDate: "7daysAgo", endDate: "today" },
-          { startDate: "30daysAgo", endDate: "today" },
+          { startDate: "6daysAgo", endDate: "today" },
+          { startDate: "29daysAgo", endDate: "today" },
         ],
         metrics: [{ name: "activeUsers" }, { name: "sessions" }, { name: "newUsers" }],
       }),
