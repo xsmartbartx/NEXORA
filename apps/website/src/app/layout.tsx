@@ -1,10 +1,17 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import { GoogleAnalytics } from "@next/third-parties/google";
 import "./globals.css";
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
 import { JsonLd } from "@/components/json-ld";
 import { siteConfig } from "@/lib/site-config";
+
+// Unset locally/in preview builds — GoogleAnalytics is only rendered when
+// a real measurement ID is baked in at build time, same optional-unless-
+// configured pattern NEXT_PUBLIC_SENTRY_DSN already uses in this file's
+// neighboring apps.
+const gaMeasurementId = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID;
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -59,6 +66,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         <main className="flex flex-1 flex-col">{children}</main>
         <SiteFooter />
       </body>
+      {gaMeasurementId ? <GoogleAnalytics gaId={gaMeasurementId} /> : null}
     </html>
   );
 }

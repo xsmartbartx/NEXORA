@@ -52,6 +52,7 @@ ARG NEXT_PUBLIC_CSPM_URL
 ARG NEXT_PUBLIC_GATEWAY_URL
 ARG NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY
 ARG NEXT_PUBLIC_NEXORA_ENV
+ARG NEXT_PUBLIC_GA_MEASUREMENT_ID
 RUN npm run build --workspace apps/${APP_NAME}
 
 # ---- runner: only the traced output, not the whole repo ----
