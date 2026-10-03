@@ -277,9 +277,15 @@ error — never an invented number.
 The banner at the top rolls everything up into what needs attention, worst
 first. The page refreshes itself every 60 seconds while the tab is visible.
 
+The 5xx rate comes from the edge Caddy's own metrics (`infrastructure/edge`):
+Caddy serves them on an internal-only port (`:9180`, not published), Prometheus
+scrapes them as job `caddy`, and the tile shows the share of requests answered
+5xx over the last hour. Below 50 requests an hour it is shown but never flagged.
+Applying it needs the edge stack reloaded (`deploy.sh edge`) and Prometheus
+restarted to pick up the new scrape job.
+
 Not covered, deliberately: AWS and Cloudflare tiles from the original sketch
-(neither is used here), and a 5xx rate (nothing in front of the apps exports one
-yet — Caddy metrics would be the way).
+(neither is used here).
 
 ## What's been verified
 

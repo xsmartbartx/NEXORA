@@ -53,6 +53,12 @@ export function attentionItems(snapshot: ControlCenterSnapshot): AttentionItem[]
     } else if (m.diskFreePercent !== null && m.diskFreePercent < 20) {
       items.push(level("warning", `Root disk is ${(100 - m.diskFreePercent).toFixed(0)}% full.`));
     }
+    // Needs real traffic: one failed request out of three is noise, not an outage.
+    if (m.http5xxPercent !== null && (m.httpRequests1h ?? 0) >= 50) {
+      const text = `${m.http5xxPercent.toFixed(1)}% of requests failed with 5xx in the last hour.`;
+      if (m.http5xxPercent > 10) items.push(level("critical", text));
+      else if (m.http5xxPercent > 2) items.push(level("warning", text));
+    }
     if (m.cpuPercent !== null && m.cpuPercent > 90)
       items.push(level("warning", "CPU is above 90%."));
     if (m.memoryPercent !== null && m.memoryPercent > 90) {

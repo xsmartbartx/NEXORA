@@ -164,7 +164,7 @@ export default async function ControlCenterPage() {
       </Section>
 
       <Section title="Application">
-        <div className="grid gap-3 sm:grid-cols-3">
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
           <TileBody tile={application.sentry} label="Unresolved errors (24h)">
             {(sentry) => (
               <Stat
@@ -173,6 +173,27 @@ export default async function ControlCenterPage() {
                 tone={sentry.unresolved === 0 ? "good" : "warn"}
               >
                 {sentry.top[0] ? `top: ${sentry.top[0].title.slice(0, 48)}` : "Sentry is clear"}
+              </Stat>
+            )}
+          </TileBody>
+          <TileBody tile={health.infra} label="5xx rate (1h)">
+            {(m) => (
+              <Stat
+                label="5xx rate (1h)"
+                value={m.http5xxPercent === null ? "—" : `${m.http5xxPercent.toFixed(2)}%`}
+                tone={
+                  m.http5xxPercent === null || (m.httpRequests1h ?? 0) < 50
+                    ? "neutral"
+                    : m.http5xxPercent > 10
+                      ? "bad"
+                      : m.http5xxPercent > 2
+                        ? "warn"
+                        : "good"
+                }
+              >
+                {m.httpRequests1h === null
+                  ? "no edge metrics yet"
+                  : `of ${Math.round(m.httpRequests1h)} edge requests`}
               </Stat>
             )}
           </TileBody>
@@ -228,9 +249,6 @@ export default async function ControlCenterPage() {
             </div>
           )}
         </TileBody>
-        <p className="mt-2 text-xs text-muted-foreground">
-          5xx rate isn&rsquo;t shown: nothing in front of the apps exports it yet.
-        </p>
       </Section>
 
       <Section title="Security">

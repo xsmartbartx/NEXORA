@@ -30,6 +30,8 @@ const healthy = (): ControlCenterSnapshot => ({
       diskFreePercent: 60,
       redisMemoryPercent: 5,
       postgresConnections: 4,
+      http5xxPercent: 0,
+      httpRequests1h: 500,
     }),
   },
   application: {
@@ -112,6 +114,8 @@ describe("attentionItems", () => {
       diskFreePercent: 5,
       redisMemoryPercent: 5,
       postgresConnections: 4,
+      http5xxPercent: 0,
+      httpRequests1h: 500,
     });
     const items = attentionItems(s);
     expect(items.filter((i) => i.level === "critical").map((i) => i.text)).toEqual([
@@ -204,5 +208,38 @@ describe("attentionItems", () => {
     const items = attentionItems(s);
     expect(items[0]).toEqual({ level: "critical", text: "Website is down." });
     expect(items).toContainEqual({ level: "warning", text: "Sentry couldn't be loaded." });
+  });
+
+  describe("5xx rate", () => {
+    const withRate = (http5xxPercent: number | null, httpRequests1h: number | null) => {
+      const s = healthy();
+      s.health.infra = ok({
+        targetsDown: [],
+        postgresUp: true,
+        redisUp: true,
+        cpuPercent: 10,
+        memoryPercent: 40,
+        diskFreePercent: 60,
+        redisMemoryPercent: 5,
+        postgresConnections: 4,
+        http5xxPercent,
+        httpRequests1h,
+      });
+      return attentionItems(s);
+    };
+
+    it("is quiet at a low rate", () => {
+      expect(withRate(0.5, 500)).toEqual([]);
+    });
+
+    it("warns above 2% and goes critical above 10%", () => {
+      expect(withRate(5, 200).map((i) => i.level)).toEqual(["warning"]);
+      expect(withRate(30, 200).map((i) => i.level)).toEqual(["critical"]);
+    });
+
+    it("ignores a high rate on too little traffic, and a missing metric", () => {
+      expect(withRate(100, 3)).toEqual([]);
+      expect(withRate(null, null)).toEqual([]);
+    });
   });
 });

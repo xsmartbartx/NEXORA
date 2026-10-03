@@ -1,5 +1,5 @@
 # Scrape config for the production VM's metrics (infrastructure/docker/README.md's
-# "Monitoring" section). Three exporters, one per thing being watched:
+# "Monitoring" section). Three exporters plus the edge Caddy's own request metrics, one per thing being watched:
 # postgres-exporter (DB: connections, locks, size, replication),
 # redis-exporter (cache: memory, evictions, hit rate), node-exporter (the
 # VM itself: CPU, disk, load). 15s is Prometheus's own default scrape
@@ -24,3 +24,9 @@ scrape_configs:
   - job_name: node
     static_configs:
       - targets: ["node-exporter:9100"]
+
+  # The edge proxy (infrastructure/edge): request counts by status code,
+  # for the 5xx rate. Reached over nexora_default, which the edge Caddy joins.
+  - job_name: caddy
+    static_configs:
+      - targets: ["edge-caddy-1:9180"]
