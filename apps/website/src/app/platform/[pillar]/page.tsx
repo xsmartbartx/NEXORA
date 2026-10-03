@@ -46,6 +46,15 @@ export default async function PillarPage(props: PageProps<"/platform/[pillar]">)
       <h1 className="mt-2 text-4xl font-semibold tracking-tight">{pillarLabels[pillar]}</h1>
       <p className="mt-4 max-w-2xl text-lg text-muted-foreground">{pillarTaglines[pillar]}</p>
 
+      {pillar === "security" ? (
+        <p className="mt-6 max-w-2xl text-muted-foreground">
+          Sentinel, Vigilo and NeuraWall each cover a different layer — log anomalies, live URL
+          scans, and inference-time traffic — rather than one tool trying to do all three. They are
+          separate products today, each with its own setup and billing; nothing here implies a
+          shared pipeline between them.
+        </p>
+      ) : null}
+
       <div className="mt-16">
         <h2 className="text-xl font-semibold">Products</h2>
         {products.length > 0 ? (
