@@ -153,10 +153,14 @@ services:
       # /alerting/contact-points.yaml) — Gmail/Workspace SMTP under the
       # same nexora@onenexora.com account the domain's own DNS already
       # runs on, with an App Password (not the account password itself).
-      GF_SMTP_ENABLED: "true"
+      # SMTP is only switched on when GRAFANA_SMTP_PASSWORD is set; without
+      # it Grafana still runs and alert rules still evaluate, but no email
+      # is sent. It is not a required variable, so an unrelated deploy
+      # (e.g. `deploy.sh nexora website`) is never blocked by it.
+      GF_SMTP_ENABLED: ${GRAFANA_SMTP_PASSWORD:+true}
       GF_SMTP_HOST: smtp.gmail.com:587
       GF_SMTP_USER: nexora@onenexora.com
-      GF_SMTP_PASSWORD: ${GRAFANA_SMTP_PASSWORD:?set GRAFANA_SMTP_PASSWORD in .env}
+      GF_SMTP_PASSWORD: ${GRAFANA_SMTP_PASSWORD:-}
       GF_SMTP_FROM_ADDRESS: nexora@onenexora.com
       GF_SMTP_FROM_NAME: NEXORA Monitoring
     volumes:
