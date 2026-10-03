@@ -59,4 +59,7 @@ infrastructure/terraform/*.tfplan
 *.tfstate
 *.tfstate.*
 crash.log
+*.hcl
+
+# Lighthouse CI
 .lighthouseci/
