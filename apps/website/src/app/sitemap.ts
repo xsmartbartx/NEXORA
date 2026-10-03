@@ -24,6 +24,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     "/legal/terms",
     "/legal/privacy",
     "/legal/security",
+    "/security/architecture",
   ];
 
   const pillarRoutes = platformPillarSlugs.map((pillar) => `/platform/${pillar}`);

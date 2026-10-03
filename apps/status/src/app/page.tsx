@@ -5,6 +5,7 @@ import {
   type ComponentCategory,
   type ComponentStatus,
 } from "./components";
+import { incidents, maintenanceWindows } from "./incidents";
 import { getStatusSnapshot, overallStatus, type ComponentResult } from "./health";
 
 // Probed live on request (with a short shared cache in ./health.ts), never
@@ -89,6 +90,53 @@ export default async function StatusPage() {
           </div>
         </div>
       ))}
+
+      <div className="mt-10">
+        <h2 className="mb-3 text-xs font-semibold uppercase tracking-widest text-muted-foreground">
+          Planned maintenance
+        </h2>
+        {maintenanceWindows.length === 0 ? (
+          <p className="text-sm text-muted-foreground">None scheduled.</p>
+        ) : (
+          <ul className="flex flex-col gap-2 text-sm">
+            {maintenanceWindows.map((m) => (
+              <li key={m.id}>
+                <span className="font-medium">{m.title}</span>{" "}
+                <span className="text-muted-foreground">
+                  {m.startsAt} to {m.endsAt}
+                </span>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+
+      <div className="mt-10">
+        <h2 className="mb-3 text-xs font-semibold uppercase tracking-widest text-muted-foreground">
+          Incident history
+        </h2>
+        {incidents.length === 0 ? (
+          <p className="text-sm text-muted-foreground">
+            No incidents have been published. Incidents are listed here as they happen.
+          </p>
+        ) : (
+          <div className="flex flex-col gap-4">
+            {incidents.map((incident) => (
+              <Card key={incident.id}>
+                <p className="font-medium">{incident.title}</p>
+                <ul className="mt-3 flex flex-col gap-2 text-sm text-muted-foreground">
+                  {incident.updates.map((update) => (
+                    <li key={update.at}>
+                      <span className="uppercase tracking-wide">{update.status}</span> ·{" "}
+                      <time dateTime={update.at}>{update.at}</time> — {update.message}
+                    </li>
+                  ))}
+                </ul>
+              </Card>
+            ))}
+          </div>
+        )}
+      </div>
 
       <p className="mt-8 text-center text-xs text-muted-foreground">
         Checked live at{" "}
