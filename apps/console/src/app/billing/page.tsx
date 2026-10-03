@@ -14,6 +14,7 @@ import { Badge, buttonVariants, cn } from "@nexora/ui";
 import type { Subscription } from "@nexora/database";
 import { CheckoutButton } from "./checkout-button";
 import { openBillingPortal } from "./actions";
+import { IndependentProducts } from "./independent-products";
 
 export const metadata: Metadata = {
   title: "Billing",
@@ -92,6 +93,10 @@ export default async function BillingPage(props: PageProps<"/billing">) {
             ))}
           </div>
         )}
+      </div>
+
+      <div className="mt-12">
+        <IndependentProducts />
       </div>
 
       {hasAnySubscription ? (
