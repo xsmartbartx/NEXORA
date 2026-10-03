@@ -239,6 +239,14 @@ services:
       STRIPE_COUPON_BUNDLE_3: ${STRIPE_COUPON_BUNDLE_3:-}
       NEXORA_ADMIN_EMAILS: ${NEXORA_ADMIN_EMAILS}
       DATABASE_URL: postgres://postgres:${POSTGRES_PASSWORD}@postgres:5432/nexora
+      # Staff Control Center (/admin/control-center). Prometheus is reached
+      # over this compose network; the rest are optional read-only tokens —
+      # a tile whose token is unset says "not connected" instead of failing.
+      PROMETHEUS_URL: http://prometheus:9090
+      GITHUB_TOKEN: ${GITHUB_TOKEN:-}
+      SENTRY_AUTH_TOKEN: ${SENTRY_AUTH_TOKEN:-}
+      SENTRY_ORG: ${SENTRY_ORG:-}
+      SENTRY_API_BASE: ${SENTRY_API_BASE:-}
     depends_on:
       db-migrate:
         condition: service_completed_successfully

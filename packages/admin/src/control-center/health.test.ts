@@ -68,8 +68,20 @@ describe("parseInstantQuery", () => {
 
   it("rejects a malformed response instead of reading it as zero", () => {
     expect(() => parseInstantQuery({})).toThrow();
-    expect(() =>
-      parseInstantQuery({ data: { result: [{ metric: {}, value: [0, "NaN"] }] } }),
-    ).toThrow();
+    expect(() => parseInstantQuery({ data: { result: [{ value: [0, "1"] }] } })).toThrow();
+    expect(() => parseInstantQuery({ data: { result: [{ metric: {}, value: "1" }] } })).toThrow();
+  });
+
+  it("drops a non-finite reading (e.g. used/max with no limit set) instead of failing or reporting 0", () => {
+    const samples = parseInstantQuery({
+      data: {
+        result: [
+          { metric: { a: "1" }, value: [0, "+Inf"] },
+          { metric: { a: "2" }, value: [0, "NaN"] },
+          { metric: { a: "3" }, value: [0, "42"] },
+        ],
+      },
+    });
+    expect(samples).toEqual([{ metric: { a: "3" }, value: 42 }]);
   });
 });

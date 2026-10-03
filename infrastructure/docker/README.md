@@ -251,6 +251,36 @@ query syntax the same way (a real Prometheus datasource, no errors) but
 not live-fired — deliberately not simulated by actually filling a real
 disk to <10% free.
 
+## Control Center
+
+`https://console.onenexora.com/admin/control-center` — one page for the owner
+instead of seven consoles. Only accounts on `NEXORA_ADMIN_EMAILS` with a
+**verified** primary email can open it; everyone else gets a 404, and each
+action on the page re-checks that on its own.
+
+Every tile is real data, an explicit **Not connected** (with what to set), or an
+error — never an invented number.
+
+| Panel       | Reads                                                                                                     | Needs                             |
+| ----------- | --------------------------------------------------------------------------------------------------------- | --------------------------------- |
+| Platform    | A live probe of all 13 public endpoints; Postgres round trip; nightly-backup heartbeat                    | nothing                           |
+| Host / data | CPU, memory, disk, Postgres, Redis from the in-cluster Prometheus                                         | `PROMETHEUS_URL` (set in compose) |
+| Application | Average/slowest latency; CI + CodeQL status on `main` for all three repos                                 | nothing (GitHub public API)       |
+|             | Unresolved errors in the last 24h                                                                         | `SENTRY_AUTH_TOKEN`, `SENTRY_ORG` |
+| Security    | TLS expiry for every hostname; suspended products; failed events; recent staff actions                    | nothing                           |
+|             | Open code-scanning, Dependabot and leaked-secret alerts                                                   | `GITHUB_TOKEN`                    |
+| Business    | Signups and organisations (Clerk); MRR/ARR and past-due (Stripe); activated orgs (API keys actually used) | already configured                |
+|             | Visitors                                                                                                  | not built — use the GA4 link      |
+| Cost        | A ledger you fill in by hand; margin = MRR − recorded monthly cost                                        | nothing                           |
+| Reviews     | Daily/weekly/monthly owner checklist with "mark done" and due/overdue state                               | nothing                           |
+
+The banner at the top rolls everything up into what needs attention, worst
+first. The page refreshes itself every 60 seconds while the tab is visible.
+
+Not covered, deliberately: AWS and Cloudflare tiles from the original sketch
+(neither is used here), and a 5xx rate (nothing in front of the apps exports one
+yet — Caddy metrics would be the way).
+
 ## What's been verified
 
 Actually built and run, not just written:

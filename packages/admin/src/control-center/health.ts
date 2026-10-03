@@ -77,7 +77,12 @@ export interface PrometheusSample {
   value: number;
 }
 
-/** Parses a Prometheus instant-query response; anything unexpected is an error, never a silent 0. */
+/**
+ * Parses a Prometheus instant-query response. A malformed response is an
+ * error, never a silent 0. A non-finite value (`NaN`, `+Inf` — e.g. memory
+ * used / memory max when Redis has no limit) means that metric has no
+ * meaningful reading, so it is dropped rather than failing the whole tile.
+ */
 export function parseInstantQuery(body: unknown): PrometheusSample[] {
   const data =
     typeof body === "object" && body !== null && "data" in body
@@ -85,15 +90,19 @@ export function parseInstantQuery(body: unknown): PrometheusSample[] {
       : undefined;
   if (!data || !Array.isArray(data.result)) throw new Error("unexpected Prometheus response");
 
-  return data.result.map((entry: unknown) => {
+  const samples: PrometheusSample[] = [];
+  for (const entry of data.result) {
     const { metric, value } = entry as {
       metric?: Record<string, string>;
       value?: [number, string];
     };
-    const parsed = Number(value?.[1]);
-    if (!metric || !Number.isFinite(parsed)) throw new Error("unexpected Prometheus sample");
-    return { metric, value: parsed };
-  });
+    if (!metric || !Array.isArray(value) || typeof value[1] !== "string") {
+      throw new Error("unexpected Prometheus sample");
+    }
+    const parsed = Number(value[1]);
+    if (Number.isFinite(parsed)) samples.push({ metric, value: parsed });
+  }
+  return samples;
 }
 
 async function promQuery(baseUrl: string, query: string): Promise<PrometheusSample[]> {

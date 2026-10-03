@@ -76,7 +76,8 @@ export async function collectSentry(): Promise<SentrySummary> {
     );
   }
 
-  const base = process.env.SENTRY_API_BASE ?? "https://sentry.io";
+  // `||`, not `??`: compose passes an unset optional var as an empty string.
+  const base = process.env.SENTRY_API_BASE || "https://sentry.io";
   const query = new URLSearchParams({
     statsPeriod: "24h",
     query: "is:unresolved",
