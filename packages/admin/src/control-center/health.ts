@@ -122,6 +122,10 @@ export interface InfraMetrics {
   diskFreePercent: number | null;
   redisMemoryPercent: number | null;
   postgresConnections: number | null;
+  /** Share of edge requests answered 5xx over the last hour; null when Caddy isn't scraped or saw no traffic. */
+  http5xxPercent: number | null;
+  /** Edge requests in the last hour — the denominator, so a 100% rate on 2 requests reads as noise. */
+  httpRequests1h: number | null;
 }
 
 const first = (samples: PrometheusSample[]) => samples[0]?.value ?? null;
@@ -136,7 +140,7 @@ export async function collectInfraMetrics(): Promise<InfraMetrics> {
     );
   }
 
-  const [up, pg, redis, cpu, mem, disk, redisMem, conns] = await Promise.all([
+  const [up, pg, redis, cpu, mem, disk, redisMem, conns, errors5xx, requests] = await Promise.all([
     promQuery(baseUrl, "up"),
     promQuery(baseUrl, "pg_up"),
     promQuery(baseUrl, "redis_up"),
@@ -148,6 +152,13 @@ export async function collectInfraMetrics(): Promise<InfraMetrics> {
     ),
     promQuery(baseUrl, "redis_memory_used_bytes / redis_memory_max_bytes * 100"),
     promQuery(baseUrl, "sum(pg_stat_database_numbackends)"),
+    // `or vector(0)`: with no 5xx series at all the numerator would be empty, hiding a healthy 0%.
+    // An empty denominator (no traffic, or Caddy not scraped) stays null on purpose.
+    promQuery(
+      baseUrl,
+      '(sum(increase(caddy_http_request_duration_seconds_count{code=~"5.."}[1h])) or vector(0)) / sum(increase(caddy_http_request_duration_seconds_count[1h])) * 100',
+    ),
+    promQuery(baseUrl, "sum(increase(caddy_http_request_duration_seconds_count[1h]))"),
   ]);
 
   const flag = (samples: PrometheusSample[]) => (samples.length ? samples[0]!.value === 1 : null);
@@ -160,6 +171,8 @@ export async function collectInfraMetrics(): Promise<InfraMetrics> {
     diskFreePercent: first(disk),
     redisMemoryPercent: first(redisMem),
     postgresConnections: first(conns),
+    http5xxPercent: first(errors5xx),
+    httpRequests1h: first(requests),
   };
 }
 

@@ -15,6 +15,22 @@
 # attached to both projects' networks at once. Full container names are
 # globally unique on the host, so there's no ambiguity.
 
+# Per-request metrics (request counts and latency by status code), served
+# on a dedicated internal-only port rather than Caddy's admin API — that
+# API can rewrite the running config, so it must stay on localhost. :9180
+# is not published in docker-compose.yml; only Prometheus (same
+# nexora_default network) scrapes it, as job "caddy". The Control Center
+# and the Grafana alert read the 5xx rate from there.
+{
+	servers {
+		metrics
+	}
+}
+
+http://:9180 {
+	metrics
+}
+
 # Apps with no Next.js Server Actions reject any request carrying the
 # Server Action header. Internet-wide scanners send it to probe for the
 # React Server Components RCE (CVE-2025-55182); the apps are patched, but
