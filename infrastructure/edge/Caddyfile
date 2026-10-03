@@ -84,3 +84,7 @@ vigilo-api.onenexora.com {
 neurawall.onenexora.com {
 	reverse_proxy neurawall-control-plane-1:8080
 }
+
+monitoring.onenexora.com {
+	reverse_proxy nexora-grafana-1:3000
+}

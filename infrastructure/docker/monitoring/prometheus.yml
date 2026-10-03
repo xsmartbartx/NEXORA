@@ -1,0 +1,26 @@
+# Scrape config for the production VM's metrics (infrastructure/docker/README.md's
+# "Monitoring" section). Three exporters, one per thing being watched:
+# postgres-exporter (DB: connections, locks, size, replication),
+# redis-exporter (cache: memory, evictions, hit rate), node-exporter (the
+# VM itself: CPU, disk, load). 15s is Prometheus's own default scrape
+# interval — no app here is latency-sensitive enough to need tighter.
+
+global:
+  scrape_interval: 15s
+
+scrape_configs:
+  - job_name: prometheus
+    static_configs:
+      - targets: ["localhost:9090"]
+
+  - job_name: postgres
+    static_configs:
+      - targets: ["postgres-exporter:9187"]
+
+  - job_name: redis
+    static_configs:
+      - targets: ["redis-exporter:9121"]
+
+  - job_name: node
+    static_configs:
+      - targets: ["node-exporter:9100"]

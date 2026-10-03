@@ -93,6 +93,68 @@ services:
       timeout: 3s
       retries: 15
 
+  # Metrics stack (infrastructure/docker/README.md's "Monitoring" section):
+  # one exporter per thing being watched, Prometheus scraping all three
+  # (infrastructure/docker/monitoring/prometheus.yml), Grafana for
+  # dashboards. None of these publish a host port — reached only through
+  # the edge Caddy stack's monitoring.onenexora.com, same pattern every
+  # app here already follows.
+  postgres-exporter:
+    image: quay.io/prometheuscommunity/postgres-exporter:latest
+    environment:
+      DATA_SOURCE_NAME: postgresql://postgres:${POSTGRES_PASSWORD}@postgres:5432/nexora?sslmode=disable
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  redis-exporter:
+    image: oliver006/redis_exporter:latest
+    environment:
+      REDIS_ADDR: redis://redis:6379
+    depends_on:
+      redis:
+        condition: service_healthy
+
+  # Host-level metrics (CPU, disk, load) — needs the host's PID namespace
+  # and read-only access to /proc, /sys and / to report on the VM itself,
+  # not just this container; standard node_exporter deployment pattern.
+  node-exporter:
+    image: prom/node-exporter:latest
+    pid: host
+    volumes:
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /:/rootfs:ro
+    command:
+      - "--path.procfs=/host/proc"
+      - "--path.sysfs=/host/sys"
+      - "--path.rootfs=/rootfs"
+      - "--collector.filesystem.mount-points-exclude=^/(host/)?(sys|proc|dev|rootfs/var/lib/docker/.+)($$|/)"
+
+  prometheus:
+    image: prom/prometheus:latest
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - nexora-prometheus-data:/prometheus
+    command:
+      - "--config.file=/etc/prometheus/prometheus.yml"
+      - "--storage.tsdb.path=/prometheus"
+      - "--storage.tsdb.retention.time=30d"
+
+  grafana:
+    image: grafana/grafana:latest
+    environment:
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD}
+      # Grafana's default anonymous-org-creation/signup flows are for a
+      # multi-tenant SaaS deployment, not a single-operator dashboard —
+      # off, so the admin login above is the only way in.
+      GF_USERS_ALLOW_SIGN_UP: "false"
+    volumes:
+      - nexora-grafana-data:/var/lib/grafana
+      - ./monitoring/grafana-provisioning:/etc/grafana/provisioning:ro
+    depends_on:
+      - prometheus
+
   db-migrate:
     build:
       context: ../..
@@ -315,3 +377,5 @@ services:
 
 volumes:
   nexora-postgres-data:
+  nexora-prometheus-data:
+  nexora-grafana-data:
