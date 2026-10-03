@@ -6,6 +6,12 @@ on:
   pull_request:
     branches: [main]
 
+# Least-privilege default for the GITHUB_TOKEN every job gets — none of
+# these jobs call the GitHub API, they only check out the repo and
+# build/test it.
+permissions:
+  contents: read
+
 concurrency:
   group: ci-${{ github.ref }}
   cancel-in-progress: true
