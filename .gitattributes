@@ -1,0 +1,5 @@
+# GitHub classifies a Brewfile as Ruby. CodeQL's default setup analyses every
+# detected language, so it started running a Ruby job against this one file —
+# which has no Ruby to analyse and fails on every push. Keep it out of the
+# language statistics.
+Brewfile linguist-detectable=false
