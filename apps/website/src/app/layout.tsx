@@ -17,19 +17,19 @@ const geistMono = Geist_Mono({
 });
 
 const description =
-  "NEXORA is a technology platform. Its products are intelligent software, AI systems and secure digital products that share one account, one console, one API surface and one operational backbone.";
+  "Production software infrastructure for modern AI-powered applications — one account, one console, one API surface and one operational backbone underneath every NEXORA product.";
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteConfig.siteUrl),
   title: {
-    default: "NEXORA — Build What's Next",
+    default: "NEXORA — Build. Secure. Operate.",
     template: "%s — NEXORA",
   },
   description,
   openGraph: {
     type: "website",
     siteName: siteConfig.name,
-    title: "NEXORA — Build What's Next",
+    title: "NEXORA — Build. Secure. Operate.",
     description,
   },
 };

@@ -66,7 +66,7 @@ export function SiteFooter() {
               </span>
             </Link>
             <p className="mt-3 max-w-[22ch] text-sm text-muted-foreground">
-              Build What&rsquo;s Next.
+              Build. Secure. Operate.
             </p>
           </div>
 
