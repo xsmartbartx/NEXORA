@@ -1,0 +1,16 @@
+{
+  "name": "@nexora/sdk",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Typed fetch client for the NEXORA API (see apps/api/public/openapi.json).",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "typescript": "^5"
+  }
+}
