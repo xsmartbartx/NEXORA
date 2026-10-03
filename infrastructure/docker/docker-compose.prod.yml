@@ -156,7 +156,7 @@ services:
       GF_SMTP_ENABLED: "true"
       GF_SMTP_HOST: smtp.gmail.com:587
       GF_SMTP_USER: nexora@onenexora.com
-      GF_SMTP_PASSWORD: ${GRAFANA_SMTP_PASSWORD}
+      GF_SMTP_PASSWORD: ${GRAFANA_SMTP_PASSWORD:?set GRAFANA_SMTP_PASSWORD in .env}
       GF_SMTP_FROM_ADDRESS: nexora@onenexora.com
       GF_SMTP_FROM_NAME: NEXORA Monitoring
     volumes:
