@@ -1,0 +1,16 @@
+# The default (root) policy routes every alert with no more specific
+# match to the one contact point — there's only one destination for now,
+# so no routing tree is needed yet (infrastructure/docker/README.md's
+# "Alerting" section). group_wait/group_interval batch alerts that fire
+# within the same few seconds into one email instead of one per rule;
+# repeat_interval re-sends while a problem is still firing, so an
+# unresolved outage isn't silently forgotten after the first email.
+apiVersion: 1
+
+policies:
+  - orgId: 1
+    receiver: nexora-infra-email
+    group_by: ["alertname"]
+    group_wait: 30s
+    group_interval: 5m
+    repeat_interval: 4h

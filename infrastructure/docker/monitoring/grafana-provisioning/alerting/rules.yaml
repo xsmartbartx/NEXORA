@@ -1,0 +1,180 @@
+# Four build-blocking-equivalent alert rules — exported from Grafana's own
+# /api/v1/provisioning/alert-rules/export after building and live-testing
+# each one against real Postgres/Redis/node-exporter containers (not
+# written blind): postgres-down and redis-down were confirmed to move
+# pending -> firing within their 2m `for` window after actually stopping
+# each container, and both resolved cleanly on restart; redis-memory-high
+# was confirmed to fire after actually filling Redis to 92% of its 64MB
+# maxmemory cap (infrastructure/docker/README.md's "Alerting" section has
+# the full verification notes). node-disk-low's query syntax was validated
+# the same way as the others but not live-fired (filling a real disk to
+# <10% free isn't a safe thing to simulate) — same well-known node_exporter
+# pattern the community Node Exporter Full dashboard (id 1860) itself uses.
+#
+# noDataState/execErrState are both "Alerting", not the Grafana default
+# ("NoData"/"Error") — an exporter that stops reporting at all (container
+# crashed, scrape failing) is exactly the kind of failure this is meant to
+# catch, so silence must never read as "nothing to report."
+apiVersion: 1
+groups:
+  - orgId: 1
+    name: nexora-infra-alerts
+    folder: Infrastructure
+    interval: 1m
+    rules:
+      - uid: postgres-down
+        title: Postgres is down
+        condition: C
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 600
+              to: 0
+            datasourceUid: prometheus
+            model:
+              expr: pg_up
+              instant: true
+              intervalMs: 1000
+              maxDataPoints: 43200
+              refId: A
+          - refId: C
+            relativeTimeRange:
+              from: 600
+              to: 0
+            datasourceUid: __expr__
+            model:
+              conditions:
+                - evaluator:
+                    params:
+                      - 1
+                    type: lt
+              expression: A
+              intervalMs: 1000
+              maxDataPoints: 43200
+              refId: C
+              type: threshold
+        noDataState: Alerting
+        execErrState: Alerting
+        for: 2m
+        annotations:
+          summary: postgres-exporter reports pg_up=0 — Postgres is unreachable.
+        labels:
+          severity: critical
+        isPaused: false
+      - uid: redis-down
+        title: Redis is down
+        condition: C
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 600
+              to: 0
+            datasourceUid: prometheus
+            model:
+              expr: redis_up
+              instant: true
+              intervalMs: 1000
+              maxDataPoints: 43200
+              refId: A
+          - refId: C
+            relativeTimeRange:
+              from: 600
+              to: 0
+            datasourceUid: __expr__
+            model:
+              conditions:
+                - evaluator:
+                    params:
+                      - 1
+                    type: lt
+              expression: A
+              intervalMs: 1000
+              maxDataPoints: 43200
+              refId: C
+              type: threshold
+        noDataState: Alerting
+        execErrState: Alerting
+        for: 2m
+        annotations:
+          summary: redis-exporter reports redis_up=0 — Redis is unreachable.
+        labels:
+          severity: critical
+        isPaused: false
+      - uid: redis-memory-high
+        title: Redis memory usage high
+        condition: C
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 600
+              to: 0
+            datasourceUid: prometheus
+            model:
+              expr: redis_memory_used_bytes / redis_memory_max_bytes * 100
+              instant: true
+              intervalMs: 1000
+              maxDataPoints: 43200
+              refId: A
+          - refId: C
+            relativeTimeRange:
+              from: 600
+              to: 0
+            datasourceUid: __expr__
+            model:
+              conditions:
+                - evaluator:
+                    params:
+                      - 90
+                    type: gt
+              expression: A
+              intervalMs: 1000
+              maxDataPoints: 43200
+              refId: C
+              type: threshold
+        noDataState: Alerting
+        execErrState: Alerting
+        for: 5m
+        annotations:
+          summary: Redis memory usage is above 90% of its configured maxmemory.
+        labels:
+          severity: warning
+        isPaused: false
+      - uid: node-disk-low
+        title: Root disk space low
+        condition: C
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 600
+              to: 0
+            datasourceUid: prometheus
+            model:
+              expr: min(node_filesystem_avail_bytes{mountpoint="/",fstype!="tmpfs"} / node_filesystem_size_bytes{mountpoint="/",fstype!="tmpfs"}) * 100
+              instant: true
+              intervalMs: 1000
+              maxDataPoints: 43200
+              refId: A
+          - refId: C
+            relativeTimeRange:
+              from: 600
+              to: 0
+            datasourceUid: __expr__
+            model:
+              conditions:
+                - evaluator:
+                    params:
+                      - 10
+                    type: lt
+              expression: A
+              intervalMs: 1000
+              maxDataPoints: 43200
+              refId: C
+              type: threshold
+        noDataState: Alerting
+        execErrState: Alerting
+        for: 10m
+        annotations:
+          summary: Less than 10% free space remains on the root filesystem.
+        labels:
+          severity: warning
+        isPaused: false

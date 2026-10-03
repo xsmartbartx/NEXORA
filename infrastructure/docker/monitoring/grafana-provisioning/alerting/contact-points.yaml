@@ -1,0 +1,17 @@
+# One contact point, two recipients on the same email — not two contact
+# points — so a single notification policy can route everything here
+# without picking between them (infrastructure/docker/README.md's
+# "Alerting" section). Grafana sends its own SMTP (GF_SMTP_* env vars on
+# the grafana service, infrastructure/docker/docker-compose.prod.yml),
+# not through any app code here.
+apiVersion: 1
+
+contactPoints:
+  - orgId: 1
+    name: nexora-infra-email
+    receivers:
+      - uid: nexora-infra-email-receiver
+        type: email
+        settings:
+          addresses: security@onenexora.com;bw141105@gmail.com
+          singleEmail: true

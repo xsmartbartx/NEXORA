@@ -6,6 +6,11 @@ apiVersion: 1
 
 datasources:
   - name: Prometheus
+    # Fixed, not auto-generated — alert rules (monitoring/grafana-provisioning
+    # /alerting/) reference this datasource by uid, which needs to be stable
+    # across redeploys rather than whatever hash Grafana would otherwise
+    # assign on first boot.
+    uid: prometheus
     type: prometheus
     access: proxy
     url: http://prometheus:9090

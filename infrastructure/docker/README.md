@@ -209,6 +209,48 @@ app cache, so "hit rate" here reads differently than a typical
 read-through cache — expect it to reflect rate-limit-key lookups, not
 content caching effectiveness.
 
+## Alerting
+
+Four rules (`monitoring/grafana-provisioning/alerting/rules.yaml`), all
+routed to one email contact point
+(`monitoring/grafana-provisioning/alerting/contact-points.yaml`) — both
+auto-provisioned, no manual rule-building in the UI:
+
+| Rule                    | Fires when                 | `for` |
+| ----------------------- | -------------------------- | ----- |
+| Postgres is down        | `pg_up == 0`               | 2m    |
+| Redis is down           | `redis_up == 0`            | 2m    |
+| Redis memory usage high | used/max maxmemory > 90%   | 5m    |
+| Root disk space low     | root filesystem < 10% free | 10m   |
+
+Every rule sets `noDataState`/`execErrState` to `Alerting`, not Grafana's
+default `NoData`/`Error` — an exporter that stops reporting entirely
+(container crashed, scrape failing) is exactly the kind of failure this
+needs to catch, so silence must never quietly read as "nothing to
+report."
+
+Email goes through Gmail/Workspace SMTP under the same `nexora@
+onenexora.com` account the domain's own DNS runs on, using an **App
+Password** (`GRAFANA_SMTP_PASSWORD` — generate one at
+[myaccount.google.com/apppasswords](https://myaccount.google.com/apppasswords),
+never the account's real password), to `security@onenexora.com` and
+`bw141105@gmail.com`.
+
+**Verified, not just configured**: built each rule against real
+Postgres/Redis/node-exporter containers on a scratch network, then
+actually broke each condition and watched the rule cross from
+`pending` to `firing` within its `for` window — stopped the Postgres
+container and confirmed "Postgres is down" fired within 2 minutes, same
+for Redis, and filled Redis to 92% of its configured 64MB `maxmemory`
+and confirmed "Redis memory usage high" fired within 5 minutes. All
+three then confirmed to resolve cleanly once the underlying problem
+went away. `rules.yaml` itself is Grafana's own
+`/api/v1/provisioning/alert-rules/export` output from that verified
+instance, not hand-written. "Root disk space low" was validated for
+query syntax the same way (a real Prometheus datasource, no errors) but
+not live-fired — deliberately not simulated by actually filling a real
+disk to <10% free.
+
 ## What's been verified
 
 Actually built and run, not just written:
@@ -263,10 +305,9 @@ No orchestrator (no Kubernetes/ECS/etc config) and no secrets manager —
 for everything with no backup policy, and `packages/api-kit`'s rate
 limiter is in-memory (per-instance — see its own file comment) so it
 needs a shared store (Redis/Upstash) before running more than one replica
-of `api` or `gateway`. The monitoring stack is dashboards and metrics
-visibility only — no Alertmanager, no notification channels (Slack/email/
-PagerDuty), no pre-built alert rules; someone has to actually open
-Grafana and look. This gets you a real, verified container per app
+of `api` or `gateway`. Alerting ("## Alerting" above) covers the database,
+cache and disk — nothing watches CPU, memory, or any individual app's own
+error rate (Sentry has the latter, separately) yet. This gets you a real, verified container per app
 and a real, verified way to run them together — including with real TLS
 on real subdomains — on one machine; scaling beyond one machine is a
 later, separate decision.
