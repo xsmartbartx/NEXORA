@@ -339,7 +339,12 @@ export default async function ControlCenterPage() {
       >
         <div className="grid grid-cols-2 gap-3 lg:grid-cols-5">
           <TileBody tile={business.visitors} label="Visitors">
-            {() => null}
+            {(visitors) => (
+              <Stat label="Visitors (7d)" value={visitors.last7d.users.toLocaleString("en-US")}>
+                {visitors.last7d.sessions.toLocaleString("en-US")} sessions ·{" "}
+                {visitors.last30d.users.toLocaleString("en-US")} in 30d
+              </Stat>
+            )}
           </TileBody>
           <TileBody tile={business.clerk} label="Signups">
             {(clerk) => (
