@@ -46,6 +46,9 @@ function groupByCategory(results: ComponentResult[]): [ComponentCategory, Compon
 export default async function StatusPage() {
   const snapshot = await getStatusSnapshot(components);
   const overall = overallStatus(snapshot.components);
+  const upcomingMaintenance = maintenanceWindows.filter(
+    (m) => new Date(m.endsAt).getTime() > snapshot.checkedAt.getTime(),
+  );
 
   return (
     <div className="mx-auto max-w-3xl px-6 py-16">
@@ -95,11 +98,11 @@ export default async function StatusPage() {
         <h2 className="mb-3 text-xs font-semibold uppercase tracking-widest text-muted-foreground">
           Planned maintenance
         </h2>
-        {maintenanceWindows.length === 0 ? (
+        {upcomingMaintenance.length === 0 ? (
           <p className="text-sm text-muted-foreground">None scheduled.</p>
         ) : (
           <ul className="flex flex-col gap-2 text-sm">
-            {maintenanceWindows.map((m) => (
+            {upcomingMaintenance.map((m) => (
               <li key={m.id}>
                 <span className="font-medium">{m.title}</span>{" "}
                 <span className="text-muted-foreground">
