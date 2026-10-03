@@ -338,12 +338,33 @@ Actually built and run, not just written:
 
 No orchestrator (no Kubernetes/ECS/etc config) and no secrets manager —
 `.env.prod` on the VM is it. No horizontal scaling: one Postgres instance
-for everything with no backup policy, and `packages/api-kit`'s rate
-limiter is in-memory (per-instance — see its own file comment) so it
-needs a shared store (Redis/Upstash) before running more than one replica
-of `api` or `gateway`. Alerting ("## Alerting" above) covers the database,
-cache and disk — nothing watches CPU, memory, or any individual app's own
-error rate (Sentry has the latter, separately) yet. This gets you a real, verified container per app
-and a real, verified way to run them together — including with real TLS
-on real subdomains — on one machine; scaling beyond one machine is a
-later, separate decision.
+for everything. Rate limits live in Redis (shared across replicas), with an
+in-process fallback if Redis is unreachable. Alerting ("## Alerting" above)
+covers the database, cache and disk; the Control Center adds a 5xx rate and
+Sentry covers per-app errors. Scaling beyond one machine is a later,
+separate decision.
+
+## Backups and restore drill
+
+`/opt/backups/backup-all.sh` runs nightly at 03:00 UTC (cron on the VM). It
+dumps each Postgres (`pg_dump -Fc`) and the stateful volumes into one
+`platform-backup-<stamp>.tar.gz`, keeps 14 days locally, and uploads every
+archive to the OCI Object Storage bucket `nexora-backups` using instance
+principal auth (create-only; expiry is a bucket lifecycle rule). Only a fully
+successful run advances the heartbeat that `status.onenexora.com/api/backup`
+serves to the uptime workflow.
+
+A backup you have never restored is a hypothesis. Run the drill on the VM:
+
+```bash
+bash infrastructure/deployment/restore-drill.sh            # newest archive
+bash infrastructure/deployment/restore-drill.sh <archive>  # a specific one
+```
+
+It restores `nexora-postgres.dump` into a throwaway `postgres:16-alpine`
+container (never the production database), checks that `api_keys`,
+`audit_events`, `subscriptions` and `product_suspensions` exist, prints row
+counts and the restore time, and removes the container. Last run
+(2026-10-03, archive `platform-backup-20261003T030002Z`): passed, restore
+under 1 s on a 9.6 MB archive. Re-run it after any schema change and at least
+monthly.
