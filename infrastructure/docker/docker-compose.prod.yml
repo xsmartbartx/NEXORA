@@ -189,6 +189,7 @@ services:
         NEXT_PUBLIC_DEVELOPERS_URL: https://developers.onenexora.com
         NEXT_PUBLIC_SENTRY_DSN: ${NEXT_PUBLIC_SENTRY_DSN:-}
         NEXT_PUBLIC_NEXORA_ENV: production
+        NEXT_PUBLIC_GA_MEASUREMENT_ID: ${NEXT_PUBLIC_GA_MEASUREMENT_ID:-}
 
   account:
     build:
