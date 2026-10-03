@@ -89,7 +89,13 @@ jobs:
   # Thresholds in .lighthouserc.json were set with headroom below a real
   # measured baseline (94/100/100/100 locally against this exact image),
   # not guessed — and the gate itself was confirmed to actually fail when
-  # a threshold isn't met, not just verified to trivially pass.
+  # a threshold isn't met, not just verified to trivially pass. Performance
+  # specifically was then re-lowered to 0.75 after this job's first real
+  # CI run scored 0.82 on GitHub's shared runner — slower and noisier than
+  # the machine the local baseline was measured on, a real difference, not
+  # a config mistake. `runs: 3` below takes the median of three Lighthouse
+  # runs instead of one, so a single noisy run can't flip the result either
+  # way.
   lighthouse:
     name: Lighthouse CI (website)
     runs-on: ubuntu-latest
@@ -130,3 +136,4 @@ jobs:
           configPath: ./.lighthouserc.json
           uploadArtifacts: true
           temporaryPublicStorage: true
+          runs: 3
