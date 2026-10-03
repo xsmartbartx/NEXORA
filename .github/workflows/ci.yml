@@ -52,29 +52,42 @@ jobs:
       - name: Build
         run: npm run build
 
+  # One runner per app, so the ten production images build in isolation —
+  # building them all in parallel on a single machine is what exhausted
+  # memory when this was first verified locally (see
+  # infrastructure/docker/README.md). Every image is built on every push;
+  # only the website is also run and health-checked, because it is the one
+  # app that serves a 200 without Clerk/Postgres/Stripe credentials.
   docker-build:
-    name: Docker build (website)
+    name: Docker build (${{ matrix.app }})
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { app: website, port: 3000 }
+          - { app: account, port: 3001 }
+          - { app: console, port: 3002 }
+          - { app: status, port: 3003 }
+          - { app: api, port: 3004 }
+          - { app: docs, port: 3005 }
+          - { app: developers, port: 3006 }
+          - { app: sentinel, port: 3007 }
+          - { app: cspm, port: 3008 }
+          - { app: gateway, port: 3009 }
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      # Only one app, deliberately: building all 10 in parallel is what
-      # exhausted memory when this was verified locally (see
-      # infrastructure/docker/README.md) — GitHub-hosted runners have a
-      # similar RAM ceiling. This app was picked because it has no
-      # external dependencies (Clerk/Postgres/Stripe), so a broken build
-      # here can only be the Dockerfile or next.config.ts's standalone
-      # output, not a missing credential. It exists to catch that
-      # specific regression, not to smoke-test every app on every push.
-      - name: Build website image
+      - name: Build ${{ matrix.app }} image
         run: |
           docker build -f infrastructure/docker/Dockerfile \
-            --build-arg APP_NAME=website \
-            --build-arg APP_PORT=3000 \
-            -t nexora-website:ci .
+            --build-arg APP_NAME=${{ matrix.app }} \
+            --build-arg APP_PORT=${{ matrix.port }} \
+            -t nexora-${{ matrix.app }}:ci .
 
       - name: Run and health-check
+        if: matrix.app == 'website'
         run: |
           docker run -d --name nexora-website-ci -p 18080:3000 nexora-website:ci
           for i in $(seq 1 15); do
