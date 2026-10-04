@@ -5,6 +5,11 @@ const updated: { values: unknown; orgId: string; product: string }[] = [];
 let existingRows: { orgId: string; product: string }[] = [];
 const syncVigiloPlan = vi.fn(async (_input: { orgId: string; planId: string }) => "synced");
 
+const logEvent = vi.fn(async (_event: Record<string, unknown>) => {});
+vi.mock("@nexora/telemetry", () => ({
+  logEvent: (event: Record<string, unknown>) => logEvent(event),
+}));
+
 vi.mock("./vigilo-sync", async (importOriginal) => ({
   ...(await importOriginal<typeof import("./vigilo-sync")>()),
   syncVigiloPlan: (input: { orgId: string; planId: string }) => syncVigiloPlan(input),
@@ -114,6 +119,7 @@ describe("applySubscriptionEvent", () => {
     inserted.length = 0;
     updated.length = 0;
     existingRows = [];
+    logEvent.mockClear();
     syncVigiloPlan.mockClear();
     syncVigiloPlan.mockImplementation(async () => "synced");
   });
@@ -224,6 +230,48 @@ describe("applySubscriptionEvent", () => {
         orgId: "org_purged",
         planId: "free",
       });
+    });
+
+    it("leaves an audit event for each completed sync, and none when sync is switched off", async () => {
+      await applySubscriptionEvent(
+        fakeSubscriptionEvent("customer.subscription.created", "org_v", [
+          { priceId: "price_vigilo_pro" },
+        ]),
+      );
+      expect(logEvent).toHaveBeenCalledExactlyOnceWith(
+        expect.objectContaining({
+          orgId: "org_v",
+          action: "billing.vigilo_sync.completed",
+          outcome: "success",
+          metadata: { planId: "pro" },
+        }),
+      );
+
+      logEvent.mockClear();
+      syncVigiloPlan.mockImplementationOnce(async () => "skipped");
+      await applySubscriptionEvent(
+        fakeSubscriptionEvent("customer.subscription.updated", "org_v", [
+          { priceId: "price_vigilo_pro" },
+        ]),
+      );
+      expect(logEvent).not.toHaveBeenCalled();
+    });
+
+    it("records a failed sync before failing the webhook", async () => {
+      syncVigiloPlan.mockRejectedValueOnce(new Error("Vigilo plan sync failed with HTTP 503"));
+      await expect(
+        applySubscriptionEvent(
+          fakeSubscriptionEvent("customer.subscription.created", "org_v", [
+            { priceId: "price_vigilo_pro" },
+          ]),
+        ),
+      ).rejects.toThrow("HTTP 503");
+      expect(logEvent).toHaveBeenCalledExactlyOnceWith(
+        expect.objectContaining({
+          outcome: "failure",
+          metadata: { planId: "pro", error: "Vigilo plan sync failed with HTTP 503" },
+        }),
+      );
     });
 
     it("does not touch Vigilo for any other product", async () => {

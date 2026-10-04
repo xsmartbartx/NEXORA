@@ -1,8 +1,9 @@
 import Stripe from "stripe";
 import { and, eq } from "drizzle-orm";
 import { db, subscriptions } from "@nexora/database";
+import { logEvent } from "@nexora/telemetry";
 import { PLANS, type ProductId } from "./plans";
-import { syncVigiloPlan, vigiloPlanFor } from "./vigilo-sync";
+import { syncVigiloPlan, vigiloPlanFor, type VigiloPlanId } from "./vigilo-sync";
 
 /** Re-exported so consumers (the webhook route in apps/api) don't need their own `stripe` dependency just for this type. */
 export type StripeEvent = Stripe.Event;
@@ -120,13 +121,43 @@ export async function applySubscriptionEvent(event: StripeEvent): Promise<void> 
     // runs after the write above (the source of truth is already saved) and
     // throws on failure, so Stripe redelivers an event that is safe to replay.
     if (product === "vigilo") {
-      await syncVigiloPlan({
+      await syncVigiloAndRecord(
         orgId,
-        planId:
-          event.type === "customer.subscription.deleted"
-            ? "free"
-            : vigiloPlanFor(subscription.status),
+        event.type === "customer.subscription.deleted"
+          ? "free"
+          : vigiloPlanFor(subscription.status),
+      );
+    }
+  }
+}
+
+/**
+ * Runs the plan sync and leaves an audit event either way, so the Control
+ * Center can show whether Vigilo is receiving plan changes. A skipped sync
+ * (no secret configured) is not an event. A failure is recorded and then
+ * re-thrown, so the webhook still answers non-2xx and Stripe redelivers.
+ */
+async function syncVigiloAndRecord(orgId: string, planId: VigiloPlanId): Promise<void> {
+  const base = { orgId, actorId: "stripe-webhook", resourceType: "vigilo_plan", resourceId: orgId };
+  try {
+    if ((await syncVigiloPlan({ orgId, planId })) === "synced") {
+      await logEvent({
+        ...base,
+        action: "billing.vigilo_sync.completed",
+        outcome: "success",
+        metadata: { planId },
       });
     }
+  } catch (error) {
+    await logEvent({
+      ...base,
+      action: "billing.vigilo_sync.completed",
+      outcome: "failure",
+      metadata: {
+        planId,
+        error: (error instanceof Error ? error.message : "unknown").slice(0, 120),
+      },
+    }).catch(() => {});
+    throw error;
   }
 }
