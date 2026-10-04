@@ -14,6 +14,7 @@ import { Badge, buttonVariants, cn } from "@nexora/ui";
 import type { Subscription } from "@nexora/database";
 import { CheckoutButton } from "./checkout-button";
 import { openBillingPortal } from "./actions";
+import { IndependentProducts } from "./independent-products";
 
 export const metadata: Metadata = {
   title: "Billing",
@@ -103,8 +104,8 @@ export default async function BillingPage(props: PageProps<"/billing">) {
               </button>
               <p className="mt-2 text-xs text-muted-foreground">
                 Change card, download invoices, or cancel any product&rsquo;s subscription — one
-                portal for everything above. After cancelling a product you keep it until the end of
-                its paid period.
+                portal for Sentinel, CSPM and Gateway. After cancelling a product you keep it until
+                the end of its paid period.
               </p>
             </form>
           ) : (
@@ -118,9 +119,10 @@ export default async function BillingPage(props: PageProps<"/billing">) {
       <div className="mt-12 border-t border-border pt-8">
         <h2 className="text-lg font-semibold">Close account</h2>
         <p className="mt-2 text-sm text-muted-foreground">
-          Deleting your organisation cancels every paid subscription immediately and permanently
-          deletes its API keys, usage history and billing state. Admins can do this from the
-          organisation settings.
+          Deleting your organisation cancels every paid Sentinel, CSPM and Gateway subscription
+          immediately and permanently deletes its API keys, usage history and billing state.
+          Independent products below (Vigilo, NeuraWall) are not affected — cancel those in their
+          own apps. Admins can do this from the organisation settings.
         </p>
         <Link
           href="/organisation"
@@ -128,6 +130,10 @@ export default async function BillingPage(props: PageProps<"/billing">) {
         >
           Go to organisation settings to delete it
         </Link>
+      </div>
+
+      <div className="mt-12 border-t border-border pt-8">
+        <IndependentProducts />
       </div>
     </div>
   );
