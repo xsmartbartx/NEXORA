@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { getPlansForProduct, PRODUCT_IDS } from "@nexora/billing/plans";
+import { BUNDLE_PRODUCT_IDS, getPlansForProduct } from "@nexora/billing/plans";
 import { BundleBuilder, type BundleProductPlans } from "./bundle-builder";
 
 export const metadata: Metadata = {
@@ -17,7 +17,7 @@ const productLabel: Record<string, string> = {
 export default function BundlesPage() {
   // Free tiers are excluded — a "bundle" of free plans has nothing to
   // discount or check out. Only the priced tiers make sense here.
-  const productsPlans: BundleProductPlans[] = PRODUCT_IDS.map((product) => ({
+  const productsPlans: BundleProductPlans[] = BUNDLE_PRODUCT_IDS.map((product) => ({
     product,
     label: productLabel[product] ?? product,
     tiers: getPlansForProduct(product)

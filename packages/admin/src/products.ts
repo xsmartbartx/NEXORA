@@ -1,4 +1,4 @@
-import { PLANS } from "@nexora/billing";
+import { EXTERNALLY_ENFORCED_PRODUCT_IDS, PLANS } from "@nexora/billing";
 import { getAllProducts, type Product } from "@nexora/registry";
 
 export interface ControllableProduct {
@@ -20,6 +20,9 @@ export interface ControllableProduct {
 export function getControllableProducts(): ControllableProduct[] {
   const bySlug = new Map<string, Set<string>>();
   for (const plan of PLANS) {
+    // Core only records an externally enforced product's subscription; suspending
+    // it here would change nothing, so it is not offered as a control.
+    if ((EXTERNALLY_ENFORCED_PRODUCT_IDS as string[]).includes(plan.product)) continue;
     for (const feature of Object.keys(plan.limits)) {
       const slug = feature.split(".")[0] ?? feature;
       if (!bySlug.has(slug)) bySlug.set(slug, new Set());

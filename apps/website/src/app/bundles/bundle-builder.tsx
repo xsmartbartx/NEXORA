@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { bundleDiscountPercent, type ProductId } from "@nexora/billing/plans";
+import { bundleDiscountPercent, type NativeProductId as ProductId } from "@nexora/billing/plans";
 import { buttonVariants, Card, cn } from "@nexora/ui";
 
 export interface BundleTier {

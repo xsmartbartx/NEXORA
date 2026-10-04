@@ -3,6 +3,12 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 const inserted: unknown[] = [];
 const updated: { values: unknown; orgId: string; product: string }[] = [];
 let existingRows: { orgId: string; product: string }[] = [];
+const syncVigiloPlan = vi.fn(async (_input: { orgId: string; planId: string }) => "synced");
+
+vi.mock("./vigilo-sync", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("./vigilo-sync")>()),
+  syncVigiloPlan: (input: { orgId: string; planId: string }) => syncVigiloPlan(input),
+}));
 
 vi.mock("@nexora/database", () => ({
   subscriptions: { orgId: "orgId", product: "product" },
@@ -68,6 +74,11 @@ vi.mock("./plans", () => ({
       product: "gateway",
       stripePriceIds: { month: "price_gateway_pro", year: "price_gateway_pro_yearly" },
     },
+    {
+      id: "pro",
+      product: "vigilo",
+      stripePriceIds: { month: "price_vigilo_pro", year: "price_vigilo_pro_yearly" },
+    },
   ],
 }));
 
@@ -77,13 +88,14 @@ function fakeSubscriptionEvent(
   type: string,
   orgId: string | undefined,
   items: { priceId: string; currentPeriodEnd?: number }[],
+  status = "active",
 ) {
   return {
     type,
     data: {
       object: {
         id: "sub_test123",
-        status: "active",
+        status,
         customer: "cus_test123",
         metadata: orgId ? { orgId } : {},
         items: {
@@ -102,6 +114,8 @@ describe("applySubscriptionEvent", () => {
     inserted.length = 0;
     updated.length = 0;
     existingRows = [];
+    syncVigiloPlan.mockClear();
+    syncVigiloPlan.mockImplementation(async () => "synced");
   });
 
   it("writes one row per item for a multi-product bundle subscription", async () => {
@@ -170,5 +184,67 @@ describe("applySubscriptionEvent", () => {
 
     expect(inserted).toHaveLength(0);
     expect(updated).toHaveLength(0);
+  });
+
+  describe("Vigilo (Core owns the subscription, Vigilo is told the plan)", () => {
+    it("records the subscription and syncs Pro while it is active", async () => {
+      await applySubscriptionEvent(
+        fakeSubscriptionEvent("customer.subscription.created", "org_v", [
+          { priceId: "price_vigilo_pro" },
+        ]),
+      );
+
+      expect(inserted).toContainEqual(
+        expect.objectContaining({ orgId: "org_v", product: "vigilo", planId: "pro" }),
+      );
+      expect(syncVigiloPlan).toHaveBeenCalledExactlyOnceWith({ orgId: "org_v", planId: "pro" });
+    });
+
+    it("syncs Free when the subscription stops being active", async () => {
+      existingRows = [{ orgId: "org_v", product: "vigilo" }];
+      await applySubscriptionEvent(
+        fakeSubscriptionEvent(
+          "customer.subscription.updated",
+          "org_v",
+          [{ priceId: "price_vigilo_pro" }],
+          "past_due",
+        ),
+      );
+      expect(syncVigiloPlan).toHaveBeenCalledExactlyOnceWith({ orgId: "org_v", planId: "free" });
+    });
+
+    it("syncs Free on deletion, without re-inserting a purged organisation", async () => {
+      await applySubscriptionEvent(
+        fakeSubscriptionEvent("customer.subscription.deleted", "org_purged", [
+          { priceId: "price_vigilo_pro" },
+        ]),
+      );
+      expect(inserted).toHaveLength(0);
+      expect(syncVigiloPlan).toHaveBeenCalledExactlyOnceWith({
+        orgId: "org_purged",
+        planId: "free",
+      });
+    });
+
+    it("does not touch Vigilo for any other product", async () => {
+      await applySubscriptionEvent(
+        fakeSubscriptionEvent("customer.subscription.created", "org_s", [
+          { priceId: "price_sentinel_pro" },
+        ]),
+      );
+      expect(syncVigiloPlan).not.toHaveBeenCalled();
+    });
+
+    it("fails the webhook if the sync fails, after the subscription is already saved", async () => {
+      syncVigiloPlan.mockRejectedValueOnce(new Error("Vigilo down"));
+      await expect(
+        applySubscriptionEvent(
+          fakeSubscriptionEvent("customer.subscription.created", "org_v", [
+            { priceId: "price_vigilo_pro" },
+          ]),
+        ),
+      ).rejects.toThrow("Vigilo down");
+      expect(inserted).toHaveLength(1);
+    });
   });
 });

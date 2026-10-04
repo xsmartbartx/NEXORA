@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { siteConfig } from "@/lib/site-config";
-import { getPlansForProduct, type PlanTier, type ProductId } from "@nexora/billing/plans";
+import { getPlansForProduct, type NativeProductId, type PlanTier } from "@nexora/billing/plans";
 import { buttonVariants, cn } from "@nexora/ui";
 
 export const metadata: Metadata = {
@@ -47,13 +47,13 @@ function formatLimit(limit: number | null | undefined, unit: string): string {
     : `${limit.toLocaleString("en-US")} ${unit} / month`;
 }
 
-const productFeatureLabel: Record<ProductId, string> = {
+const productFeatureLabel: Record<NativeProductId, string> = {
   sentinel: "Sentinel scans",
   cspm: "CSPM scans",
   gateway: "Gateway requests",
 };
 
-const productSummary: Record<ProductId, string> = {
+const productSummary: Record<NativeProductId, string> = {
   sentinel: "Paste a log sample, find the anomalies worth a human's attention.",
   cspm: "Paste your cloud config, get real posture findings back.",
   gateway: "A governed, metered front door for every model call your org makes.",
@@ -63,7 +63,7 @@ const productSummary: Record<ProductId, string> = {
 // Entitlements enforce against, so this page can't drift from them.
 // Business is the natural "recommended" tier for most teams; Scale exists
 // for the customer who'd otherwise need a custom quote.
-function productTiers(product: ProductId): ProductPricing {
+function productTiers(product: NativeProductId): ProductPricing {
   const plans = getPlansForProduct(product);
   const feature = `${product}.scan` in plans[0]!.limits ? `${product}.scan` : "gateway.proxy";
   return {
@@ -87,7 +87,7 @@ function productTiers(product: ProductId): ProductPricing {
   };
 }
 
-const productLabel: Record<ProductId, string> = {
+const productLabel: Record<NativeProductId, string> = {
   sentinel: "Sentinel",
   cspm: "CSPM",
   gateway: "Gateway",

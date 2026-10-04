@@ -52,6 +52,10 @@ x-stripe-product-prices: &stripe-product-prices
   STRIPE_PRICE_ID_GATEWAY_BUSINESS_YEARLY: ${STRIPE_PRICE_ID_GATEWAY_BUSINESS_YEARLY}
   STRIPE_PRICE_ID_GATEWAY_SCALE: ${STRIPE_PRICE_ID_GATEWAY_SCALE}
   STRIPE_PRICE_ID_GATEWAY_SCALE_YEARLY: ${STRIPE_PRICE_ID_GATEWAY_SCALE_YEARLY}
+  # Vigilo Pro reuses the prices Vigilo already sells. Optional: unset means no
+  # Core checkout for Vigilo yet (its own checkout keeps working).
+  STRIPE_PRICE_ID_VIGILO_PRO: ${STRIPE_PRICE_ID_VIGILO_PRO:-}
+  STRIPE_PRICE_ID_VIGILO_PRO_YEARLY: ${STRIPE_PRICE_ID_VIGILO_PRO_YEARLY:-}
 
 services:
   postgres:
@@ -292,6 +296,10 @@ services:
       # org's Stripe subscription before purging its data, so api needs both.
       STRIPE_SECRET_KEY: ${STRIPE_SECRET_KEY}
       CLERK_WEBHOOK_SIGNING_SECRET: ${CLERK_WEBHOOK_SIGNING_SECRET:-}
+      # After recording a Vigilo subscription the webhook tells Vigilo the plan
+      # (packages/billing/src/vigilo-sync.ts). Off while NEXORA_SYNC_SECRET is unset.
+      NEXORA_SYNC_SECRET: ${NEXORA_SYNC_SECRET:-}
+      VIGILO_API_URL: ${VIGILO_API_URL:-https://vigilo-api.onenexora.com}
       DATABASE_URL: postgres://postgres:${POSTGRES_PASSWORD}@postgres:5432/nexora
       REDIS_URL: redis://redis:6379
     depends_on:

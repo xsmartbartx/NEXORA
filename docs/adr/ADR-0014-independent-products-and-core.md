@@ -50,3 +50,22 @@ not migrated (a free account may be provisioned on first read, see phase 1).
 Phases 2 to 5 each touch production data or
 authentication in another repository and need their own review and rollback
 plan.
+
+## Update: phase 4 shipped for Vigilo (2026-10-04)
+
+Vigilo is now a Core product with two plans (Free, Pro), reusing the Stripe prices Vigilo
+already sells ($29/month, $290/year). Core owns the subscription: checkout in Console, the
+Stripe webhook records it per organisation, and then **tells Vigilo the plan** with an
+HMAC-signed `POST /v1/internal/org-plan` (shared `NEXORA_SYNC_SECRET`, 5-minute replay
+window). Vigilo keeps enforcing access from its own database. The temporary Console read of
+Vigilo's `/v1/me` was removed.
+
+- The two webhooks already ignore each other's subscriptions (Core needs `orgId` metadata,
+  Vigilo needs `vigilo_account_email`), so there is no double processing.
+- Core's access rule applies: only `active` and `trialing` are Pro, `past_due` is Free
+  (Vigilo's own webhook was more lenient for personal accounts).
+- Vigilo's own checkout and portal stay for personal accounts; an organisation account is
+  sent to Console, so billing has one home.
+- Core does not offer to suspend Vigilo: it only records the subscription.
+- Rollback: unset `NEXORA_SYNC_SECRET` (Core stops syncing) and Vigilo's own billing for
+  personal accounts is untouched.

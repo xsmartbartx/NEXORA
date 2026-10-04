@@ -8,9 +8,10 @@ import {
   createPortalSession,
   getOrgStripeCustomerId,
   getPlan,
+  isBundleProductId,
   isProductId,
   type BundleCheckoutItem,
-  type ProductId,
+  type NativeProductId,
 } from "@nexora/billing";
 
 const consoleUrl = process.env.NEXT_PUBLIC_CONSOLE_URL ?? "http://localhost:3002";
@@ -96,11 +97,11 @@ export async function startBundleCheckout(formData: FormData): Promise<void> {
       !("tier" in entry) ||
       typeof entry.product !== "string" ||
       typeof entry.tier !== "string" ||
-      !isProductId(entry.product)
+      !isBundleProductId(entry.product)
     ) {
       throw new Error("Malformed bundle item.");
     }
-    const product: ProductId = entry.product;
+    const product: NativeProductId = entry.product;
     const priceId = getPlan(product, entry.tier).stripePriceIds[interval];
     if (!priceId) {
       throw new Error(`No Stripe price configured for ${product} ${entry.tier} (${interval}).`);

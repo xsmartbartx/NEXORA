@@ -64,7 +64,7 @@ export default async function BillingPage(props: PageProps<"/billing">) {
       </span>
       <h1 className="mt-2 text-3xl font-semibold tracking-tight">Billing</h1>
       <p className="mt-2 max-w-xl text-muted-foreground">
-        Sentinel, CSPM and Gateway are billed independently — pick the tier each one needs.
+        Sentinel, CSPM, Gateway and Vigilo are billed independently — pick the tier each one needs.
       </p>
 
       {checkoutStatus === "success" ? (
@@ -104,8 +104,8 @@ export default async function BillingPage(props: PageProps<"/billing">) {
               </button>
               <p className="mt-2 text-xs text-muted-foreground">
                 Change card, download invoices, or cancel any product&rsquo;s subscription — one
-                portal for Sentinel, CSPM and Gateway. After cancelling a product you keep it until
-                the end of its paid period.
+                portal for every product above. After cancelling a product you keep it until the end
+                of its paid period.
               </p>
             </form>
           ) : (
@@ -119,10 +119,10 @@ export default async function BillingPage(props: PageProps<"/billing">) {
       <div className="mt-12 border-t border-border pt-8">
         <h2 className="text-lg font-semibold">Close account</h2>
         <p className="mt-2 text-sm text-muted-foreground">
-          Deleting your organisation cancels every paid Sentinel, CSPM and Gateway subscription
-          immediately and permanently deletes its API keys, usage history and billing state.
-          Independent products below (Vigilo, NeuraWall) are not affected — cancel those in their
-          own apps. Admins can do this from the organisation settings.
+          Deleting your organisation cancels every paid Sentinel, CSPM, Gateway and Vigilo
+          subscription immediately and permanently deletes its API keys, usage history and billing
+          state. NeuraWall below is not affected — cancel it in its own app. Admins can do this from
+          the organisation settings.
         </p>
         <Link
           href="/organisation"
@@ -143,6 +143,7 @@ const productLabel: Record<ProductId, string> = {
   sentinel: "Sentinel",
   cspm: "CSPM",
   gateway: "Gateway",
+  vigilo: "Vigilo",
 };
 
 function ProductBilling({ data, isOrgAdmin }: { data: ProductBillingData; isOrgAdmin: boolean }) {

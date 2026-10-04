@@ -26,7 +26,8 @@
  * and mode (test vs live).
  */
 export type BillingInterval = "month" | "year";
-export type ProductId = "sentinel" | "cspm" | "gateway";
+export type NativeProductId = "sentinel" | "cspm" | "gateway";
+export type ProductId = NativeProductId | "vigilo";
 export type PlanTier = "free" | "starter" | "pro" | "business" | "scale";
 
 export interface Plan {
@@ -59,12 +60,17 @@ function tier(
   monthlyCents: number,
   envKey: string | null,
   limits: Record<string, number | null>,
+  /** Only for a price that already exists in Stripe with its own annual amount (Vigilo Pro); otherwise annual is always `yearlyPrice`. */
+  yearlyCentsOverride?: number,
 ): Plan {
   return {
     id,
     product,
     name,
-    priceCents: { month: monthlyCents, year: monthlyCents === 0 ? 0 : yearlyPrice(monthlyCents) },
+    priceCents: {
+      month: monthlyCents,
+      year: monthlyCents === 0 ? 0 : (yearlyCentsOverride ?? yearlyPrice(monthlyCents)),
+    },
     stripePriceIds: envKey ? stripeEnvIds(envKey) : { month: null, year: null },
     limits,
   };
@@ -94,16 +100,35 @@ const gatewayPlans: Plan[] = [
   tier("gateway", "scale", "Scale", 59900, "GATEWAY_SCALE", { "gateway.proxy": 300000 }),
 ];
 
-export const PRODUCT_IDS: ProductId[] = ["sentinel", "cspm", "gateway"];
+/**
+ * Vigilo is a two-plan product (Free and one Pro), not the five-tier ladder
+ * above, and it reuses the Stripe prices Vigilo already sells: $29/month and
+ * $290/year (not the 20%-off formula, which would not match the price that
+ * actually exists). Access enforcement stays inside Vigilo; Core owns the
+ * subscription and tells Vigilo the resulting plan (see `vigilo-sync.ts`).
+ */
+const vigiloPlans: Plan[] = [
+  tier("vigilo", "free", "Free", 0, null, { "vigilo.scan": 3 }),
+  tier("vigilo", "pro", "Pro", 2900, "VIGILO_PRO", { "vigilo.scan": null }, 29000),
+];
+
+export const PRODUCT_IDS: ProductId[] = ["sentinel", "cspm", "gateway", "vigilo"];
+
+/** Products that can be combined in a bundle checkout (the three native, five-tier products). */
+export const BUNDLE_PRODUCT_IDS: NativeProductId[] = ["sentinel", "cspm", "gateway"];
+
+/** Products whose access Vigilo-style external services enforce themselves: Core records the subscription, but suspending one here would not block anything. */
+export const EXTERNALLY_ENFORCED_PRODUCT_IDS: ProductId[] = ["vigilo"];
 
 export const PLAN_CATALOG: Record<ProductId, Plan[]> = {
   sentinel: sentinelPlans,
   cspm: cspmPlans,
   gateway: gatewayPlans,
+  vigilo: vigiloPlans,
 };
 
 /** Flat view across every product's tiers — for callers that don't care which product a plan belongs to (e.g. admin's product-suspension list). */
-export const PLANS: Plan[] = [...sentinelPlans, ...cspmPlans, ...gatewayPlans];
+export const PLANS: Plan[] = [...sentinelPlans, ...cspmPlans, ...gatewayPlans, ...vigiloPlans];
 
 export const DEFAULT_TIER: PlanTier = "free";
 
@@ -120,6 +145,10 @@ export function getPlan(product: ProductId, tierId: string): Plan {
 
 export function isProductId(value: string): value is ProductId {
   return (PRODUCT_IDS as string[]).includes(value);
+}
+
+export function isBundleProductId(value: string): value is NativeProductId {
+  return (BUNDLE_PRODUCT_IDS as string[]).includes(value);
 }
 
 /**
