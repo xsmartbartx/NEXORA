@@ -3,12 +3,15 @@ import { cn } from "@nexora/ui";
 
 const tabs = [
   { label: "Control Center", href: "/admin/control-center" },
+  { label: "Logs", href: "/admin/logs" },
+  { label: "Deployments", href: "/admin/deployments" },
+  { label: "Keys & quotas", href: "/admin/keys" },
   { label: "Customers", href: "/admin" },
 ];
 
 export function AdminNav({ current }: { current: string }) {
   return (
-    <nav className="mt-4 flex gap-1 border-b border-border" aria-label="Admin sections">
+    <nav className="mt-4 flex flex-wrap gap-1 border-b border-border" aria-label="Admin sections">
       {tabs.map((tab) => (
         <Link
           key={tab.href}
