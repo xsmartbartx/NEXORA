@@ -53,6 +53,14 @@ export default async function WebhooksPage() {
                   is fixed.
                 </p>
               ) : null}
+              {summary.disabledDuplicates > 0 ? (
+                <p className="mb-3 rounded-xl border border-border p-3 text-sm text-muted-foreground">
+                  {summary.disabledDuplicates} disabled endpoint
+                  {summary.disabledDuplicates === 1 ? " duplicates" : "s duplicate"} a working one
+                  at the same URL. It receives nothing and is harmless; it can be deleted in the
+                  Stripe dashboard to keep this list clean.
+                </p>
+              ) : null}
               {summary.endpoints.length === 0 ? (
                 <p className="rounded-xl border border-dashed border-border p-4 text-sm text-muted-foreground">
                   No webhook endpoints are registered in Stripe.
@@ -66,13 +74,18 @@ export default async function WebhooksPage() {
                     >
                       <span className="flex items-center gap-2 font-mono text-xs">
                         <Dot
-                          tone={endpoint.enabled ? "good" : "bad"}
+                          tone={endpoint.enabled ? "good" : endpoint.shadowed ? "neutral" : "bad"}
                           label={endpoint.enabled ? "enabled" : "disabled"}
                         />
                         {endpoint.url}
                       </span>
                       <span className="text-xs text-muted-foreground">
-                        {endpoint.enabled ? "enabled" : "DISABLED"} ·{" "}
+                        {endpoint.enabled
+                          ? "enabled"
+                          : endpoint.shadowed
+                            ? "disabled duplicate"
+                            : "DISABLED"}{" "}
+                        ·{" "}
                         {endpoint.events === "all"
                           ? "all events"
                           : `${endpoint.events} event types`}

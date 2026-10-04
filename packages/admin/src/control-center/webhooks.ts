@@ -19,25 +19,40 @@ export interface EndpointLike {
 export interface EndpointInfo {
   url: string;
   enabled: boolean;
+  /** Disabled, but another endpoint at the same URL is enabled: a stale duplicate, not a lost feed. */
+  shadowed: boolean;
   /** `*` means every event. */
   events: number | "all";
 }
 
 export interface EndpointsSummary {
   endpoints: EndpointInfo[];
-  /** Stripe switches an endpoint off after repeated failures, and it then stops receiving events silently. */
+  /** Disabled endpoints with no working twin at the same URL. Stripe switches an endpoint off after repeated failures and it then receives nothing, silently. */
   disabled: number;
+  /** Disabled duplicates of a working endpoint: harmless clutter, safe to delete. */
+  disabledDuplicates: number;
 }
 
 export function summarizeEndpoints(endpoints: EndpointLike[]): EndpointsSummary {
-  const infos = endpoints.map((endpoint) => ({
-    url: endpoint.url,
-    enabled: endpoint.status === "enabled",
-    events: endpoint.enabled_events.includes("*")
-      ? ("all" as const)
-      : endpoint.enabled_events.length,
-  }));
-  return { endpoints: infos, disabled: infos.filter((e) => !e.enabled).length };
+  const enabledUrls = new Set(
+    endpoints.filter((e) => e.status === "enabled").map((endpoint) => endpoint.url),
+  );
+  const infos = endpoints.map((endpoint) => {
+    const enabled = endpoint.status === "enabled";
+    return {
+      url: endpoint.url,
+      enabled,
+      shadowed: !enabled && enabledUrls.has(endpoint.url),
+      events: endpoint.enabled_events.includes("*")
+        ? ("all" as const)
+        : endpoint.enabled_events.length,
+    };
+  });
+  return {
+    endpoints: infos,
+    disabled: infos.filter((e) => !e.enabled && !e.shadowed).length,
+    disabledDuplicates: infos.filter((e) => e.shadowed).length,
+  };
 }
 
 export interface EventLike {
