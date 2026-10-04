@@ -5,6 +5,7 @@ import { collectVisitors } from "./analytics";
 import { collectBackup, collectDatabase, collectInfraMetrics, probeAll } from "./health";
 import { collectCi, collectSentry, summarizeLatency } from "./application";
 import { collectAccessSignals, collectCertificates, collectCodeSecurity } from "./security";
+import { collectStripeDelivery, collectStripeEndpoints, collectVigiloSync } from "./webhooks";
 import { collect } from "./result";
 
 export * from "./result";
@@ -47,6 +48,9 @@ export async function collectControlCenter() {
     costs,
     checklist,
     visitors,
+    stripeEndpoints,
+    stripeDelivery,
+    vigiloSync,
   ] = await Promise.all([
     collect(collectBackup),
     collect(collectDatabase),
@@ -62,6 +66,9 @@ export async function collectControlCenter() {
     collect(collectCosts),
     collect(collectChecklist),
     collect(collectVisitors),
+    collect(collectStripeEndpoints),
+    collect(collectStripeDelivery),
+    collect(collectVigiloSync),
   ]);
 
   const latency =
@@ -75,6 +82,7 @@ export async function collectControlCenter() {
     application: { latency, sentry, ci },
     security: { codeSecurity, certificates, access },
     business: { visitors, clerk, activation, revenue },
+    webhooks: { endpoints: stripeEndpoints, delivery: stripeDelivery, sync: vigiloSync },
     costs,
     checklist,
   };

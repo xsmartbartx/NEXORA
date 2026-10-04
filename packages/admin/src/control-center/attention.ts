@@ -17,7 +17,7 @@ const level = (l: AttentionLevel, text: string): AttentionItem => ({ level: l, t
  */
 export function attentionItems(snapshot: ControlCenterSnapshot): AttentionItem[] {
   const items: AttentionItem[] = [];
-  const { health, application, security, business, checklist } = snapshot;
+  const { health, application, security, business, webhooks, checklist } = snapshot;
 
   const failed = (name: string, tile: { state: string }) => {
     if (tile.state === "error") items.push(level("warning", `${name} couldn't be loaded.`));
@@ -111,6 +111,30 @@ export function attentionItems(snapshot: ControlCenterSnapshot): AttentionItem[]
   if (business.revenue.state === "ok" && business.revenue.data.pastDue > 0) {
     items.push(level("warning", `${business.revenue.data.pastDue} subscription(s) are past due.`));
   } else failed("Revenue", business.revenue);
+
+  if (webhooks.endpoints.state === "ok" && webhooks.endpoints.data.disabled > 0) {
+    const n = webhooks.endpoints.data.disabled;
+    items.push(
+      level(
+        "critical",
+        `${n} Stripe webhook endpoint${n === 1 ? " is" : "s are"} disabled and receiving nothing.`,
+      ),
+    );
+  } else failed("Stripe webhook endpoints", webhooks.endpoints);
+
+  if (webhooks.delivery.state === "ok" && webhooks.delivery.data.stuck.length > 0) {
+    const n = webhooks.delivery.data.stuck.length;
+    items.push(level("warning", `${n} Stripe event(s) are still undelivered after 10 minutes.`));
+  } else failed("Stripe webhook deliveries", webhooks.delivery);
+
+  if (webhooks.sync.state === "ok" && webhooks.sync.data.failure7d > 0) {
+    items.push(
+      level(
+        "warning",
+        `The Vigilo plan sync failed ${webhooks.sync.data.failure7d} time(s) in the last 7 days.`,
+      ),
+    );
+  } else failed("The Vigilo plan sync history", webhooks.sync);
 
   if (checklist.state === "ok") {
     const overdue = checklist.data.filter((task) => task.state === "overdue").length;
