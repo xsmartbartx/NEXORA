@@ -2,25 +2,50 @@ import { describe, expect, it } from "vitest";
 import { STUCK_AFTER_MINUTES, summarizeDelivery, summarizeEndpoints } from "./webhooks";
 
 describe("summarizeEndpoints", () => {
-  it("flags endpoints Stripe has disabled, which silently stop receiving events", () => {
-    const summary = summarizeEndpoints([
-      {
-        id: "we_1",
-        url: "https://api.test/v1/webhooks/stripe",
-        status: "enabled",
-        enabled_events: ["*"],
-      },
-      { id: "we_2", url: "https://old.test/hook", status: "disabled", enabled_events: ["a", "b"] },
-    ]);
-    expect(summary.disabled).toBe(1);
-    expect(summary.endpoints).toEqual([
-      { url: "https://api.test/v1/webhooks/stripe", enabled: true, events: "all" },
-      { url: "https://old.test/hook", enabled: false, events: 2 },
-    ]);
+  const ep = (url: string, status: string, events: string[] = ["*"]) => ({
+    id: url + status,
+    url,
+    status,
+    enabled_events: events,
   });
 
-  it("has no problems with no endpoints", () => {
-    expect(summarizeEndpoints([])).toEqual({ endpoints: [], disabled: 0 });
+  it("alerts for a disabled endpoint that has no working twin", () => {
+    const summary = summarizeEndpoints([
+      ep("https://api.test/stripe", "enabled"),
+      ep("https://old.test/hook", "disabled", ["a", "b"]),
+    ]);
+    expect(summary.disabled).toBe(1);
+    expect(summary.disabledDuplicates).toBe(0);
+    expect(summary.endpoints[1]).toEqual({
+      url: "https://old.test/hook",
+      enabled: false,
+      shadowed: false,
+      events: 2,
+    });
+  });
+
+  it("treats a disabled endpoint with an enabled twin at the same URL as a duplicate, not an alert", () => {
+    const summary = summarizeEndpoints([
+      ep("https://api.test/stripe", "enabled"),
+      ep("https://api.test/stripe", "disabled"),
+    ]);
+    expect(summary.disabled).toBe(0);
+    expect(summary.disabledDuplicates).toBe(1);
+    expect(summary.endpoints.map((e) => e.shadowed)).toEqual([false, true]);
+  });
+
+  it("still alerts when every endpoint at a URL is disabled", () => {
+    const summary = summarizeEndpoints([
+      ep("https://api.test/stripe", "disabled"),
+      ep("https://api.test/stripe", "disabled"),
+    ]);
+    expect(summary.disabled).toBe(2);
+    expect(summary.disabledDuplicates).toBe(0);
+  });
+
+  it("reports all-events endpoints and has no problems with no endpoints", () => {
+    expect(summarizeEndpoints([ep("https://a.test", "enabled")]).endpoints[0]!.events).toBe("all");
+    expect(summarizeEndpoints([])).toEqual({ endpoints: [], disabled: 0, disabledDuplicates: 0 });
   });
 });
 
