@@ -53,4 +53,13 @@ case "$project" in
     ;;
 esac
 
+# Keep the disk from filling between weekly cleanups: every deploy adds 1-4 GB of
+# build cache, and a day of deploys has taken the disk from 77% to 90%. Above the
+# threshold, drop all unused cache (the next build is just slower). The lock is held.
+disk=$(df --output=pcent / | tail -1 | tr -d ' %')
+if [ "$disk" -ge "${DISK_PRUNE_THRESHOLD:-75}" ]; then
+  freed=$(sudo docker builder prune -af 2>&1 | awk '/^Total:/ {print $2}')
+  echo "Disk was ${disk}%: pruned build cache, freed ${freed:-0B}"
+fi
+
 echo "Deployed $project${*:+: $*} at $(date -u +%FT%TZ) ($(git -C "/opt/${project/edge/nexora}" log --oneline -1))"
