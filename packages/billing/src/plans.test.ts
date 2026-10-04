@@ -11,6 +11,7 @@ import {
   PLAN_CATALOG,
   PLANS,
   PRODUCT_IDS,
+  yearlySavingsPercent,
 } from "./plans";
 
 // The five-tier ladder (and its 20%-off annual rule) describes the three native
@@ -136,5 +137,20 @@ describe("bundle discount ladder", () => {
   it("gives no discount outside the defined range (0, or more than the product count)", () => {
     expect(bundleDiscountPercent(0)).toBe(0);
     expect(bundleDiscountPercent(4)).toBe(0);
+  });
+});
+
+describe("yearlySavingsPercent", () => {
+  it("is 20 for every paid native tier (the 20%-off rule)", () => {
+    for (const product of NATIVE) {
+      for (const plan of getPlansForProduct(product)) {
+        if (plan.priceCents.month > 0) expect(yearlySavingsPercent(plan)).toBe(20);
+      }
+    }
+  });
+
+  it("is the real 17 for Vigilo Pro's existing $290 yearly price, and 0 for free plans", () => {
+    expect(yearlySavingsPercent(getPlan("vigilo", "pro"))).toBe(17);
+    expect(yearlySavingsPercent(getPlan("vigilo", "free"))).toBe(0);
   });
 });

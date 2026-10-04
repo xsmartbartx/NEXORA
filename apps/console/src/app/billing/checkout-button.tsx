@@ -1,5 +1,5 @@
 import { buttonVariants, cn } from "@nexora/ui";
-import { isStripeConfigured, type Plan } from "@nexora/billing";
+import { isStripeConfigured, yearlySavingsPercent, type Plan } from "@nexora/billing";
 import { startCheckout } from "./actions";
 
 /**
@@ -41,7 +41,7 @@ export function CheckoutButton({ plan }: { plan: Plan }) {
             type="submit"
             className={cn(buttonVariants({ size: "sm", variant: "secondary" }), "w-full")}
           >
-            {formatUsd(year)}/yr — save 20%
+            {formatUsd(year)}/yr — save {yearlySavingsPercent(plan)}%
           </button>
         </form>
       ) : null}
