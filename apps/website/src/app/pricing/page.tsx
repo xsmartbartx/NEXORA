@@ -93,8 +93,10 @@ const productLabel: Record<NativeProductId, string> = {
   gateway: "Gateway",
 };
 
-// Vigilo bills separately (its own backend); these mirror PLANS in the
-// Vigilo repo's packages/billing/src/vigilo_billing/plans.py.
+// Vigilo has its own richer feature list here, but the same two plans and prices as the
+// catalogue (PLANS.vigilo in @nexora/billing and the Vigilo repo's
+// packages/billing/src/vigilo_billing/plans.py). It can be bought in Vigilo itself
+// (personal accounts) or in Console (organisations, billed with the other products).
 const products: ProductPricing[] = [
   productTiers("sentinel"),
   productTiers("cspm"),
@@ -126,6 +128,7 @@ const products: ProductPricing[] = [
         highlighted: true,
       },
     ],
+    note: "Organisations can also subscribe in NEXORA Console, billed together with your other NEXORA products.",
   },
   // NeuraWall plans mirror the "Pricing" sheet of NeuraWall_financial_marketing_model_2026.xlsx
   // and NeuraWall's own plan table (neurawall/modules/billing/plans.py), which bills them
