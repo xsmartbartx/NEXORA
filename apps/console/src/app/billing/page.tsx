@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { requireOrg } from "@nexora/auth/server";
 import {
+  EXTERNALLY_ENFORCED_PRODUCT_IDS,
   getOrgPlan,
   getOrgSubscription,
   getPlansForProduct,
@@ -41,7 +42,12 @@ async function loadBillingData(orgId: string): Promise<ProductBillingData[] | nu
           getOrgSubscription(orgId, product),
         ]);
         const [feature] = Object.keys(plan.limits);
-        const used = feature ? await countOrgEvents(orgId, `${feature}.completed`, periodStart) : 0;
+        // Core only sees usage its own products report. Vigilo enforces and counts its
+        // scans itself, so a count here would always read 0 and mislead.
+        const used =
+          feature && !(EXTERNALLY_ENFORCED_PRODUCT_IDS as string[]).includes(product)
+            ? await countOrgEvents(orgId, `${feature}.completed`, periodStart)
+            : 0;
         return { product, plan, subscription, tiers: getPlansForProduct(product), used };
       }),
     );
@@ -162,8 +168,10 @@ function ProductBilling({ data, isOrgAdmin }: { data: ProductBillingData; isOrgA
         )}
       </div>
       <p className="mt-1 text-sm text-muted-foreground">
-        {plan.name} plan — {used}
-        {limit === null ? "" : ` / ${limit}`} used this period
+        {plan.name} plan —{" "}
+        {(EXTERNALLY_ENFORCED_PRODUCT_IDS as string[]).includes(product)
+          ? `${limit === null ? "unlimited scans" : `${limit} scans / month`} · usage is shown in ${productLabel[product]}`
+          : `${used}${limit === null ? "" : ` / ${limit}`} used this period`}
         {subscription?.currentPeriodEnd
           ? ` · renews ${subscription.currentPeriodEnd.toLocaleDateString()}`
           : ""}

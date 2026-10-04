@@ -11,6 +11,7 @@ export {
   PLAN_CATALOG,
   PLANS,
   PRODUCT_IDS,
+  yearlySavingsPercent,
 } from "./plans";
 export type { BillingInterval, NativeProductId, Plan, PlanTier, ProductId } from "./plans";
 export { applySubscriptionEvent, verifyStripeSignature } from "./webhook";

@@ -164,3 +164,10 @@ export const BUNDLE_DISCOUNTS: Record<number, number> = { 2: 8, 3: 12 };
 export function bundleDiscountPercent(productCount: number): number {
   return BUNDLE_DISCOUNTS[productCount] ?? 0;
 }
+
+/** The real saving of paying yearly instead of monthly, rounded to a whole percent (0 for a free or monthly-only plan). The five-tier products come to 20%; Vigilo Pro's existing $290 price comes to 17%. */
+export function yearlySavingsPercent(plan: Plan): number {
+  const { month, year } = plan.priceCents;
+  if (month <= 0 || year <= 0) return 0;
+  return Math.max(0, Math.round((1 - year / (month * 12)) * 100));
+}
