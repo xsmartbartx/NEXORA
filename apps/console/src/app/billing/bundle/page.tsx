@@ -3,10 +3,10 @@ import Link from "next/link";
 import {
   bundleDiscountPercent,
   getPlan,
-  isProductId,
+  isBundleProductId,
   type BillingInterval,
   type Plan,
-  type ProductId,
+  type NativeProductId,
 } from "@nexora/billing";
 import { buttonVariants, Card, cn } from "@nexora/ui";
 import { startBundleCheckout } from "../actions";
@@ -53,7 +53,9 @@ export default async function BundleCheckoutPage(props: PageProps<"/billing/bund
 
   const rawItems = parseItems(itemsParam);
   const resolved: { product: string; plan: Plan }[] = rawItems
-    .filter((item): item is { product: ProductId; tier: string } => isProductId(item.product))
+    .filter((item): item is { product: NativeProductId; tier: string } =>
+      isBundleProductId(item.product),
+    )
     .map((item) => ({ product: item.product, plan: getPlan(item.product, item.tier) }));
 
   const invalid = resolved.length < 2 || resolved.length !== rawItems.length;

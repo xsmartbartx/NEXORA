@@ -2,6 +2,7 @@ import Stripe from "stripe";
 import { and, eq } from "drizzle-orm";
 import { db, subscriptions } from "@nexora/database";
 import { PLANS, type ProductId } from "./plans";
+import { syncVigiloPlan, vigiloPlanFor } from "./vigilo-sync";
 
 /** Re-exported so consumers (the webhook route in apps/api) don't need their own `stripe` dependency just for this type. */
 export type StripeEvent = Stripe.Event;
@@ -113,6 +114,19 @@ export async function applySubscriptionEvent(event: StripeEvent): Promise<void> 
       // notifies us) — re-inserting it would resurrect the purged org's
       // billing state.
       await db.insert(subscriptions).values(values);
+    }
+
+    // Vigilo enforces its own access, so it is told the resulting plan. This
+    // runs after the write above (the source of truth is already saved) and
+    // throws on failure, so Stripe redelivers an event that is safe to replay.
+    if (product === "vigilo") {
+      await syncVigiloPlan({
+        orgId,
+        planId:
+          event.type === "customer.subscription.deleted"
+            ? "free"
+            : vigiloPlanFor(subscription.status),
+      });
     }
   }
 }
