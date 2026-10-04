@@ -19,6 +19,7 @@ export * from "./checklist";
 export * from "./logs";
 export * from "./deployments";
 export * from "./keys";
+export * from "./webhooks";
 export * from "./links";
 export * from "./attention";
 export { REPOS } from "./github";

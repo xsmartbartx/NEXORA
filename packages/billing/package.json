@@ -13,6 +13,7 @@
   },
   "dependencies": {
     "@nexora/database": "*",
+    "@nexora/telemetry": "*",
     "stripe": "^22.6.2"
   },
   "devDependencies": {

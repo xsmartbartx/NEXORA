@@ -5,6 +5,7 @@ const tabs = [
   { label: "Control Center", href: "/admin/control-center" },
   { label: "Logs", href: "/admin/logs" },
   { label: "Deployments", href: "/admin/deployments" },
+  { label: "Webhooks", href: "/admin/webhooks" },
   { label: "Keys & quotas", href: "/admin/keys" },
   { label: "Customers", href: "/admin" },
 ];
