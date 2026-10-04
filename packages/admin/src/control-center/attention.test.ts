@@ -76,6 +76,11 @@ const healthy = (): ControlCenterSnapshot => ({
       nonUsdSkipped: 0,
     }),
   },
+  webhooks: {
+    endpoints: ok({ endpoints: [], disabled: 0, disabledDuplicates: 0 }),
+    delivery: ok({ events24h: 3, topTypes: [], stuck: [], capped: false }),
+    sync: ok({ success7d: 0, failure7d: 0, lastFailure: null, lastSuccess: null }),
+  },
   costs: ok({ entries: [], monthlyCents: 0, byVendor: [] }),
   checklist: ok([]),
 });
@@ -91,6 +96,46 @@ describe("attentionItems", () => {
     expect(attentionItems(s)).toEqual([
       { level: "critical", text: "API is down." },
       { level: "warning", text: "Docs is responding slowly." },
+    ]);
+  });
+
+  it("flags a Stripe endpoint with no working twin as critical, but not a harmless duplicate", () => {
+    const s = healthy();
+    s.webhooks.endpoints = ok({ endpoints: [], disabled: 1, disabledDuplicates: 0 });
+    expect(attentionItems(s)).toEqual([
+      { level: "critical", text: "1 Stripe webhook endpoint is disabled and receiving nothing." },
+    ]);
+
+    s.webhooks.endpoints = ok({ endpoints: [], disabled: 0, disabledDuplicates: 2 });
+    expect(attentionItems(s)).toEqual([]);
+  });
+
+  it("flags undelivered Stripe events and failed Vigilo plan syncs as warnings", () => {
+    const s = healthy();
+    s.webhooks.delivery = ok({
+      events24h: 5,
+      topTypes: [],
+      stuck: [{ id: "evt_1", type: "invoice.paid", ageMinutes: 30, pendingWebhooks: 1 }],
+      capped: false,
+    });
+    s.webhooks.sync = ok({
+      success7d: 2,
+      failure7d: 3,
+      lastFailure: { at: new Date(), orgId: "org_1", error: "HTTP 503" },
+      lastSuccess: null,
+    });
+    expect(attentionItems(s)).toEqual([
+      { level: "warning", text: "1 Stripe event(s) are still undelivered after 10 minutes." },
+      { level: "warning", text: "The Vigilo plan sync failed 3 time(s) in the last 7 days." },
+    ]);
+  });
+
+  it("calls out a webhook source that is configured but failing to load, not one that isn't connected", () => {
+    const s = healthy();
+    s.webhooks.endpoints = broken;
+    s.webhooks.delivery = notConnected;
+    expect(attentionItems(s)).toEqual([
+      { level: "warning", text: "Stripe webhook endpoints couldn't be loaded." },
     ]);
   });
 
