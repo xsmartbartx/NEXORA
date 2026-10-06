@@ -63,3 +63,7 @@ crash.log
 
 # Lighthouse CI
 .lighthouseci/
+
+# Playwright output
+test-results
+playwright-report

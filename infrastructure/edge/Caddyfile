@@ -42,49 +42,76 @@ http://:9180 {
 	respond @server_action 403
 }
 
+# Baseline response headers for NEXORA's own apps (not Vigilo, NeuraWall or
+# Grafana, which are separate products with their own needs). No
+# includeSubDomains/preload on HSTS and no CSP yet: a CSP needs testing against
+# Clerk and Stripe before it can be enforced. X-Frame-Options DENY: none of
+# these apps is meant to be framed (console's billing and API-key pages are the
+# clickjacking targets).
+(security_headers) {
+	header {
+		Strict-Transport-Security "max-age=31536000"
+		X-Content-Type-Options "nosniff"
+		X-Frame-Options "DENY"
+		Referrer-Policy "strict-origin-when-cross-origin"
+		-X-Powered-By
+		-Server
+	}
+}
+
 onenexora.com, www.onenexora.com {
+	import security_headers
 	import no_server_actions
 	reverse_proxy nexora-website-1:3000
 }
 
 account.onenexora.com {
+	import security_headers
 	import no_server_actions
 	reverse_proxy nexora-account-1:3001
 }
 
 console.onenexora.com {
+	import security_headers
 	reverse_proxy nexora-console-1:3002
 }
 
 status.onenexora.com {
+	import security_headers
 	import no_server_actions
 	reverse_proxy nexora-status-1:3003
 }
 
 api.onenexora.com {
+	import security_headers
 	import no_server_actions
 	reverse_proxy nexora-api-1:3004
 }
 
 docs.onenexora.com {
+	import security_headers
 	import no_server_actions
 	reverse_proxy nexora-docs-1:3005
 }
 
 developers.onenexora.com {
+	import security_headers
 	import no_server_actions
 	reverse_proxy nexora-developers-1:3006
 }
 
 sentinel.onenexora.com {
+	import security_headers
 	reverse_proxy nexora-sentinel-1:3007
 }
 
 cspm.onenexora.com {
+	import security_headers
 	reverse_proxy nexora-cspm-1:3008
 }
 
 gateway.onenexora.com {
+	import security_headers
 	reverse_proxy nexora-gateway-1:3009
 }
 
