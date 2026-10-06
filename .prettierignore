@@ -12,3 +12,7 @@ packages/database/drizzle/meta
 
 # Working notes from the replica skill pack
 replica
+
+# Playwright output
+test-results
+playwright-report
