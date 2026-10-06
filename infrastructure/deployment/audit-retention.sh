@@ -13,18 +13,19 @@ set -euo pipefail
 
 DAYS="${RETENTION_DAYS:-400}"
 BATCH="${RETENTION_BATCH:-5000}"
-[[ "$DAYS" =~ ^[0-9]+$ && "$DAYS" -ge 366 ]] || { echo "RETENTION_DAYS must be an integer >= 366 (got '$DAYS')" >&2; exit 2; }
-[[ "$BATCH" =~ ^[0-9]+$ ]] || { echo "RETENTION_BATCH must be an integer" >&2; exit 2; }
+[[ "$DAYS" =~ ^[0-9]{3,6}$ && "$DAYS" -ge 366 ]] || { echo "RETENTION_DAYS must be an integer >= 366 (got '$DAYS')" >&2; exit 2; }
+[[ "$BATCH" =~ ^[1-9][0-9]{0,8}$ ]] || { echo "RETENTION_BATCH must be a positive integer (got '$BATCH')" >&2; exit 2; }
 
 total=0
 while :; do
-  n=$(sudo docker exec nexora-postgres-1 psql -U postgres -d nexora -At -c "
+  n=$(sudo docker exec nexora-postgres-1 psql -v ON_ERROR_STOP=1 -U postgres -d nexora -At -c "
     with doomed as (
       select id from audit_events
       where created_at < now() - interval '${DAYS} days'
       limit ${BATCH}
     ), gone as (delete from audit_events where id in (select id from doomed) returning 1)
     select count(*) from gone;" </dev/null)
+  [[ "$n" =~ ^[0-9]+$ ]] || { echo "unexpected psql output: '$n'" >&2; exit 1; }
   total=$((total + n))
   [ "$n" -lt "$BATCH" ] && break
   sleep 1
