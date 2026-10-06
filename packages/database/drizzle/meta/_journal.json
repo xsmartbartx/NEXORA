@@ -43,6 +43,13 @@
       "when": 1791023560175,
       "tag": "0005_ops_control_center",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1791317176954,
+      "tag": "0006_add_lookup_indexes",
+      "breakpoints": true
     }
   ]
 }
