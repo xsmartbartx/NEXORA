@@ -1,6 +1,6 @@
 {
-  "id": "e97dace7-d0c9-4798-aa1b-fedcf0af1e27",
-  "prevId": "c8cfa200-9693-4f79-a119-15dce443ac88",
+  "id": "d46cd477-705a-4481-bb05-5f534cfb6e98",
+  "prevId": "e97dace7-d0c9-4798-aa1b-fedcf0af1e27",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
@@ -206,7 +206,12 @@
       "compositePrimaryKeys": {},
       "uniqueConstraints": {},
       "policies": {},
-      "checkConstraints": {},
+      "checkConstraints": {
+        "audit_events_outcome_chk": {
+          "name": "audit_events_outcome_chk",
+          "value": "\"audit_events\".\"outcome\" in ('success', 'failure')"
+        }
+      },
       "isRLSEnabled": false
     },
     "public.ops_checklist_completions": {
@@ -331,7 +336,16 @@
       "compositePrimaryKeys": {},
       "uniqueConstraints": {},
       "policies": {},
-      "checkConstraints": {},
+      "checkConstraints": {
+        "ops_costs_interval_chk": {
+          "name": "ops_costs_interval_chk",
+          "value": "\"ops_costs\".\"interval\" in ('month', 'year')"
+        },
+        "ops_costs_amount_chk": {
+          "name": "ops_costs_amount_chk",
+          "value": "\"ops_costs\".\"amount_cents\" >= 0"
+        }
+      },
       "isRLSEnabled": false
     },
     "public.product_suspensions": {
