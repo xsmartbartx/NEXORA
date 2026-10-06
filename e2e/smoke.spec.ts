@@ -103,7 +103,11 @@ test.describe("F05 webhooks verify signatures", () => {
 test.describe("B-001 security headers", () => {
   for (const sub of nexoraHosts) {
     test(`${sub || "website"} sends baseline security headers`, async ({ request }) => {
-      const h = (await request.get(url(sub, sub === "api" ? "/v1/health" : "/"))).headers();
+      // Judge the host's own response: account redirects to Clerk's domain, which we don't control.
+      const res = await request.get(url(sub, sub === "api" ? "/v1/health" : "/"), {
+        maxRedirects: 0,
+      });
+      const h = res.headers();
       expect(h["strict-transport-security"]).toMatch(/max-age=\d{7,}/);
       expect(h["x-content-type-options"]).toBe("nosniff");
       expect(h["x-frame-options"]).toBe("DENY");
