@@ -112,12 +112,13 @@ export default function PrivacyPage() {
 
       <h2 className={h2}>4. Data retention</h2>
       <p className={p}>
-        We keep your organisation&rsquo;s data — API key hashes, audit events and subscription state
-        — for as long as its account is active. When an organisation closes its account, we delete
-        that data within 30 days. The exception is billing and invoice records, which we keep for as
-        long as tax and accounting law requires (in Poland, generally five years from the end of the
-        year in which the related tax was due); Stripe keeps its own payment records under its own
-        terms. Account and identity data held by Clerk is deleted when you delete your account.
+        We keep your organisation&rsquo;s data — API key hashes and subscription state — for as long
+        as its account is active. Audit events are kept for 400 days and then deleted automatically.
+        When an organisation closes its account, we delete its data within 30 days. The exception is
+        billing and invoice records, which we keep for as long as tax and accounting law requires
+        (in Poland, generally five years from the end of the year in which the related tax was due);
+        Stripe keeps its own payment records under its own terms. Account and identity data held by
+        Clerk is deleted when you delete your account.
       </p>
       <p className={p}>
         Our database is backed up nightly (backups kept for 14 days) and the whole server weekly

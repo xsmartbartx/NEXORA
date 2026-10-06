@@ -1,4 +1,5 @@
 import {
+  check,
   index,
   integer,
   jsonb,
@@ -8,6 +9,7 @@ import {
   uniqueIndex,
   uuid,
 } from "drizzle-orm/pg-core";
+import { sql } from "drizzle-orm";
 
 /**
  * Machine identity (§6.4). `orgId`/`createdBy` are Clerk ids (`org_...`,
@@ -57,6 +59,7 @@ export const auditEvents = pgTable(
   // Usage, Analytics and entitlement counts filter by org + action over a time window.
   (table) => [
     index("audit_events_org_action_created_idx").on(table.orgId, table.action, table.createdAt),
+    check("audit_events_outcome_chk", sql`${table.outcome} in ('success', 'failure')`),
   ],
 );
 
@@ -117,16 +120,23 @@ export const productSuspensions = pgTable(
  * `interval`. A cost that stops is ended (`endedAt`), not deleted, so
  * past months stay explainable.
  */
-export const opsCosts = pgTable("ops_costs", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  vendor: text("vendor").notNull(),
-  label: text("label").notNull().default(""),
-  amountCents: integer("amount_cents").notNull(),
-  interval: text("interval").notNull(),
-  createdBy: text("created_by").notNull(),
-  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
-  endedAt: timestamp("ended_at", { withTimezone: true }),
-});
+export const opsCosts = pgTable(
+  "ops_costs",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    vendor: text("vendor").notNull(),
+    label: text("label").notNull().default(""),
+    amountCents: integer("amount_cents").notNull(),
+    interval: text("interval").notNull(),
+    createdBy: text("created_by").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    endedAt: timestamp("ended_at", { withTimezone: true }),
+  },
+  (table) => [
+    check("ops_costs_interval_chk", sql`${table.interval} in ('month', 'year')`),
+    check("ops_costs_amount_chk", sql`${table.amountCents} >= 0`),
+  ],
+);
 
 /**
  * One row each time the owner ticks off a recurring operational task
