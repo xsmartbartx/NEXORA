@@ -1,0 +1,21 @@
+feature,area,priority,original,clone,notes
+Marketing site (home/platform/products/solutions),website,must,yes,no,live
+Pricing with 5 tiers + annual discount,billing,must,yes,no,plans.ts
+Clerk sign-in/up + Google OAuth,identity,must,yes,no,live
+Organisations + org switcher,identity,must,yes,no,Clerk orgs
+Console overview/products/usage/analytics,console,must,yes,no,live
+API keys create/revoke + rate limit,api,must,yes,no,verified e2e 2026-10-01
+Stripe checkout + webhook sync,billing,must,yes,no,live mode only
+Entitlement enforcement per product,billing,must,yes,no,
+Sentinel scan,product,must,yes,no,user-provided data
+CSPM scan,product,should,yes,no,user-provided data
+Gateway proxy + audit,product,should,yes,no,
+Vigilo integration (plan sync),product,should,yes,no,separate repo
+NeuraWall SSO,identity,could,partial,no,needs matching user
+Docs app,docs,should,yes,no,
+Status page,ops,should,partial,no,manual
+Staff admin + control center,ops,could,yes,no,
+Legal pages reviewed by lawyer,legal,must,no,no,AI draft only
+Live-connected Sentinel/CSPM connectors,product,should,no,no,biggest product gap
+Multi-region / data residency,infra,skip,no,no,deliberately deferred
+Partner marketplace onboarding,marketplace,skip,no,no,no partners yet
