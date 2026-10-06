@@ -16,34 +16,49 @@ import {
  * Only `keyHash` and `keyPrefix` are ever stored; the plaintext key is
  * generated, shown once, and never persisted.
  */
-export const apiKeys = pgTable("api_keys", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  orgId: text("org_id").notNull(),
-  name: text("name").notNull(),
-  keyPrefix: text("key_prefix").notNull(),
-  keyHash: text("key_hash").notNull(),
-  scopes: text("scopes").array().notNull().default([]),
-  createdBy: text("created_by").notNull(),
-  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
-  lastUsedAt: timestamp("last_used_at", { withTimezone: true }),
-  revokedAt: timestamp("revoked_at", { withTimezone: true }),
-});
+export const apiKeys = pgTable(
+  "api_keys",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    orgId: text("org_id").notNull(),
+    name: text("name").notNull(),
+    keyPrefix: text("key_prefix").notNull(),
+    keyHash: text("key_hash").notNull(),
+    scopes: text("scopes").array().notNull().default([]),
+    createdBy: text("created_by").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    lastUsedAt: timestamp("last_used_at", { withTimezone: true }),
+    revokedAt: timestamp("revoked_at", { withTimezone: true }),
+  },
+  (table) => [
+    // Every API/Gateway request looks a key up by hash.
+    uniqueIndex("api_keys_key_hash_idx").on(table.keyHash),
+    index("api_keys_org_id_idx").on(table.orgId),
+  ],
+);
 
 /**
  * The Telemetry / audit log of §4.1 and §12.4: actor, org, action, resource,
  * outcome, timestamp — never the secret or payload that triggered it.
  */
-export const auditEvents = pgTable("audit_events", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  orgId: text("org_id"),
-  actorId: text("actor_id").notNull(),
-  action: text("action").notNull(),
-  resourceType: text("resource_type"),
-  resourceId: text("resource_id"),
-  outcome: text("outcome").notNull().default("success"),
-  metadata: jsonb("metadata"),
-  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
-});
+export const auditEvents = pgTable(
+  "audit_events",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    orgId: text("org_id"),
+    actorId: text("actor_id").notNull(),
+    action: text("action").notNull(),
+    resourceType: text("resource_type"),
+    resourceId: text("resource_id"),
+    outcome: text("outcome").notNull().default("success"),
+    metadata: jsonb("metadata"),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  // Usage, Analytics and entitlement counts filter by org + action over a time window.
+  (table) => [
+    index("audit_events_org_action_created_idx").on(table.orgId, table.action, table.createdAt),
+  ],
+);
 
 /**
  * One row per (organisation, product) — Sentinel, CSPM and Gateway are
