@@ -39,7 +39,8 @@
   --accent-foreground: 210 20% 94%;
 
   --destructive: 0 72% 58%;
-  --destructive-foreground: 210 20% 98%;
+  /* Dark text: white on this red is 3.87:1, under AA; this is 4.89:1. */
+  --destructive-foreground: 222 47% 5%;
 
   --success: 152 60% 45%;
   --warning: 38 92% 55%;
