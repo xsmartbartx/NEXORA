@@ -116,3 +116,21 @@ test.describe("B-001 security headers", () => {
     });
   }
 });
+
+test.describe("canonical host and social card", () => {
+  test("www redirects to the apex and keeps the path", async ({ request }) => {
+    const res = await request.get(url("www", "/pricing?x=1"), { maxRedirects: 0 });
+    expect(res.status()).toBe(308);
+    expect(res.headers()["location"]).toBe(`https://${domain}/pricing?x=1`);
+  });
+
+  test("the home page has a large social card that resolves to an image", async ({ request }) => {
+    const html = await (await request.get(url(""))).text();
+    expect(html).toContain('name="twitter:card" content="summary_large_image"');
+    const og = html.match(/property="og:image" content="([^"]+)"/)?.[1];
+    expect(og).toBeTruthy();
+    const img = await request.get(og!);
+    expect(img.status()).toBe(200);
+    expect(img.headers()["content-type"]).toContain("image/png");
+  });
+});
