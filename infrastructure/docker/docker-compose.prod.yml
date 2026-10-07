@@ -59,6 +59,7 @@ x-stripe-product-prices: &stripe-product-prices
 
 services:
   postgres:
+    restart: unless-stopped
     image: postgres:16-alpine
     environment:
       POSTGRES_DB: nexora
@@ -76,6 +77,7 @@ services:
   # every replica, instead of each replica counting its own. No password:
   # not published to the host, reachable only from this compose network.
   redis:
+    restart: unless-stopped
     image: redis:7-alpine
     # Counters only (every key has a TTL): no persistence, and a hard memory
     # cap on the shared host that evicts the soonest-expiring keys first.
@@ -104,6 +106,7 @@ services:
   # the edge Caddy stack's monitoring.onenexora.com, same pattern every
   # app here already follows.
   postgres-exporter:
+    restart: unless-stopped
     image: quay.io/prometheuscommunity/postgres-exporter:latest
     environment:
       DATA_SOURCE_NAME: postgresql://postgres:${POSTGRES_PASSWORD}@postgres:5432/nexora?sslmode=disable
@@ -112,6 +115,7 @@ services:
         condition: service_healthy
 
   redis-exporter:
+    restart: unless-stopped
     image: oliver006/redis_exporter:latest
     environment:
       REDIS_ADDR: redis://redis:6379
@@ -123,6 +127,7 @@ services:
   # and read-only access to /proc, /sys and / to report on the VM itself,
   # not just this container; standard node_exporter deployment pattern.
   node-exporter:
+    restart: unless-stopped
     image: prom/node-exporter:latest
     pid: host
     volumes:
@@ -136,6 +141,7 @@ services:
       - "--collector.filesystem.mount-points-exclude=^/(host/)?(sys|proc|dev|rootfs/var/lib/docker/.+)($$|/)"
 
   prometheus:
+    restart: unless-stopped
     image: prom/prometheus:latest
     volumes:
       - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
@@ -146,6 +152,7 @@ services:
       - "--storage.tsdb.retention.time=30d"
 
   grafana:
+    restart: unless-stopped
     image: grafana/grafana:latest
     environment:
       GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD}
@@ -184,6 +191,7 @@ services:
       DATABASE_URL: postgres://postgres:${POSTGRES_PASSWORD}@postgres:5432/nexora
 
   website:
+    restart: unless-stopped
     build:
       context: ../..
       dockerfile: infrastructure/docker/Dockerfile
@@ -200,6 +208,7 @@ services:
         NEXT_PUBLIC_GA_MEASUREMENT_ID: ${NEXT_PUBLIC_GA_MEASUREMENT_ID:-}
 
   account:
+    restart: unless-stopped
     build:
       context: ../..
       dockerfile: infrastructure/docker/Dockerfile
@@ -221,6 +230,7 @@ services:
       NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY}
 
   console:
+    restart: unless-stopped
     build:
       context: ../..
       dockerfile: infrastructure/docker/Dockerfile
@@ -262,6 +272,7 @@ services:
         condition: service_completed_successfully
 
   status:
+    restart: unless-stopped
     build:
       context: ../..
       dockerfile: infrastructure/docker/Dockerfile
@@ -280,6 +291,7 @@ services:
       - /opt/backups/heartbeat:/backup-heartbeat:ro
 
   api:
+    restart: unless-stopped
     build:
       context: ../..
       dockerfile: infrastructure/docker/Dockerfile
@@ -309,6 +321,7 @@ services:
         condition: service_healthy
 
   docs:
+    restart: unless-stopped
     build:
       context: ../..
       dockerfile: infrastructure/docker/Dockerfile
@@ -325,6 +338,7 @@ services:
         NEXT_PUBLIC_NEXORA_ENV: production
 
   developers:
+    restart: unless-stopped
     build:
       context: ../..
       dockerfile: infrastructure/docker/Dockerfile
@@ -339,6 +353,7 @@ services:
         NEXT_PUBLIC_NEXORA_ENV: production
 
   sentinel:
+    restart: unless-stopped
     build:
       context: ../..
       dockerfile: infrastructure/docker/Dockerfile
@@ -361,6 +376,7 @@ services:
         condition: service_completed_successfully
 
   cspm:
+    restart: unless-stopped
     build:
       context: ../..
       dockerfile: infrastructure/docker/Dockerfile
@@ -383,6 +399,7 @@ services:
         condition: service_completed_successfully
 
   gateway:
+    restart: unless-stopped
     build:
       context: ../..
       dockerfile: infrastructure/docker/Dockerfile
