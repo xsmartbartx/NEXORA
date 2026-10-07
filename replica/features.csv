@@ -25,3 +25,11 @@ Per-end-user usage attribution + per-request log view,gateway,should,no,no,"3 HN
 Finding explanations and confidence in Sentinel/CSPM,product,could,no,no,"1 HN comment, thin"
 Anthropic-style requests on Gateway,gateway,could,no,no,"1 HN comment, thin"
 Simple self-hosted option,infra,could,no,no,"4 HN comments; deferred, hosted-only by design"
+Containers restart after a reboot or crash,infra,must,yes,yes,B-002 fixed: PR #49 and live policy; no memory limits yet
+Required CI covers every production image build and CodeQL,ci,should,yes,partial,only 2 checks required; admins can bypass
+"Release process (versioned releases, changelog automation)",ci,could,yes,partial,v0.1.0 exists; no automation
+"Container hardening (cap_drop, read_only, resource limits)",infra,should,yes,no,non-root user only
+SBOM and signed images,security,could,yes,no,not started
+OpenAPI spec and SDKs / CLI,developer,could,yes,no,docs list /sdks and /api-reference; not audited
+Vigilo and NeuraWall on Core identity and entitlements,platform,should,yes,partial,SSO endpoint and plan sync exist; product pages still say independent
+Fail-closed (or stricter) rate limit when Redis is down,api,could,yes,no,falls back to per-instance memory
