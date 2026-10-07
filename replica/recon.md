@@ -86,3 +86,25 @@ Clerk/Stripe/OCI themselves, customer data, the user base, third-party AI provid
 
 ## 9. Size
 Screens 26 groups (~70 routes), flows 7, entities 6, hard parts: multi-tenant isolation, Stripe<->entitlement sync across products, SSRF-safe scanners (Vigilo/Gateway). For a self-audit the remaining work is size M.
+
+## 10. External analysis: ChatGPT share "Analiza repozytorium NEXORA" (written about 2026-10-02)
+Read 2026-10-07 in the built-in browser (the page needs JavaScript; WebFetch only returns the title). The other two links in the original request, "Setup infrastruktury firmy", were not re-read. The chat is an AI analysis, so each claim was checked against the repo, GitHub and the live site before it was recorded here.
+
+| claim in the chat | verified 2026-10-07 |
+| --- | --- |
+| `main` is unprotected, no required checks | **Stale.** Protected; required checks are "Lint, typecheck and build" and "Docker build (website)"; enforcement `non_admins`, so an admin can bypass. Only 2 of ~18 checks are required (not the other 9 Docker builds, not CodeQL) |
+| CI builds only the website image | **Stale.** The Docker job is a matrix over every app |
+| no GitHub releases | **Stale.** v0.1.0 exists (tag and release, 2026-10-03). Still one release, version 0.1.0 |
+| docs say no product is public / `/products` empty | **Stale.** The quickstart no longer says that; `/products` lists 5 beta products |
+| README calls prices placeholders | **Stale.** The README states the prices are the live Stripe prices |
+| no `/opengraph-image`, no product structured data | OG image **was true, fixed in PR #44**; product pages already had SoftwareApplication JSON-LD |
+| no restore test | **Was true, done** (drill passed 3 times, once from the off-site copy) |
+| Vigilo and NeuraWall are not Core-native | **Still true for the public copy.** Both product pages say "Independently built and hosted, not yet on Core identity/entitlements" |
+| rate limiter fails open to in-memory when Redis is down | **True** (`packages/api-kit/src/rate-limit.ts`): per-instance limits only while Redis is down |
+| single region, backups in the same region | **Partly changed.** Single region still; backups are now also copied to an OCI bucket (`nexora-backups`) |
+| legal pages are drafts, no entity | **Still true** |
+| no SDK or CLI, no OpenAPI | Still true (docs list `/sdks` and `/api-reference`; not re-audited) |
+| container hardening, SBOM, image signing | Mixed: images run as a non-root user; **no `cap_drop`, `read_only`, `no-new-privileges` or memory limits** in the compose files; no SBOM or signing |
+
+### New finding from this check: restart policy
+`docker inspect` on the host: 19 containers have restart policy `no`, 11 `unless-stopped`; no systemd unit and no `@reboot` cron brings them back. NEXORA's apps, Postgres and Redis are in the `no` group, memory limit 0 on all. After a VM reboot or a crash, NEXORA stays down until someone logs in, while Caddy (restart `unless-stopped`) answers 502. The uptime workflow would alert; nothing would recover. **Fixed 2026-10-07:** PR #49 added `restart: unless-stopped` to the 17 long-running services in `docker-compose.prod.yml` (not to the one-shot `db-migrate`), and the policy was applied live with `docker update --restart unless-stopped` to the 17 running containers without restarting them. Memory limits are still unset.
