@@ -103,6 +103,14 @@ export const CHECKLIST: ChecklistTask[] = [
     href: "https://status.onenexora.com",
   },
   {
+    id: "monthly-dmarc",
+    cadence: "monthly",
+    title: "Email authentication (DMARC)",
+    detail:
+      "Until it exists, add a TXT record named _dmarc with v=DMARC1; p=none; rua=mailto:security@onenexora.com at the DNS host. Then read the aggregate reports and move p=none to p=quarantine once only your own senders (Google Workspace, Clerk, Stripe) appear. SPF and DKIM are already set.",
+    href: "https://account.squarespace.com/domains",
+  },
+  {
     id: "monthly-access",
     cadence: "monthly",
     title: "Access review",
