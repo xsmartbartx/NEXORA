@@ -1,0 +1,27 @@
+feature,area,priority,original,clone,notes
+Marketing site (home/platform/products/solutions),website,must,yes,yes,live; public pages tested 200 (e2e)
+Pricing with 5 tiers + annual discount,billing,must,yes,yes,plans.ts; /pricing 200
+Clerk sign-in/up + Google OAuth,identity,must,yes,yes,signed in via Google 2026-10-01; anonymous redirect tested
+Organisations + org switcher,identity,must,yes,yes,walked 2026-10-01; not automated
+Console overview/products/usage/analytics,console,must,yes,yes,walked 2026-10-01; anonymous redirect tested; signed-in not automated
+API keys create/revoke + rate limit,api,must,yes,yes,verified e2e 2026-10-01; rejection tested in smoke + Postman
+Stripe checkout + webhook sync,billing,must,yes,partial,"signature check tested; live checkout not re-run, no Stripe test mode"
+Entitlement enforcement per product,billing,must,yes,yes,DB-backed tests per README
+Sentinel scan,product,must,yes,yes,engine unit-tested; user-provided data only
+CSPM scan,product,should,yes,yes,engine unit-tested; user-provided data only
+Gateway proxy + audit,product,should,yes,yes,tested vs mock upstream; no-key rejection live
+Vigilo integration (plan sync),product,should,yes,yes,HMAC endpoint rejects unsigned (live); sync unit-tested
+NeuraWall SSO,identity,could,partial,partial,endpoint exists; refused until a matching NeuraWall user exists
+Docs app,docs,should,yes,yes,docs.onenexora.com/quickstart 200
+Status page,ops,should,partial,partial,"manually maintained, not automated"
+Staff admin + control center,ops,could,yes,yes,anonymous redirect tested; staff views not automated
+Legal pages reviewed by lawyer,legal,must,yes,no,AI draft; needs legal entity + lawyer
+Live-connected Sentinel/CSPM connectors,product,should,yes,no,products scan user-provided data only
+Multi-region / data residency,infra,skip,no,no,deliberately deferred
+Partner marketplace onboarding,marketplace,skip,no,no,no partners yet
+Published no-markup pricing statement,launch,should,no,no,Gateway and pricing page; verify no markup first
+Trust page: what Gateway and Sentinel store,launch,should,no,no,from privacy policy
+Per-end-user usage attribution + per-request log view,gateway,should,no,no,"3 HN comments, thin"
+Finding explanations and confidence in Sentinel/CSPM,product,could,no,no,"1 HN comment, thin"
+Anthropic-style requests on Gateway,gateway,could,no,no,"1 HN comment, thin"
+Simple self-hosted option,infra,could,no,no,"4 HN comments; deferred, hosted-only by design"
