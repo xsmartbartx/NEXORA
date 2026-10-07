@@ -59,7 +59,12 @@ http://:9180 {
 	}
 }
 
-onenexora.com, www.onenexora.com {
+# One canonical host: www redirects to the apex, keeping the path and query.
+www.onenexora.com {
+	redir https://onenexora.com{uri} permanent
+}
+
+onenexora.com {
 	import security_headers
 	import no_server_actions
 	reverse_proxy nexora-website-1:3000
