@@ -46,6 +46,47 @@ function extractText(raw: unknown): string | null {
   return null;
 }
 
+function numberFromEnv(name: string, fallback: number): number {
+  const n = Number(process.env[name]);
+  return Number.isInteger(n) && n > 0 ? n : fallback;
+}
+
+function defaultModel(): string {
+  return process.env.GATEWAY_DEFAULT_MODEL ?? "claude-haiku-4-5";
+}
+
+/**
+ * Gateway relays with NEXORA's own upstream key and bills customers a flat
+ * per-request quota, so what one request may cost has to be bounded here:
+ * the caller picks neither an arbitrary (expensive) model nor an unbounded
+ * output or prompt size. Returns an error message, or null when the request
+ * is within limits. `GATEWAY_ALLOWED_MODELS` (comma-separated),
+ * `GATEWAY_MAX_OUTPUT_TOKENS` and `GATEWAY_MAX_INPUT_CHARS` override the
+ * defaults (the default model only, 1024 tokens, 100,000 characters).
+ */
+export function checkRelayLimits(input: RelayRequest): string | null {
+  const allowed = (process.env.GATEWAY_ALLOWED_MODELS ?? defaultModel())
+    .split(",")
+    .map((m) => m.trim())
+    .filter(Boolean);
+  if (input.model !== undefined && !allowed.includes(input.model)) {
+    return `Model "${input.model}" is not available. Allowed: ${allowed.join(", ")}.`;
+  }
+  const maxOutput = numberFromEnv("GATEWAY_MAX_OUTPUT_TOKENS", 1024);
+  if (input.max_tokens !== undefined && !(input.max_tokens >= 1 && input.max_tokens <= maxOutput)) {
+    return `"max_tokens" must be between 1 and ${maxOutput}.`;
+  }
+  const maxInput = numberFromEnv("GATEWAY_MAX_INPUT_CHARS", 100_000);
+  const inputChars = input.messages.reduce(
+    (sum, m) => sum + (typeof m.content === "string" ? m.content.length : maxInput + 1),
+    0,
+  );
+  if (inputChars > maxInput) {
+    return `Messages must total at most ${maxInput} characters.`;
+  }
+  return null;
+}
+
 export function isUpstreamConfigured(): boolean {
   return Boolean(process.env.GATEWAY_UPSTREAM_API_KEY);
 }
@@ -63,6 +104,11 @@ export async function relayChatRequest(input: RelayRequest): Promise<RelayResult
     };
   }
 
+  const limitError = checkRelayLimits(input);
+  if (limitError) {
+    return { ok: false, status: 400, raw: { error: limitError }, text: null };
+  }
+
   let response: Response;
   try {
     response = await fetch(upstreamUrl, {
@@ -73,7 +119,7 @@ export async function relayChatRequest(input: RelayRequest): Promise<RelayResult
         "anthropic-version": "2023-06-01",
       },
       body: JSON.stringify({
-        model: input.model ?? process.env.GATEWAY_DEFAULT_MODEL ?? "claude-haiku-4-5",
+        model: input.model ?? defaultModel(),
         max_tokens: input.max_tokens ?? 256,
         messages: input.messages,
       }),
