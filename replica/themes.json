@@ -1,0 +1,103 @@
+{
+ "_about": "Themes reviews.py sorts feedback into. Patterns are Python regular expressions, matched case-insensitively against the review text. kind is complaint (something users hate) or request (something users want that is missing). Edit freely: add the app category's own words (for a booking app: double booking, time zone, no-show).",
+ "request_patterns": [
+  "\\bi wish\\b",
+  "\\bplease add\\b",
+  "\\bwould be (nice|great|good|helpful)\\b",
+  "\\bwould love\\b",
+  "\\bneeds? (a|an|the|to|more)\\b",
+  "\\bno way to\\b",
+  "\\bthere'?s no (way|option)\\b",
+  "\\b(can'?t|cannot|unable to) (even )?(add|change|edit|set|choose|export|import|customi[sz]e|connect|undo|delete|turn off)\\b",
+  "\\b(missing|lacks|lacking)\\b",
+  "\\bdoesn'?t (have|support|let|allow)\\b",
+  "\\bif only\\b",
+  "\\bfeature request\\b",
+  "\\bwhy (can'?t|isn'?t|doesn'?t)\\b"
+ ],
+ "themes": [
+  {
+   "id": "fees",
+   "label": "Gateway and observability pricing / fees",
+   "kind": "complaint",
+   "patterns": [
+    "\\bfee\\b",
+    "\\bpricing\\b",
+    "\\bcosts?\\b",
+    "\\bextraction\\b",
+    "\\bmoney pit\\b",
+    "\\bprice\\b"
+   ]
+  },
+  {
+   "id": "selfhost",
+   "label": "Hard to self-host, too many moving parts",
+   "kind": "complaint",
+   "patterns": [
+    "self.?host",
+    "\\b6 or 7 different services\\b",
+    "\\bfootprint\\b",
+    "single.?binary",
+    "\\bCPU\\b",
+    "\\bno-go\\b"
+   ]
+  },
+  {
+   "id": "noise",
+   "label": "Alert noise and false positives",
+   "kind": "complaint",
+   "patterns": [
+    "false positive",
+    "\\bnoisy\\b",
+    "alert fatigue",
+    "signal-to-noise"
+   ]
+  },
+  {
+   "id": "trust",
+   "label": "Trust: routing data through a third party, inaccurate numbers",
+   "kind": "complaint",
+   "patterns": [
+    "comfortable",
+    "\\btrust\\b",
+    "inaccurate",
+    "\\bwrong price\\b",
+    "\\bretention\\b"
+   ]
+  },
+  {
+   "id": "smallteam",
+   "label": "Tooling too inaccessible or complex for small teams",
+   "kind": "complaint",
+   "patterns": [
+    "inaccessible",
+    "small teams?",
+    "something simpler",
+    "simple solution",
+    "\\bPITA\\b"
+   ]
+  },
+  {
+   "id": "visibility",
+   "label": "Can't see per-request / per-user usage",
+   "kind": "complaint",
+   "patterns": [
+    "each request",
+    "individual end-users",
+    "total cost per day",
+    "monitor spends",
+    "inspect and debug"
+   ]
+  },
+  {
+   "id": "lockin",
+   "label": "Vendor lock-in / fragmented tooling",
+   "kind": "complaint",
+   "patterns": [
+    "lock-in",
+    "go direct",
+    "over-engineered"
+   ]
+  }
+ ]
+}
