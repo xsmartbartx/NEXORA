@@ -120,7 +120,7 @@ test.describe("B-001 security headers", () => {
 test.describe("canonical host and social card", () => {
   test("www redirects to the apex and keeps the path", async ({ request }) => {
     const res = await request.get(url("www", "/pricing?x=1"), { maxRedirects: 0 });
-    expect(res.status()).toBe(308);
+    expect(res.status()).toBe(301); // Caddy's `redir ... permanent`
     expect(res.headers()["location"]).toBe(`https://${domain}/pricing?x=1`);
   });
 
