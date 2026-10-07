@@ -9,7 +9,7 @@ const variantClasses: Record<ButtonVariant, string> = {
   secondary: "bg-secondary text-secondary-foreground hover:bg-secondary/90",
   ghost: "bg-transparent text-foreground hover:bg-accent",
   outline: "border border-border bg-transparent text-foreground hover:bg-accent",
-  destructive: "bg-destructive text-destructive-foreground hover:bg-destructive/90",
+  destructive: "bg-destructive text-destructive-foreground hover:bg-destructive/[0.96]",
 };
 
 const sizeClasses: Record<ButtonSize, string> = {
