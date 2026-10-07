@@ -33,3 +33,7 @@ SBOM and signed images,security,could,yes,no,not started
 OpenAPI spec and SDKs / CLI,developer,could,yes,no,docs list /sdks and /api-reference; not audited
 Vigilo and NeuraWall on Core identity and entitlements,platform,should,yes,partial,SSO endpoint and plan sync exist; product pages still say independent
 Fail-closed (or stricter) rate limit when Redis is down,api,could,yes,no,falls back to per-instance memory
+"Edge protection in front of the origin (WAF, CDN, hidden origin IP)",infra,should,yes,no,"DNS at Squarespace, origin IP is public"
+Staging environment,infra,should,yes,no,changes deploy straight to production
+Container scanning and SBOM in CI; Dependabot version updates,security,could,yes,no,"CodeQL, secret scanning and Dependabot security updates are on"
+Secrets in a secrets manager (not an env file on the host),security,could,yes,no,"env file on the host, outside git"

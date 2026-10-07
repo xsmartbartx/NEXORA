@@ -108,3 +108,23 @@ Read 2026-10-07 in the built-in browser (the page needs JavaScript; WebFetch onl
 
 ### New finding from this check: restart policy
 `docker inspect` on the host: 19 containers have restart policy `no`, 11 `unless-stopped`; no systemd unit and no `@reboot` cron brings them back. NEXORA's apps, Postgres and Redis are in the `no` group, memory limit 0 on all. After a VM reboot or a crash, NEXORA stays down until someone logs in, while Caddy (restart `unless-stopped`) answers 502. The uptime workflow would alert; nothing would recover. **Fixed 2026-10-07:** PR #49 added `restart: unless-stopped` to the 17 long-running services in `docker-compose.prod.yml` (not to the one-shot `db-migrate`), and the policy was applied live with `docker update --restart unless-stopped` to the 17 running containers without restarting them. Memory limits are still unset.
+
+## 11. External analysis: ChatGPT share "Setup infrastruktury firmy" (read 2026-10-07)
+General advice on setting up a small IT company's infrastructure (Polish, about 50 KB). It is **not** about NEXORA: it names a different project ("Viglio") and never mentions this platform. Read in the built-in browser; the page needs JavaScript. It is an AI's opinion, so each comparison below was checked against the repo, GitHub or the host.
+
+What it proposes: Cloudflare (DNS, CDN, WAF, Zero Trust) in front; Google Workspace; a GitHub organisation; an AWS organisation (separate dev, staging and production accounts, IAM Identity Center, SCPs); Terraform; ECS/Fargate with RDS, S3 and Secrets Manager; GitHub Actions deploying through OIDC; Sentry, Grafana and OpenTelemetry; Kubernetes and multi-region only when needed.
+
+| topic in the chat | NEXORA today (verified) |
+| --- | --- |
+| Docker Compose + Caddy + Postgres + Redis on one OCI VM is reasonable at small scale; do not over-engineer | **Matches**: this is the current setup |
+| Cloudflare in front (WAF, CDN, hidden origin) | **Gap**: DNS is at Squarespace and the apex and www point straight at the VM, so there is no WAF or CDN and the origin IP is public |
+| Secrets in a secrets manager | **Gap**: secrets are in an `.env.prod` file on the host (never in git; names only were read) |
+| Separate dev, staging and production | **Gap**: only local compose and production; changes deploy straight to production |
+| Deployments through CI (OIDC) | **Gap**: deploys are an SSH script (`deploy.sh`) under a host lock; CI builds and tests but does not deploy |
+| Container, dependency and secret scanning in CI | **Partial**: CodeQL default setup, secret scanning, push protection and Dependabot security updates are enabled; **no** container scanner (Trivy or similar), SBOM or image signing in the workflows, and no `.github/dependabot.yml` for version updates |
+| Infrastructure as code | **Partial**: `infrastructure/terraform` (215 lines: OCI compute and network); the Docker, Caddy and cron configuration is outside it. Not audited here |
+| Backups with restore tests, DR | **Done since the chat was written**: nightly backups, off-site copy, restore drill passed 3 times (once from the off-site object); DR remains single-region |
+| Monitoring: Sentry, Grafana, Prometheus | **Matches**: all three are running |
+| MFA, SSO, least privilege, break-glass accounts | Not audited here (Clerk handles customer identity; staff access to GitHub, OCI, Stripe is the owner's single account) |
+
+Takeaway: the chat's own advice is to start small, and NEXORA is at its "Stage 3/5" in practice. The two changes that would cut the most risk for the least effort: **Cloudflare (or similar) in front of the site**, and **a staging environment before the next risky change**. Neither is urgent.
