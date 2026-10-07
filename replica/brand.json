@@ -1,0 +1,26 @@
+{
+  "avoid": [
+    "OpenRouter",
+    "Cloudflare AI Gateway",
+    "Helicone",
+    "Portkey",
+    "LiteLLM",
+    "Datadog",
+    "Wiz",
+    "Lacework",
+    "Vanta",
+    "Prisma Cloud",
+    "Snyk"
+  ],
+  "domains": [
+    "openrouter.ai",
+    "helicone.ai",
+    "portkey.ai",
+    "datadoghq.com",
+    "wiz.io",
+    "lacework.com",
+    "vanta.com",
+    "snyk.io"
+  ],
+  "colors": []
+}

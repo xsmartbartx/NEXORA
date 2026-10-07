@@ -1,0 +1,94 @@
+{
+ "color": {
+  "background": "#070a13",
+  "foreground": "#edf0f3",
+  "card": "#0b0f19",
+  "card-foreground": "#edf0f3",
+  "popover": "#0b0f19",
+  "popover-foreground": "#edf0f3",
+  "primary": "#695def",
+  "primary-foreground": "#f9fafb",
+  "link": "#8f86f3",
+  "secondary": "#35b7f3",
+  "secondary-foreground": "#070a13",
+  "muted": "#1b202d",
+  "muted-foreground": "#98a3b3",
+  "accent": "#1f2533",
+  "accent-foreground": "#edf0f3",
+  "destructive": "#e14747",
+  "destructive-foreground": "#f9fafb",
+  "success": "#2eb877",
+  "warning": "#f6a823",
+  "border": "#252a37",
+  "input": "#252a37",
+  "ring": "#695def"
+ },
+ "pairs": [
+  [
+   "foreground",
+   "background"
+  ],
+  [
+   "card-foreground",
+   "card"
+  ],
+  [
+   "popover-foreground",
+   "popover"
+  ],
+  [
+   "primary-foreground",
+   "primary"
+  ],
+  [
+   "secondary-foreground",
+   "secondary"
+  ],
+  [
+   "muted-foreground",
+   "background"
+  ],
+  [
+   "muted-foreground",
+   "muted"
+  ],
+  [
+   "accent-foreground",
+   "accent"
+  ],
+  [
+   "destructive-foreground",
+   "destructive"
+  ],
+  [
+   "link",
+   "background"
+  ],
+  [
+   "link",
+   "card"
+  ],
+  [
+   "success",
+   "background"
+  ],
+  [
+   "warning",
+   "background"
+  ],
+  [
+   "destructive",
+   "background"
+  ],
+  [
+   "border",
+   "background",
+   "ui"
+  ],
+  [
+   "ring",
+   "background",
+   "ui"
+  ]
+ ]
+}
