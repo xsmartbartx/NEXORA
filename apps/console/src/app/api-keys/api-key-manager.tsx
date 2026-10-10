@@ -25,6 +25,7 @@ export function ApiKeyManager({ initialKeys }: { initialKeys: ApiKeySummary[] })
             createdAt: new Date().toISOString(),
             lastUsedAt: null,
             revokedAt: null,
+            scopes: result.scopes,
           },
           ...prev,
         ]);
@@ -91,6 +92,15 @@ export function ApiKeyManager({ initialKeys }: { initialKeys: ApiKeySummary[] })
             className="mt-1 w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm outline-none focus:border-primary"
           />
         </div>
+        <label className="flex items-center gap-2 text-sm sm:pb-2">
+          <input type="checkbox" name="neurawall_link" className="size-4" />
+          <span>
+            Allow linking a NeuraWall installation
+            <span className="block text-xs text-muted-foreground">
+              Lets it read this organisation&rsquo;s NeuraWall plan and report usage.
+            </span>
+          </span>
+        </label>
         <Button type="submit" disabled={isPending}>
           {isPending ? "Creating…" : "Create key"}
         </Button>
@@ -113,6 +123,11 @@ export function ApiKeyManager({ initialKeys }: { initialKeys: ApiKeySummary[] })
                   {key.name}
                 </p>
                 <p className="mt-0.5 font-mono text-xs text-muted-foreground">{key.keyPrefix}</p>
+                {key.scopes.includes("neurawall:link") ? (
+                  <p className="mt-1">
+                    <Badge variant="neutral">NeuraWall link</Badge>
+                  </p>
+                ) : null}
               </div>
               {key.revokedAt ? (
                 <Badge variant="neutral">Revoked</Badge>

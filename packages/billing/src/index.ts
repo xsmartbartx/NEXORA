@@ -38,3 +38,10 @@ export {
   getOrgSubscriptions,
   resolvePlanForSubscription,
 } from "./subscription";
+export {
+  getNeurawallEntitlement,
+  NEURAWALL_PLAN_IDS,
+  NEURAWALL_PRODUCT,
+  resolveNeurawallEntitlement,
+} from "./neurawall";
+export type { NeurawallEntitlement, NeurawallPlanId } from "./neurawall";

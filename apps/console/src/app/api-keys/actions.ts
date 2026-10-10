@@ -4,7 +4,7 @@ import crypto from "node:crypto";
 import { and, desc, eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { requireOrg } from "@nexora/auth/server";
-import { apiKeys, db } from "@nexora/database";
+import { apiKeys, db, NEURAWALL_LINK_SCOPE } from "@nexora/database";
 import { logEvent } from "@nexora/telemetry";
 
 /**
@@ -29,6 +29,7 @@ export interface ApiKeySummary {
   createdAt: string;
   lastUsedAt: string | null;
   revokedAt: string | null;
+  scopes: string[];
 }
 
 export async function listApiKeys(): Promise<ApiKeySummary[]> {
@@ -46,21 +47,25 @@ export async function listApiKeys(): Promise<ApiKeySummary[]> {
     createdAt: row.createdAt.toISOString(),
     lastUsedAt: row.lastUsedAt?.toISOString() ?? null,
     revokedAt: row.revokedAt?.toISOString() ?? null,
+    scopes: row.scopes,
   }));
 }
 
 export async function createApiKey(
   formData: FormData,
-): Promise<{ id: string; key: string; keyPrefix: string; name: string }> {
+): Promise<{ id: string; key: string; keyPrefix: string; name: string; scopes: string[] }> {
   const { userId, orgId } = await requireOrg();
   const name = String(formData.get("name") ?? "").trim();
   if (!name) throw new Error("Name is required");
 
+  // The only scope today is for linking a NeuraWall installation; a key made without it
+  // cannot read the plan or write events for one (least privilege, §6.4).
+  const scopes = formData.get("neurawall_link") === "on" ? [NEURAWALL_LINK_SCOPE] : [];
   const { key, keyPrefix, keyHash } = generateApiKey();
 
   const [inserted] = await db
     .insert(apiKeys)
-    .values({ orgId, name, keyPrefix, keyHash, createdBy: userId })
+    .values({ orgId, name, keyPrefix, keyHash, scopes, createdBy: userId })
     .returning({ id: apiKeys.id });
   if (!inserted) throw new Error("Failed to create key");
 
@@ -70,10 +75,11 @@ export async function createApiKey(
     action: "console.api_key.created",
     resourceType: "api_key",
     resourceId: inserted.id,
+    metadata: { scopes },
   });
 
   revalidatePath("/api-keys");
-  return { id: inserted.id, key, keyPrefix, name };
+  return { id: inserted.id, key, keyPrefix, name, scopes };
 }
 
 export async function revokeApiKey(keyId: string): Promise<void> {
