@@ -27,8 +27,8 @@
  */
 export type BillingInterval = "month" | "year";
 export type NativeProductId = "sentinel" | "cspm" | "gateway";
-export type ProductId = NativeProductId | "vigilo";
-export type PlanTier = "free" | "starter" | "pro" | "business" | "scale";
+export type ProductId = NativeProductId | "vigilo" | "neurawall";
+export type PlanTier = "free" | "starter" | "pro" | "business" | "scale" | "enterprise";
 
 export interface Plan {
   id: PlanTier;
@@ -112,23 +112,65 @@ const vigiloPlans: Plan[] = [
   tier("vigilo", "pro", "Pro", 2900, "VIGILO_PRO", { "vigilo.scan": null }, 29000),
 ];
 
-export const PRODUCT_IDS: ProductId[] = ["sentinel", "cspm", "gateway", "vigilo"];
+/**
+ * NeuraWall is an AI-assisted firewall that customers host themselves, so its
+ * plan is the organisation's, not a quota Core meters. Four plans, reusing the
+ * Stripe prices NeuraWall already sells (monthly, and a yearly price of ten
+ * months rather than the 20%-off formula). Core owns the subscription for an
+ * installation linked to the organisation; the installation pulls the resulting
+ * plan (`GET /v1/entitlements/neurawall`) and enforces its own limits. The
+ * limit below is informational (enforcement nodes), shown in Console. "Free" is
+ * NeuraWall's Community plan. A standalone installation keeps billing itself in
+ * NeuraWall; Core's webhook ignores those subscriptions (no `orgId` metadata).
+ * Enterprise Dedicated is quoted by sales and has no price here.
+ */
+const neurawallPlans: Plan[] = [
+  tier("neurawall", "free", "Community", 0, null, { "neurawall.nodes": 1 }),
+  tier("neurawall", "pro", "Pro", 14900, "NEURAWALL_PRO", { "neurawall.nodes": 5 }, 149000),
+  tier(
+    "neurawall",
+    "business",
+    "Business",
+    49900,
+    "NEURAWALL_BUSINESS",
+    { "neurawall.nodes": 25 },
+    499000,
+  ),
+  tier(
+    "neurawall",
+    "enterprise",
+    "Enterprise",
+    300000,
+    "NEURAWALL_ENTERPRISE",
+    { "neurawall.nodes": 100 },
+    3000000,
+  ),
+];
+
+export const PRODUCT_IDS: ProductId[] = ["sentinel", "cspm", "gateway", "vigilo", "neurawall"];
 
 /** Products that can be combined in a bundle checkout (the three native, five-tier products). */
 export const BUNDLE_PRODUCT_IDS: NativeProductId[] = ["sentinel", "cspm", "gateway"];
 
 /** Products whose access Vigilo-style external services enforce themselves: Core records the subscription, but suspending one here would not block anything. */
-export const EXTERNALLY_ENFORCED_PRODUCT_IDS: ProductId[] = ["vigilo"];
+export const EXTERNALLY_ENFORCED_PRODUCT_IDS: ProductId[] = ["vigilo", "neurawall"];
 
 export const PLAN_CATALOG: Record<ProductId, Plan[]> = {
   sentinel: sentinelPlans,
   cspm: cspmPlans,
   gateway: gatewayPlans,
   vigilo: vigiloPlans,
+  neurawall: neurawallPlans,
 };
 
 /** Flat view across every product's tiers — for callers that don't care which product a plan belongs to (e.g. admin's product-suspension list). */
-export const PLANS: Plan[] = [...sentinelPlans, ...cspmPlans, ...gatewayPlans, ...vigiloPlans];
+export const PLANS: Plan[] = [
+  ...sentinelPlans,
+  ...cspmPlans,
+  ...gatewayPlans,
+  ...vigiloPlans,
+  ...neurawallPlans,
+];
 
 export const DEFAULT_TIER: PlanTier = "free";
 

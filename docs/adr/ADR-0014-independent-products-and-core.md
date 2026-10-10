@@ -69,3 +69,24 @@ Vigilo's `/v1/me` was removed.
 - Core does not offer to suspend Vigilo: it only records the subscription.
 - Rollback: unset `NEXORA_SYNC_SECRET` (Core stops syncing) and Vigilo's own billing for
   personal accounts is untouched.
+
+## Update: NeuraWall plans in Core billing (2026-10-10)
+
+NeuraWall now has plans in the Core catalogue, following the Vigilo precedent. Four plans (Community,
+Pro, Business, Enterprise) reuse the Stripe prices NeuraWall already sells ($149, $499 and $3,000 a
+month; yearly is ten months). Core owns the subscription of an installation **linked** to the
+organisation: checkout in Console, the Stripe webhook records it per organisation, and the
+installation **pulls** the plan from `GET /v1/entitlements/neurawall` (it is hosted by the customer, so
+Core cannot call it) and enforces its own limits. NeuraWall's sign-in is unchanged: users are created
+as viewers only (phase 5 above stands).
+
+- The two webhooks ignore each other's subscriptions: Core needs `orgId` metadata, NeuraWall's own
+  checkout tags `neurawall_installation`. A standalone installation keeps billing itself.
+- Core's access rule applies, as for every product: only `active` and `trialing` are paid.
+- NeuraWall enforces its limits itself, so Core does not offer to suspend it and Console shows no usage
+  meter; Console's Analytics skips products that report no metered events (this also drops Vigilo's
+  always-zero chart).
+- Off until configured: each plan's Stripe price id is an optional env variable
+  (`STRIPE_PRICE_ID_NEURAWALL_<PLAN>[_YEARLY]`). Unset means no Core checkout for that plan and nothing
+  changes. Rollback: unset them.
+- Not part of this: Enterprise Dedicated stays quoted by sales; NeuraWall's website pricing copy.

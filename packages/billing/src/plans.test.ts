@@ -75,10 +75,11 @@ describe("plan catalog", () => {
     }
   });
 
-  it("isProductId accepts the four billed products and nothing else", () => {
-    for (const id of ["sentinel", "cspm", "gateway", "vigilo"]) expect(isProductId(id)).toBe(true);
-    expect(isProductId("neurawall")).toBe(false);
+  it("isProductId accepts the five billed products and nothing else", () => {
+    for (const id of ["sentinel", "cspm", "gateway", "vigilo", "neurawall"])
+      expect(isProductId(id)).toBe(true);
     expect(isProductId("")).toBe(false);
+    expect(isProductId("neurawall-dedicated")).toBe(false);
   });
 
   it("only the three native products can be bundled", () => {
@@ -112,11 +113,54 @@ describe("Vigilo plans", () => {
   });
 
   it("is enforced by Vigilo itself, so Core does not offer to suspend it", () => {
-    expect(EXTERNALLY_ENFORCED_PRODUCT_IDS).toEqual(["vigilo"]);
+    expect(EXTERNALLY_ENFORCED_PRODUCT_IDS).toContain("vigilo");
   });
 
   it("is part of the flat PLANS view", () => {
     expect(PLANS.filter((p) => p.product === "vigilo")).toHaveLength(2);
+  });
+});
+
+describe("NeuraWall plans", () => {
+  const plans = getPlansForProduct("neurawall");
+
+  it("are Community, Pro, Business and Enterprise, in ascending price order", () => {
+    expect(plans.map((p) => p.id)).toEqual(["free", "pro", "business", "enterprise"]);
+    expect(plans.map((p) => p.name)).toEqual(["Community", "Pro", "Business", "Enterprise"]);
+    const prices = plans.map((p) => p.priceCents.month);
+    expect(prices).toEqual([0, 14900, 49900, 300000]);
+  });
+
+  it("reuse the prices NeuraWall already sells: yearly is ten months, not the 20%-off formula", () => {
+    expect(plans.map((p) => p.priceCents.year)).toEqual([0, 149000, 499000, 3000000]);
+    expect(yearlySavingsPercent(getPlan("neurawall", "pro"))).toBe(17);
+  });
+
+  it("carry the enforcement-node limit NeuraWall applies itself, rising at every tier", () => {
+    const nodes = plans.map((p) => p.limits["neurawall.nodes"]);
+    expect(nodes).toEqual([1, 5, 25, 100]);
+    for (const tier of plans) expect(Object.keys(tier.limits)).toEqual(["neurawall.nodes"]);
+  });
+
+  it("read each paid price id from STRIPE_PRICE_ID_NEURAWALL_<TIER>(_YEARLY), null when unset", () => {
+    for (const tier of ["pro", "business", "enterprise"] as const) {
+      const key = `STRIPE_PRICE_ID_NEURAWALL_${tier.toUpperCase()}`;
+      const { stripePriceIds } = getPlan("neurawall", tier);
+      expect(stripePriceIds.month ?? null).toBe(process.env[key] || null);
+      expect(stripePriceIds.year ?? null).toBe(process.env[`${key}_YEARLY`] || null);
+    }
+    expect(getPlan("neurawall", "free").stripePriceIds).toEqual({ month: null, year: null });
+  });
+
+  it("fall back to Community for an unknown tier", () => {
+    expect(getPlan("neurawall", "scale").id).toBe("free");
+  });
+
+  it("are enforced by NeuraWall itself, billed one product at a time, and not bundle-eligible", () => {
+    expect(EXTERNALLY_ENFORCED_PRODUCT_IDS).toContain("neurawall");
+    expect(isProductId("neurawall")).toBe(true);
+    expect(isBundleProductId("neurawall")).toBe(false);
+    expect(PLANS.filter((p) => p.product === "neurawall")).toHaveLength(4);
   });
 });
 

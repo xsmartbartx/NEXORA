@@ -33,8 +33,8 @@ describe("resolveNeurawallEntitlement", () => {
     }
   });
 
-  it("never passes an unknown plan id through", () => {
-    for (const planId of ["scale", "free", "", "PRO", "pro ", "enterprise_dedicated"]) {
+  it("never passes an unknown plan id through, nor Core's own tier names", () => {
+    for (const planId of ["scale", "starter", "", "PRO", "pro ", "enterprise_dedicated"]) {
       expect(resolveNeurawallEntitlement("org_1", sub(planId, "active")).plan_id).toBe("community");
     }
   });
@@ -46,6 +46,10 @@ describe("resolveNeurawallEntitlement", () => {
       plan_id: "community",
       current_period_end: null,
     });
+  });
+
+  it("treats the catalog's free tier as Community, never as a wire plan of its own", () => {
+    expect(resolveNeurawallEntitlement("org_1", sub("free", "active")).plan_id).toBe("community");
   });
 
   it("keeps a null period end as null", () => {
