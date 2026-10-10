@@ -94,9 +94,9 @@ export function ApiKeyManager({ initialKeys }: { initialKeys: ApiKeySummary[] })
         </div>
         <label className="flex items-center gap-2 text-sm sm:pb-2">
           <input type="checkbox" name="neurawall_link" className="size-4" />
-          <span>
-            Allow linking a NeuraWall installation
-            <span className="block text-xs text-muted-foreground">
+          <span className="flex flex-col">
+            <span>Allow linking a NeuraWall installation</span>
+            <span className="text-xs text-muted-foreground">
               Lets it read this organisation&rsquo;s NeuraWall plan and report usage.
             </span>
           </span>

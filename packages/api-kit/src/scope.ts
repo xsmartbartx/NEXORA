@@ -1,5 +1,5 @@
 import type { NextResponse } from "next/server";
-import { NEURAWALL_LINK_SCOPE, type AuthenticatedKey } from "@nexora/database";
+import type { AuthenticatedKey } from "@nexora/database";
 import { apiError } from "./error";
 
 /**
@@ -16,4 +16,4 @@ export function requireScope(key: AuthenticatedKey, scope: string): NextResponse
   );
 }
 
-export { NEURAWALL_LINK_SCOPE };
+export { NEURAWALL_LINK_SCOPE } from "@nexora/database";

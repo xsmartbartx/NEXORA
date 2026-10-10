@@ -46,55 +46,75 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 
+type Checked<T> = { ok: true; value: T } | { ok: false; message: string };
+
+const fail = (message: string): { ok: false; message: string } => ({ ok: false, message });
+
+/** One `data` object against the field rules of its event type. */
+function parseData(
+  data: Record<string, unknown>,
+  rules: Record<string, FieldRule>,
+  at: string,
+): Checked<Record<string, string | number>> {
+  const clean: Record<string, string | number> = {};
+  for (const [key, value] of Object.entries(data)) {
+    const rule = Object.hasOwn(rules, key) ? rules[key] : undefined;
+    if (!rule) return fail(`${at}.data has an unknown field "${key}".`);
+    const valid =
+      rule.kind === "enum"
+        ? typeof value === "string" && rule.values.includes(value)
+        : typeof value === "number" && Number.isSafeInteger(value) && value >= 0;
+    if (!valid) {
+      return fail(
+        rule.kind === "enum"
+          ? `${at}.data.${key} is not an allowed value.`
+          : `${at}.data.${key} must be a non-negative integer.`,
+      );
+    }
+    clean[key] = value as string | number;
+  }
+  return { ok: true, value: clean };
+}
+
+/** One element of `events`. */
+function parseEvent(item: unknown, at: string): Checked<NeurawallEvent> {
+  if (!isRecord(item)) return fail(`${at} must be an object.`);
+  const unknownKey = Object.keys(item).find((k) => !["event_id", "type", "ts", "data"].includes(k));
+  if (unknownKey) return fail(`${at} has an unknown field "${unknownKey}".`);
+
+  const { event_id: eventId, type, ts, data } = item;
+  if (typeof eventId !== "string" || !UUID.test(eventId)) {
+    return fail(`${at}.event_id must be a UUID.`);
+  }
+  if (typeof type !== "string" || !Object.hasOwn(EVENT_TYPES, type)) {
+    return fail(`${at}.type is not a known NeuraWall event.`);
+  }
+  if (typeof ts !== "number" || !Number.isFinite(ts) || ts < 0) {
+    return fail(`${at}.ts must be a non-negative number of seconds.`);
+  }
+  if (!isRecord(data)) return fail(`${at}.data must be an object.`);
+
+  const parsed = parseData(data, EVENT_TYPES[type] as Record<string, FieldRule>, at);
+  if (!parsed.ok) return parsed;
+  return { ok: true, value: { eventId, type, sourceTs: ts, data: parsed.value } };
+}
+
 /** Strict, pure validation of a decoded `POST /v1/events` body. */
 export function parseNeurawallEvents(body: unknown): ParseResult {
   if (!isRecord(body) || Object.keys(body).some((k) => k !== "events")) {
-    return { ok: false, message: 'Body must be {"events": [...]}.' };
+    return fail('Body must be {"events": [...]}.');
   }
   const raw = body.events;
-  if (!Array.isArray(raw) || raw.length === 0) {
-    return { ok: false, message: '"events" must be a non-empty array.' };
-  }
+  if (!Array.isArray(raw) || raw.length === 0) return fail('"events" must be a non-empty array.');
   if (raw.length > MAX_EVENTS_PER_REQUEST) {
-    return { ok: false, message: `At most ${MAX_EVENTS_PER_REQUEST} events per request.` };
+    return fail(`At most ${MAX_EVENTS_PER_REQUEST} events per request.`);
   }
 
   const events: NeurawallEvent[] = [];
   for (const [i, item] of raw.entries()) {
-    const at = `events[${i}]`;
-    if (!isRecord(item)) return { ok: false, message: `${at} must be an object.` };
-    const unknownKey = Object.keys(item).find(
-      (k) => !["event_id", "type", "ts", "data"].includes(k),
-    );
-    if (unknownKey) return { ok: false, message: `${at} has an unknown field "${unknownKey}".` };
-
-    const { event_id: eventId, type, ts, data } = item;
-    if (typeof eventId !== "string" || !UUID.test(eventId)) {
-      return { ok: false, message: `${at}.event_id must be a UUID.` };
-    }
-    if (typeof type !== "string" || !Object.hasOwn(EVENT_TYPES, type)) {
-      return { ok: false, message: `${at}.type is not a known NeuraWall event.` };
-    }
-    if (typeof ts !== "number" || !Number.isFinite(ts) || ts < 0) {
-      return { ok: false, message: `${at}.ts must be a non-negative number of seconds.` };
-    }
-    if (!isRecord(data)) return { ok: false, message: `${at}.data must be an object.` };
-
-    const rules = EVENT_TYPES[type] as Record<string, FieldRule>;
-    const clean: Record<string, string | number> = {};
-    for (const [key, value] of Object.entries(data)) {
-      const rule = Object.hasOwn(rules, key) ? rules[key] : undefined;
-      if (!rule) return { ok: false, message: `${at}.data has an unknown field "${key}".` };
-      if (rule.kind === "enum") {
-        if (typeof value !== "string" || !rule.values.includes(value)) {
-          return { ok: false, message: `${at}.data.${key} is not an allowed value.` };
-        }
-      } else if (typeof value !== "number" || !Number.isSafeInteger(value) || value < 0) {
-        return { ok: false, message: `${at}.data.${key} must be a non-negative integer.` };
-      }
-      clean[key] = value;
-    }
-    events.push({ eventId, type, sourceTs: ts, data: clean });
+    const parsed = parseEvent(item, `events[${i}]`);
+    if (!parsed.ok) return parsed;
+    events.push(parsed.value);
   }
   return { ok: true, events };
 }
