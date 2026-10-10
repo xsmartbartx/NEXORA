@@ -70,7 +70,8 @@ export default async function BillingPage(props: PageProps<"/billing">) {
       </span>
       <h1 className="mt-2 text-3xl font-semibold tracking-tight">Billing</h1>
       <p className="mt-2 max-w-xl text-muted-foreground">
-        Sentinel, CSPM, Gateway and Vigilo are billed independently — pick the tier each one needs.
+        Sentinel, CSPM, Gateway, Vigilo and NeuraWall are billed independently — pick the tier each
+        one needs.
       </p>
 
       {checkoutStatus === "success" ? (
@@ -125,10 +126,10 @@ export default async function BillingPage(props: PageProps<"/billing">) {
       <div className="mt-12 border-t border-border pt-8">
         <h2 className="text-lg font-semibold">Close account</h2>
         <p className="mt-2 text-sm text-muted-foreground">
-          Deleting your organisation cancels every paid Sentinel, CSPM, Gateway and Vigilo
-          subscription immediately and permanently deletes its API keys, usage history and billing
-          state. NeuraWall below is not affected — cancel it in its own app. Admins can do this from
-          the organisation settings.
+          Deleting your organisation cancels every paid Sentinel, CSPM, Gateway, Vigilo and
+          NeuraWall subscription bought here immediately and permanently deletes its API keys, usage
+          history and billing state. A NeuraWall installation that bills itself is not affected —
+          cancel it in its own app. Admins can do this from the organisation settings.
         </p>
         <Link
           href="/organisation"
@@ -150,7 +151,15 @@ const productLabel: Record<ProductId, string> = {
   cspm: "CSPM",
   gateway: "Gateway",
   vigilo: "Vigilo",
+  neurawall: "NeuraWall",
 };
+
+/** What a plan's limit counts, per product: Core meters scans and calls; NeuraWall enforces its own node limit. */
+function limitText(product: ProductId, limit: number | null): string {
+  if (limit === null) return "Unlimited";
+  const n = limit.toLocaleString("en-US");
+  return product === "neurawall" ? `${n} node${limit === 1 ? "" : "s"}` : n;
+}
 
 function ProductBilling({ data, isOrgAdmin }: { data: ProductBillingData; isOrgAdmin: boolean }) {
   const { product, plan, subscription, tiers, used } = data;
@@ -169,9 +178,11 @@ function ProductBilling({ data, isOrgAdmin }: { data: ProductBillingData; isOrgA
       </div>
       <p className="mt-1 text-sm text-muted-foreground">
         {plan.name} plan —{" "}
-        {(EXTERNALLY_ENFORCED_PRODUCT_IDS as string[]).includes(product)
-          ? `${limit === null ? "unlimited scans" : `${limit} scans / month`} · usage is shown in ${productLabel[product]}`
-          : `${used}${limit === null ? "" : ` / ${limit}`} used this period`}
+        {product === "neurawall"
+          ? `${limitText(product, limit)} · enforced and shown in NeuraWall once an installation is linked`
+          : (EXTERNALLY_ENFORCED_PRODUCT_IDS as string[]).includes(product)
+            ? `${limit === null ? "unlimited scans" : `${limit} scans / month`} · usage is shown in ${productLabel[product]}`
+            : `${used}${limit === null ? "" : ` / ${limit}`} used this period`}
         {subscription?.currentPeriodEnd
           ? ` · renews ${subscription.currentPeriodEnd.toLocaleDateString()}`
           : ""}
@@ -191,9 +202,7 @@ function ProductBilling({ data, isOrgAdmin }: { data: ProductBillingData; isOrgA
               )}
             >
               <p className="text-sm font-semibold">{tier.name}</p>
-              <p className="mt-1 text-xs text-muted-foreground">
-                {tierLimit === null ? "Unlimited" : tierLimit.toLocaleString("en-US")}
-              </p>
+              <p className="mt-1 text-xs text-muted-foreground">{limitText(product, tierLimit)}</p>
               {isCurrent ? (
                 <p className="mt-2 text-xs font-medium text-primary">Current</p>
               ) : isOrgAdmin ? (

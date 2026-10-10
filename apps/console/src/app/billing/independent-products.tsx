@@ -3,9 +3,9 @@ import { Card } from "@nexora/ui";
 const neurawallUrl = process.env.NEXT_PUBLIC_NEURAWALL_URL ?? "https://neurawall.onenexora.com";
 
 /**
- * NeuraWall is independently built and hosted, with its own operator accounts
- * and billing, so it is only linked here. (Vigilo is a Core product now: its
- * subscription is on this page with the others.)
+ * NeuraWall is built and hosted separately, with its own operator accounts. Its
+ * plan can be bought above (an installation linked to this organisation reads it
+ * from Core); an installation that bills itself is managed in NeuraWall.
  */
 export function IndependentProducts() {
   return (
@@ -16,7 +16,8 @@ export function IndependentProducts() {
         <Card>
           <h3 className="font-semibold">NeuraWall</h3>
           <p className="mt-2 text-sm text-muted-foreground">
-            Uses its own operator accounts; billing is managed in NeuraWall.
+            Uses its own operator accounts. Plans bought above apply to an installation linked with
+            an API key from API Keys; a standalone installation is billed in NeuraWall.
           </p>
           <a href={neurawallUrl} className="mt-3 inline-block text-sm text-link hover:underline">
             Open NeuraWall &rarr;

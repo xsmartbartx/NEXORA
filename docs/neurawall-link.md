@@ -19,8 +19,8 @@ organisation is the key's; no request can name another one.
 
 ## What Core stores and returns
 
-- **Plan:** the `subscriptions` row for product `neurawall` (`community`, `pro`, `business`,
-  `enterprise`). Same rule as Core's own plans: only `active` and `trialing` count; anything else,
+- **Plan:** the `subscriptions` row for product `neurawall` (catalog `PLAN_CATALOG.neurawall`: `free` is
+  Community on the wire, then `pro`, `business`, `enterprise`). Same rule as Core's own plans: only `active` and `trialing` count; anything else,
   an unknown plan id, or a `product_suspensions` row means `community`. No row means `community`.
 - **Events:** one `audit_events` row per event (`action` = the event type, `actor_id` =
   `apikey:<key id>`, `external_id` = the sender's `event_id`, `metadata` = `{data, source_ts}`), so
@@ -36,9 +36,12 @@ organisation is the key's; no request can name another one.
    must add: `email` (the primary email), `email_verified` (**a boolean `true`**, not a string),
    `org_id` (the active organisation) and `aud` = `neurawall`, with a short lifetime. NeuraWall
    refuses to create or link users otherwise.
-3. **NeuraWall plans in Core billing** (Stripe prices mapped to `neurawall` subscriptions, in
-   `packages/billing`). Until then every organisation reads as `community`. This touches live
-   Stripe and is deliberately not part of this change.
+3. **NeuraWall plans in Core billing** (built; off until configured). Set
+   `STRIPE_PRICE_ID_NEURAWALL_PRO`, `_BUSINESS`, `_ENTERPRISE` (and `_YEARLY`) in the production env to
+   the **same live price ids NeuraWall already uses** (in NeuraWall's `.env`:
+   `NEURAWALL_BILLING__PRICE_<PLAN>_MONTH` / `_YEAR`). Then add NeuraWall's products to **Core's Customer
+   Portal configuration** in the Stripe dashboard, or plan changes and cancelling will not work from
+   Console. Until the ids are set no plan is purchasable and every organisation reads as `community`.
 4. **Create the link key** in Console for the organisation and set it as
    `NEURAWALL_NEXORA__API_KEY` on the NeuraWall installation, with
    `NEURAWALL_AUTH__SSO_REQUIRED_ORG_ID` set to the same organisation.

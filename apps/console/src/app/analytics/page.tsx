@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { requireOrg } from "@nexora/auth/server";
-import { getOrgPlan, PRODUCT_IDS } from "@nexora/billing";
+import { EXTERNALLY_ENFORCED_PRODUCT_IDS, getOrgPlan, PRODUCT_IDS } from "@nexora/billing";
 import { getAllProducts } from "@nexora/registry";
 import {
   countOrgEvents,
@@ -28,7 +28,12 @@ interface ProductAnalytics {
 // doesn't actually protect rendering, since React doesn't render synchronously).
 async function loadAnalyticsData(orgId: string): Promise<ProductAnalytics[] | null> {
   try {
-    const plans = await Promise.all(PRODUCT_IDS.map((product) => getOrgPlan(orgId, product)));
+    // Products that enforce and count usage themselves (Vigilo, NeuraWall) report no
+    // `<feature>.completed` events to Core, so a chart here would only ever read zero.
+    const metered = PRODUCT_IDS.filter(
+      (product) => !(EXTERNALLY_ENFORCED_PRODUCT_IDS as string[]).includes(product),
+    );
+    const plans = await Promise.all(metered.map((product) => getOrgPlan(orgId, product)));
     const limitsByFeature = new Map(plans.flatMap((plan) => Object.entries(plan.limits)));
     const products = getAllProducts();
     const periodStart = startOfCurrentBillingPeriod();

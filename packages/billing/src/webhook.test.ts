@@ -84,6 +84,14 @@ vi.mock("./plans", () => ({
       product: "vigilo",
       stripePriceIds: { month: "price_vigilo_pro", year: "price_vigilo_pro_yearly" },
     },
+    {
+      id: "business",
+      product: "neurawall",
+      stripePriceIds: {
+        month: "price_neurawall_business",
+        year: "price_neurawall_business_yearly",
+      },
+    },
   ],
 }));
 
@@ -190,6 +198,61 @@ describe("applySubscriptionEvent", () => {
 
     expect(inserted).toHaveLength(0);
     expect(updated).toHaveLength(0);
+  });
+
+  describe("NeuraWall (Core owns the subscription of a linked installation)", () => {
+    it("records the plan per organisation and tells nobody: the installation pulls it", async () => {
+      await applySubscriptionEvent(
+        fakeSubscriptionEvent("customer.subscription.created", "org_acme", [
+          { priceId: "price_neurawall_business", currentPeriodEnd: 1_793_000_000 },
+        ]),
+      );
+      expect(inserted).toEqual([
+        expect.objectContaining({
+          orgId: "org_acme",
+          product: "neurawall",
+          planId: "business",
+          status: "active",
+          currentPeriodEnd: new Date(1_793_000_000 * 1000),
+        }),
+      ]);
+      expect(syncVigiloPlan).not.toHaveBeenCalled();
+    });
+
+    it("follows the subscription's status, so a lapsed payment is visible to the entitlement", async () => {
+      existingRows = [{ orgId: "org_acme", product: "neurawall" }];
+      await applySubscriptionEvent(
+        fakeSubscriptionEvent(
+          "customer.subscription.updated",
+          "org_acme",
+          [{ priceId: "price_neurawall_business" }],
+          "past_due",
+        ),
+      );
+      expect(updated[0]!.values).toMatchObject({ planId: "business", status: "past_due" });
+    });
+
+    it("ignores a NeuraWall installation's own subscription on the shared Stripe account", async () => {
+      // NeuraWall's own checkout tags subscriptions `neurawall_installation`, never `orgId`.
+      const own = fakeSubscriptionEvent("customer.subscription.created", undefined, [
+        { priceId: "price_neurawall_business" },
+      ]);
+      (own.data.object as unknown as { metadata: Record<string, string> }).metadata = {
+        neurawall_installation: "nwi_abc123",
+      };
+      await applySubscriptionEvent(own);
+      expect(inserted).toHaveLength(0);
+      expect(updated).toHaveLength(0);
+    });
+
+    it("does not resurrect a purged organisation's NeuraWall row on deletion", async () => {
+      await applySubscriptionEvent(
+        fakeSubscriptionEvent("customer.subscription.deleted", "org_purged", [
+          { priceId: "price_neurawall_business" },
+        ]),
+      );
+      expect(inserted).toHaveLength(0);
+    });
   });
 
   describe("Vigilo (Core owns the subscription, Vigilo is told the plan)", () => {

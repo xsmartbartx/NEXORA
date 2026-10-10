@@ -16,7 +16,7 @@ const ACTIVE_STATUSES = new Set(["active", "trialing"]);
  * plan without a second database round trip per organisation.
  */
 export function resolvePlanForSubscription(
-  subscription: Subscription | null,
+  subscription: Pick<Subscription, "planId" | "status"> | null,
   product: ProductId,
 ): Plan {
   if (!subscription || !ACTIVE_STATUSES.has(subscription.status)) {

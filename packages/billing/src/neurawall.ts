@@ -1,19 +1,18 @@
 import { and, eq } from "drizzle-orm";
 import { db, productSuspensions, subscriptions, type Subscription } from "@nexora/database";
+import { resolvePlanForSubscription } from "./subscription";
 
 /**
- * What NeuraWall (an independently hosted product, like Vigilo) needs from
- * Core: the plan this organisation is on. NeuraWall owns its own limits; Core
- * only answers "which plan". The plan catalog for NeuraWall is not part of
- * `PLAN_CATALOG` yet (that arrives with its Stripe prices), so this reads the
- * `subscriptions` row for product "neurawall" directly and trusts only the
- * known plan ids.
+ * What a linked NeuraWall installation needs from Core: the plan this
+ * organisation is on. NeuraWall enforces its own limits; Core only answers
+ * "which plan". The plan comes from the catalog (`PLAN_CATALOG.neurawall`) and
+ * the same rule as every other product (`resolvePlanForSubscription`), so
+ * Core's and NeuraWall's idea of "paid" cannot drift. On the wire the catalog's
+ * "free" tier is NeuraWall's "community".
  */
 export const NEURAWALL_PRODUCT = "neurawall";
 export const NEURAWALL_PLAN_IDS = ["community", "pro", "business", "enterprise"] as const;
 export type NeurawallPlanId = (typeof NEURAWALL_PLAN_IDS)[number];
-
-const ACTIVE_STATUSES = new Set(["active", "trialing"]);
 
 export interface NeurawallEntitlement {
   org_id: string;
@@ -23,10 +22,9 @@ export interface NeurawallEntitlement {
 }
 
 /**
- * Pure decision (same rule as `resolvePlanForSubscription`, so Core's own and
- * NeuraWall's idea of "paid" cannot drift): no row, a row that is not
- * active/trialing, an unknown plan id, or a suspended product all mean
- * Community. Community keeps a firewall running; it only removes paid extras.
+ * Pure decision. No row, a row that is not active/trialing, an unknown plan id,
+ * or a suspended product all mean Community. Community keeps a firewall
+ * running; it only removes paid extras.
  */
 export function resolveNeurawallEntitlement(
   orgId: string,
@@ -38,9 +36,10 @@ export function resolveNeurawallEntitlement(
     plan_id: "community",
     current_period_end: null,
   };
-  if (suspended || !subscription || !ACTIVE_STATUSES.has(subscription.status)) return community;
-  const planId = NEURAWALL_PLAN_IDS.find((id) => id === subscription.planId);
-  if (!planId || planId === "community") return community;
+  if (suspended) return community;
+  const plan = resolvePlanForSubscription(subscription, NEURAWALL_PRODUCT);
+  const planId = NEURAWALL_PLAN_IDS.find((id) => id === plan.id);
+  if (!planId || !subscription) return community; // "free" is not a wire id: it is Community
   return {
     org_id: orgId,
     plan_id: planId,
