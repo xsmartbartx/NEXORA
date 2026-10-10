@@ -6,6 +6,8 @@ import { db } from "./client";
 export interface AuthenticatedKey {
   keyId: string;
   orgId: string;
+  /** What this key may be used for beyond the common read-only API, e.g. `neurawall:link`. Empty for keys created without any. */
+  scopes: string[];
 }
 
 export type ApiKeyAuthResult =
@@ -40,7 +42,7 @@ export async function authenticateApiKey(request: Request): Promise<ApiKeyAuthRe
 
   const keyHash = hashKey(token);
   const [row] = await db
-    .select({ id: apiKeys.id, orgId: apiKeys.orgId })
+    .select({ id: apiKeys.id, orgId: apiKeys.orgId, scopes: apiKeys.scopes })
     .from(apiKeys)
     .where(and(eq(apiKeys.keyHash, keyHash), isNull(apiKeys.revokedAt)))
     .limit(1);
@@ -60,5 +62,5 @@ export async function authenticateApiKey(request: Request): Promise<ApiKeyAuthRe
     .where(eq(apiKeys.id, row.id))
     .catch(() => undefined);
 
-  return { ok: true, key: { keyId: row.id, orgId: row.orgId } };
+  return { ok: true, key: { keyId: row.id, orgId: row.orgId, scopes: row.scopes } };
 }

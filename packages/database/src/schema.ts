@@ -54,11 +54,19 @@ export const auditEvents = pgTable(
     resourceId: text("resource_id"),
     outcome: text("outcome").notNull().default("success"),
     metadata: jsonb("metadata"),
+    /**
+     * The sender's own id for an event reported over the API (`POST /v1/events`),
+     * so a retry after a timeout is stored once. Null for events NEXORA writes
+     * itself. Unique per organisation; Postgres treats nulls as distinct, so
+     * the many existing rows are unaffected.
+     */
+    externalId: text("external_id"),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   },
   // Usage, Analytics and entitlement counts filter by org + action over a time window.
   (table) => [
     index("audit_events_org_action_created_idx").on(table.orgId, table.action, table.createdAt),
+    uniqueIndex("audit_events_org_external_id_idx").on(table.orgId, table.externalId),
     check("audit_events_outcome_chk", sql`${table.outcome} in ('success', 'failure')`),
   ],
 );

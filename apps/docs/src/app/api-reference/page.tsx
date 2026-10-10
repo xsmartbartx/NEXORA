@@ -62,6 +62,15 @@ export default function ApiReferencePage() {
             <td>The key doesn&rsquo;t exist or has been revoked.</td>
           </tr>
           <tr>
+            <td>403</td>
+            <td>
+              <code>insufficient_scope</code>
+            </td>
+            <td>
+              The key lacks a scope the endpoint needs (see <a href="#neurawall">NeuraWall</a>).
+            </td>
+          </tr>
+          <tr>
             <td>404</td>
             <td>
               <code>product_not_found</code>
@@ -122,6 +131,117 @@ export default function ApiReferencePage() {
   }
 }`}</code>
       </pre>
+
+      <h2 id="neurawall">NeuraWall</h2>
+      <p>
+        For a NeuraWall installation linked to your organisation. Both endpoints need an API key
+        created with <strong>Allow linking a NeuraWall installation</strong> in Console, which
+        carries the <code>neurawall:link</code> scope. The organisation is always the key&rsquo;s
+        own; there is no organisation parameter.
+      </p>
+
+      <h3>
+        <code>GET /v1/entitlements/neurawall</code>
+      </h3>
+      <p>
+        The plan your organisation is on for NeuraWall. <code>plan_id</code> is already resolved: a
+        lapsed, unpaid or suspended subscription is <code>community</code>.{" "}
+        <code>current_period_end</code> is epoch seconds, or <code>null</code>. Not cached.
+      </p>
+      <pre>
+        <code>{`{ "org_id": "org_2abc", "plan_id": "business", "current_period_end": 1793491200 }`}</code>
+      </pre>
+
+      <h3>
+        <code>POST /v1/events</code>
+      </h3>
+      <p>
+        Usage events from the installation, shown in Console&rsquo;s Usage feed. At most 100 events
+        and 256 KB per request. Idempotent on <code>event_id</code>, so a retry is safe. The
+        contract is closed: only the event types and fields below are accepted, and anything else
+        (an address, an email, an unknown field) is rejected with 422.
+      </p>
+      <pre>
+        <code>{`{
+  "events": [
+    {
+      "event_id": "0b8f2c3e-5a41-4d0e-9f0b-1c2d3e4f5a6b",
+      "type": "neurawall.alert.created",
+      "ts": 1793000000.5,
+      "data": { "severity": "high" }
+    }
+  ]
+}
+
+200 { "stored": 1, "duplicates": 0 }`}</code>
+      </pre>
+      <table>
+        <thead>
+          <tr>
+            <th>Type</th>
+            <th>
+              <code>data</code>
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>
+              <code>neurawall.alert.created</code>
+            </td>
+            <td>
+              <code>severity</code>: low, medium, high, critical
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <code>neurawall.rule.approved</code>
+            </td>
+            <td>
+              <code>mode</code>: enforce, alert_only
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <code>neurawall.bundle.published</code>
+            </td>
+            <td>
+              <code>version</code>, <code>rules</code> (integers)
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <code>neurawall.bundle.rolled_back</code>
+            </td>
+            <td>
+              <code>version</code>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <code>neurawall.node.enrolled</code>, <code>neurawall.node.revoked</code>
+            </td>
+            <td>none</td>
+          </tr>
+          <tr>
+            <td>
+              <code>neurawall.llm.call</code>
+            </td>
+            <td>
+              <code>kind</code>: triage, draft, narrate, explain; <code>outcome</code>: ok, refused,
+              error
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <code>neurawall.flows.ingested</code>
+            </td>
+            <td>
+              <code>count</code> (integer)
+            </td>
+          </tr>
+        </tbody>
+      </table>
 
       <h2>Health</h2>
       <h3>

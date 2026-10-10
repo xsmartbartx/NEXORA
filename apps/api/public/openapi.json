@@ -143,6 +143,109 @@
           }
         }
       }
+    },
+    "/v1/entitlements/neurawall": {
+      "get": {
+        "operationId": "getNeurawallEntitlement",
+        "summary": "The plan of the key's organisation for NeuraWall",
+        "description": "For a NeuraWall installation linked to this organisation. Needs an API key with the `neurawall:link` scope. The organisation is the key's, never a parameter. `plan_id` is already resolved: a lapsed, unpaid or suspended subscription is `community`. Not cached.",
+        "responses": {
+          "200": {
+            "description": "The plan.",
+            "headers": {
+              "X-RateLimit-Limit": {
+                "$ref": "#/components/headers/X-RateLimit-Limit"
+              },
+              "X-RateLimit-Remaining": {
+                "$ref": "#/components/headers/X-RateLimit-Remaining"
+              },
+              "X-RateLimit-Reset": {
+                "$ref": "#/components/headers/X-RateLimit-Reset"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NeurawallEntitlement"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error"
+          },
+          "503": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      }
+    },
+    "/v1/events": {
+      "post": {
+        "operationId": "postNeurawallEvents",
+        "summary": "Report usage events from a NeuraWall installation",
+        "description": "Needs an API key with the `neurawall:link` scope. Events are written to the key's organisation and appear in Console's Usage feed. Idempotent on `event_id`: an id already stored for the organisation is counted as a duplicate, so a retry is safe. The contract is closed: unknown event types, fields or values are rejected, and no addresses or personal data are accepted. At most 100 events and 256 KB per request.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NeurawallEventsRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Stored (or recognised as already stored).",
+            "headers": {
+              "X-RateLimit-Limit": {
+                "$ref": "#/components/headers/X-RateLimit-Limit"
+              },
+              "X-RateLimit-Remaining": {
+                "$ref": "#/components/headers/X-RateLimit-Remaining"
+              },
+              "X-RateLimit-Reset": {
+                "$ref": "#/components/headers/X-RateLimit-Reset"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NeurawallEventsResult"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/Error"
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "413": {
+            "$ref": "#/components/responses/Error"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error"
+          },
+          "503": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      }
     }
   },
   "components": {
@@ -267,6 +370,84 @@
             }
           }
         ]
+      },
+      "NeurawallEntitlement": {
+        "type": "object",
+        "required": ["org_id", "plan_id", "current_period_end"],
+        "properties": {
+          "org_id": {
+            "type": "string",
+            "example": "org_2abc"
+          },
+          "plan_id": {
+            "type": "string",
+            "enum": ["community", "pro", "business", "enterprise"]
+          },
+          "current_period_end": {
+            "type": ["integer", "null"],
+            "description": "Epoch seconds, or null when there is no paid period."
+          }
+        }
+      },
+      "NeurawallEvent": {
+        "type": "object",
+        "required": ["event_id", "type", "ts", "data"],
+        "additionalProperties": false,
+        "properties": {
+          "event_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "neurawall.alert.created",
+              "neurawall.rule.approved",
+              "neurawall.bundle.published",
+              "neurawall.bundle.rolled_back",
+              "neurawall.node.enrolled",
+              "neurawall.node.revoked",
+              "neurawall.llm.call",
+              "neurawall.flows.ingested"
+            ]
+          },
+          "ts": {
+            "type": "number",
+            "minimum": 0,
+            "description": "The sender's clock, in seconds. Core stamps its own time."
+          },
+          "data": {
+            "type": "object",
+            "description": "Per type: alert.created {severity}; rule.approved {mode}; bundle.published {version, rules}; bundle.rolled_back {version}; llm.call {kind, outcome}; flows.ingested {count}; node.* {}. Any other field is rejected."
+          }
+        }
+      },
+      "NeurawallEventsRequest": {
+        "type": "object",
+        "required": ["events"],
+        "additionalProperties": false,
+        "properties": {
+          "events": {
+            "type": "array",
+            "minItems": 1,
+            "maxItems": 100,
+            "items": {
+              "$ref": "#/components/schemas/NeurawallEvent"
+            }
+          }
+        }
+      },
+      "NeurawallEventsResult": {
+        "type": "object",
+        "required": ["stored", "duplicates"],
+        "properties": {
+          "stored": {
+            "type": "integer"
+          },
+          "duplicates": {
+            "type": "integer"
+          }
+        }
       }
     }
   }

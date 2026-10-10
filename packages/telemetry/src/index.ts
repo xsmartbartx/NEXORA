@@ -97,3 +97,11 @@ export async function countOrgEventsByDay(
     .orderBy(dayBucket);
   return rows.map((row) => ({ day: row.day, count: row.value }));
 }
+
+export {
+  ingestNeurawallEvents,
+  MAX_BODY_BYTES,
+  MAX_EVENTS_PER_REQUEST,
+  parseNeurawallEvents,
+} from "./neurawall-events";
+export type { IngestResult, NeurawallEvent, ParseResult } from "./neurawall-events";

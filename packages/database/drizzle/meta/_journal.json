@@ -57,6 +57,13 @@
       "when": 1791318598538,
       "tag": "0007_audit_outcome_and_cost_checks",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1791639767609,
+      "tag": "0008_neurawall_event_ids",
+      "breakpoints": true
     }
   ]
 }

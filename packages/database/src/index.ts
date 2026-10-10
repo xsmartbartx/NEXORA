@@ -22,3 +22,4 @@ export type {
 } from "./schema";
 export { authenticateApiKey } from "./api-key-auth";
 export type { ApiKeyAuthResult, AuthenticatedKey } from "./api-key-auth";
+export { NEURAWALL_LINK_SCOPE } from "./api-key-scopes";
