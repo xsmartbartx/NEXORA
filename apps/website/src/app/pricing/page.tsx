@@ -133,6 +133,8 @@ const products: ProductPricing[] = [
   // NeuraWall plans mirror the "Pricing" sheet of NeuraWall_financial_marketing_model_2026.xlsx
   // and NeuraWall's own plan table (neurawall/modules/billing/plans.py), which bills them
   // through Stripe and enforces node, retention and AI limits. Dedicated is sold by sales.
+  // Claude: Community uses the offline advisor, Pro the customer's own Anthropic key, Business
+  // and Enterprise a monthly call budget (the number is not published until it is decided).
   {
     product: "NeuraWall",
     summary: "AI-assisted firewall with human-approved, signed enforcement policy.",
@@ -157,7 +159,7 @@ const products: ProductPricing[] = [
         features: [
           "5 enforcement nodes",
           "7-day flow retention",
-          "Optional Claude AI (usage billed separately)",
+          "Claude AI with your own Anthropic key (billed by Anthropic)",
           "Email support, 2 business days",
           "Self-hosted or managed",
         ],
@@ -170,7 +172,7 @@ const products: ProductPricing[] = [
         features: [
           "25 enforcement nodes",
           "30-day flow retention",
-          "Claude AI usage budget included",
+          "Claude AI included, up to a monthly call budget",
           "Priority support, 1 business day",
           "Managed or self-hosted",
         ],
@@ -184,7 +186,7 @@ const products: ProductPricing[] = [
         features: [
           "100 enforcement nodes",
           "90-day flow retention",
-          "Claude AI usage budget included",
+          "Claude AI included, up to a monthly call budget",
           "SLA and priority support",
           "Managed or self-hosted",
         ],
@@ -205,7 +207,7 @@ const products: ProductPricing[] = [
         cta: neurawallSales("Enterprise Dedicated"),
       },
     ],
-    note: "Professional services — architecture, deployment and training — at $125 per hour.",
+    note: "Organisations can also subscribe in NEXORA Console for an installation linked to the organisation. Professional services — architecture, deployment and training — at $125 per hour.",
   },
 ];
 
