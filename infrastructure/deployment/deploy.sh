@@ -33,8 +33,11 @@ case "$project" in
   vigilo)
     [ "$#" -gt 0 ] || { echo "Name the Vigilo services to deploy." >&2; exit 2; }
     cd /opt/vigilo && git pull --ff-only
-    sudo docker compose build "$@"
-    sudo docker compose up -d --no-deps "$@"
+    # Vigilo's /version reports this, so the running commit is visible from outside.
+    # `sudo env` because sudo resets the environment and a plain `export` would not reach Docker.
+    GIT_SHA="$(git rev-parse --short HEAD)"
+    sudo env GIT_SHA="$GIT_SHA" docker compose build "$@"
+    sudo env GIT_SHA="$GIT_SHA" docker compose up -d --no-deps "$@"
     ;;
   neurawall)
     [ "$#" -gt 0 ] || { echo "Name the NeuraWall services to deploy." >&2; exit 2; }
