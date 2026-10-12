@@ -3,7 +3,10 @@ import type { NextConfig } from "next";
 
 // Vigilo is a product with its own site; its page here is a redirect to it, as a company
 // site links out to a product's own site. Temporary (307) so it can be changed freely.
-const VIGILO_URL = (process.env.NEXT_PUBLIC_VIGILO_URL ?? "https://vigilo.onenexora.com").replace(/\/$/, "");
+const VIGILO_URL = (process.env.NEXT_PUBLIC_VIGILO_URL || "https://vigilo.onenexora.com").replace(
+  /\/$/,
+  "",
+);
 
 const nextConfig: NextConfig = {
   /* config options here */
