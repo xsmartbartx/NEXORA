@@ -346,6 +346,29 @@ describe("heredocs and quoted text are data, not commands", () => {
   });
 });
 
+describe("hostile input", () => {
+  // A hook that times out fails open, so oversized or pathological input must be quick or refused.
+  it("refuses a command that is too long to inspect", () => {
+    expect(bash("echo " + "a".repeat(100_001)).rule).toBe("input-too-long");
+    expect(bash("echo " + "a".repeat(5_000)).decision).toBe("allow");
+  });
+
+  it("stays fast on long runs of quotes and angle brackets", () => {
+    const started = Date.now();
+    isSecretPath('"'.repeat(60_000) + "x" + "'".repeat(60_000));
+    bash("cat <<" + "'".repeat(40_000));
+    bash("<<".repeat(20_000) + "\n");
+    expect(Date.now() - started).toBeLessThan(1500);
+  });
+
+  it("treats non-string tool input as empty instead of crashing", () => {
+    expect(decide({ toolName: "Bash", toolInput: { command: { not: "a string" } } }).decision).toBe(
+      "allow",
+    );
+    expect(decide({ toolName: "Read", toolInput: { file_path: 42 } }).decision).toBe("allow");
+  });
+});
+
 describe("the hook process", () => {
   const run = (stdin: string) =>
     spawnSync(process.execPath, [script], {

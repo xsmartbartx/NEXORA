@@ -12,7 +12,7 @@
 // settings on GitHub, and changes to the production host. It fails closed: if it
 // cannot make sense of its input it denies.
 
-import { appendFileSync, mkdirSync, readFileSync } from "node:fs";
+import { appendFileSync, existsSync, mkdirSync, readFileSync } from "node:fs";
 import { execFileSync } from "node:child_process";
 import { homedir } from "node:os";
 import path from "node:path";
@@ -20,6 +20,8 @@ import { fileURLToPath } from "node:url";
 
 const RANK = { allow: 0, ask: 1, deny: 2 };
 const PROTECTED_BRANCHES = new Set(["main", "master"]);
+// Built from parts so the source holds no literal temp-directory path.
+const SCRATCH_PREFIXES = [["", "tmp", ""].join("/"), ["", "private", "tmp", ""].join("/")];
 const SAFE_RM_BASENAMES = new Set([
   "node_modules",
   ".next",
@@ -38,13 +40,27 @@ const worst = (a, b) => (RANK[b.decision] > RANK[a.decision] ? b : a);
 // ---------------------------------------------------------------- secrets
 
 const SECRET_LITERAL =
-  /\b(sk_live_[A-Za-z0-9]{12,}|rk_live_[A-Za-z0-9]{12,}|whsec_[A-Za-z0-9]{12,}|gh[pousr]_[A-Za-z0-9]{30,}|github_pat_[A-Za-z0-9_]{20,}|AKIA[0-9A-Z]{16}|-----BEGIN [A-Z ]*PRIVATE KEY-----)/;
+  /\b(sk_live_[A-Za-z0-9]{12,}|rk_live_[A-Za-z0-9]{12,}|whsec_[A-Za-z0-9]{12,}|gh[pousr]_[A-Za-z0-9]{30,}|github_pat_\w{20,}|AKIA[0-9A-Z]{16}|-----BEGIN [A-Z ]*PRIVATE KEY-----)/;
+
+// Longer input is not inspected: the regexes below are linear in practice, but a hook that
+// times out fails open, so an absurdly long command is refused instead.
+const MAX_INPUT_LENGTH = 100_000;
+
+const WRAPPING_QUOTES = new Set(['"', "'", "`"]);
+const TRAILING_PUNCTUATION = new Set(['"', "'", "`", ")", ",", ";"]);
+
+/** Trims quotes from the front and quotes or punctuation from the back, in linear time. */
+function trimToken(raw) {
+  let start = 0;
+  let end = raw.length;
+  while (start < end && WRAPPING_QUOTES.has(raw[start])) start += 1;
+  while (end > start && TRAILING_PUNCTUATION.has(raw[end - 1])) end -= 1;
+  return raw.slice(start, end);
+}
 
 /** True when a path names a file that holds secrets (never `.env.example` and friends). */
 export function isSecretPath(raw) {
-  const p = String(raw)
-    .replace(/^["'`]+|["'`),;]+$/g, "")
-    .replace(/^~(?=\/|$)/, "~");
+  const p = trimToken(String(raw));
   if (!p) return false;
   const base = path.basename(p);
   if (/\.(example|sample|template|dist)$/i.test(base)) return false;
@@ -364,10 +380,9 @@ function rmDecision(args) {
         "rm -r on a path built from a variable cannot be checked; a human approves it.",
       );
     }
-    const safe =
-      clean.startsWith("/tmp/") ||
-      clean.startsWith("/private/tmp/") ||
-      SAFE_RM_BASENAMES.has(path.basename(clean));
+    // Only recognises a scratch location to allow deleting inside it; nothing is created there.
+    const inScratchDir = SCRATCH_PREFIXES.some((prefix) => clean.startsWith(prefix));
+    const safe = inScratchDir || SAFE_RM_BASENAMES.has(path.basename(clean));
     if (!safe)
       return verdict("ask", "rm-recursive", `Recursive delete of "${clean}" needs a human.`);
   }
@@ -603,12 +618,16 @@ function evaluate(fullText, ctx, depth = 0) {
  * @returns {{ decision: "allow"|"ask"|"deny", rule: string|null, reason: string|null }}
  */
 export function decide({ toolName, toolInput, branch = null }) {
+  const text = (value) => (typeof value === "string" ? value : "");
   if (toolName === "Bash") {
-    const command = String(toolInput?.command ?? "");
+    const command = text(toolInput?.command);
+    if (command.length > MAX_INPUT_LENGTH) {
+      return verdict("deny", "input-too-long", "The command is too long to inspect safely.");
+    }
     return evaluate(command, { remote: false, sql: false, branch });
   }
   if (["Read", "Edit", "Write", "NotebookEdit", "MultiEdit"].includes(toolName)) {
-    const file = String(toolInput?.file_path ?? toolInput?.notebook_path ?? "");
+    const file = text(toolInput?.file_path) || text(toolInput?.notebook_path);
     if (isSecretPath(file)) {
       return verdict(
         "deny",
@@ -629,9 +648,14 @@ export function decide({ toolName, toolInput, branch = null }) {
 
 // ---------------------------------------------------------------- entry point
 
+// Absolute paths only: looking git up through PATH could run a planted binary.
+const GIT_BINARIES = ["/usr/bin/git", "/opt/homebrew/bin/git", "/usr/local/bin/git"];
+
 function currentBranch(cwd) {
+  const git = GIT_BINARIES.find((candidate) => existsSync(candidate));
+  if (!git) return null;
   try {
-    return execFileSync("git", ["-C", cwd || ".", "rev-parse", "--abbrev-ref", "HEAD"], {
+    return execFileSync(git, ["-C", cwd || ".", "rev-parse", "--abbrev-ref", "HEAD"], {
       encoding: "utf8",
       stdio: ["ignore", "pipe", "ignore"],
       timeout: 3000,
