@@ -1,0 +1,46 @@
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"$HOME/.claude/hooks/nexora-guard.mjs\"",
+            "timeout": 10
+          }
+        ]
+      },
+      {
+        "matcher": "Read|Edit|Write|NotebookEdit|MultiEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"$HOME/.claude/hooks/nexora-guard.mjs\"",
+            "timeout": 10
+          }
+        ]
+      }
+    ]
+  },
+  "permissions": {
+    "deny": [
+      "Read(**/.env)",
+      "Read(**/.env.prod)",
+      "Read(**/.env.production)",
+      "Read(**/.env.local)",
+      "Read(**/.env.*.local)",
+      "Read(**/*.pem)",
+      "Read(~/.ssh/id_*)",
+      "Read(~/.claude/projects/**)",
+      "Read(~/.claude/history.jsonl)",
+      "Bash(git push --force*)",
+      "Bash(git push -f*)",
+      "Bash(git reset --hard*)",
+      "Bash(rm -rf /*)",
+      "Bash(rm -rf ~*)",
+      "Bash(docker volume rm*)",
+      "Bash(docker volume prune*)"
+    ]
+  }
+}
