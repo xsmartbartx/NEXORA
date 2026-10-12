@@ -29,7 +29,10 @@ export default function sitemap(): MetadataRoute.Sitemap {
 
   const pillarRoutes = platformPillarSlugs.map((pillar) => `/platform/${pillar}`);
   const solutionRoutes = solutions.map((solution) => `/solutions/${solution.slug}`);
-  const productRoutes = getPublicProducts().map((product) => productHref(product));
+  // Vigilo's page redirects to its own site (next.config.ts), so it is not listed here.
+  const productRoutes = getPublicProducts()
+    .filter((product) => product.slug !== "vigilo")
+    .map((product) => productHref(product));
   const experimentRoutes = getExperiments().map((experiment) => experiment.link);
 
   const routes = [
