@@ -29,9 +29,10 @@ export default function sitemap(): MetadataRoute.Sitemap {
 
   const pillarRoutes = platformPillarSlugs.map((pillar) => `/platform/${pillar}`);
   const solutionRoutes = solutions.map((solution) => `/solutions/${solution.slug}`);
-  // Vigilo's page redirects to its own site (next.config.ts), so it is not listed here.
+  // Vigilo's and NeuraWall's pages redirect to their own sites (next.config.ts), so they are
+  // not listed here.
   const productRoutes = getPublicProducts()
-    .filter((product) => product.slug !== "vigilo")
+    .filter((product) => product.slug !== "vigilo" && product.slug !== "neurawall")
     .map((product) => productHref(product));
   const experimentRoutes = getExperiments().map((experiment) => experiment.link);
 

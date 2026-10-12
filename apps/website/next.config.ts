@@ -1,18 +1,25 @@
 import path from "node:path";
 import type { NextConfig } from "next";
 
-// Vigilo is a product with its own site; its page here is a redirect to it, as a company
-// site links out to a product's own site. Temporary (307) so it can be changed freely.
+// Vigilo and NeuraWall are products with their own sites; their pages here are redirects to
+// them, as a company site links out to a product's own site. Temporary (307) so the
+// destinations can be changed freely.
 const VIGILO_URL = (process.env.NEXT_PUBLIC_VIGILO_URL || "https://vigilo.onenexora.com").replace(
   /\/$/,
   "",
 );
+const NEURAWALL_URL = (
+  process.env.NEXT_PUBLIC_NEURAWALL_URL || "https://neurawall.onenexora.com"
+).replace(/\/$/, "");
 
 const nextConfig: NextConfig = {
   /* config options here */
   reactCompiler: true,
   async redirects() {
-    return [{ source: "/products/vigilo", destination: VIGILO_URL, permanent: false }];
+    return [
+      { source: "/products/vigilo", destination: VIGILO_URL, permanent: false },
+      { source: "/products/neurawall", destination: NEURAWALL_URL, permanent: false },
+    ];
   },
   // Docker (infrastructure/docker): a self-contained server.js plus only
   // the node_modules this app actually needs, traced from the monorepo
