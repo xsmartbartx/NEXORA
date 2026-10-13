@@ -15,3 +15,5 @@ export { resumeProduct, suspendProduct, UnknownProductError } from "./suspension
 export { getUsageByOrg } from "./usage";
 
 export * from "./control-center";
+
+export * from "./ops-hub";

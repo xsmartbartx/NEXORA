@@ -126,6 +126,8 @@ export interface InfraMetrics {
   http5xxPercent: number | null;
   /** Edge requests in the last hour — the denominator, so a 100% rate on 2 requests reads as noise. */
   httpRequests1h: number | null;
+  /** Alert rules Grafana has loaded; 0 means its alerting is blind. Null when Grafana isn't scraped. */
+  grafanaAlertRules: number | null;
 }
 
 const first = (samples: PrometheusSample[]) => samples[0]?.value ?? null;
@@ -140,26 +142,32 @@ export async function collectInfraMetrics(): Promise<InfraMetrics> {
     );
   }
 
-  const [up, pg, redis, cpu, mem, disk, redisMem, conns, errors5xx, requests] = await Promise.all([
-    promQuery(baseUrl, "up"),
-    promQuery(baseUrl, "pg_up"),
-    promQuery(baseUrl, "redis_up"),
-    promQuery(baseUrl, '100 - (avg(rate(node_cpu_seconds_total{mode="idle"}[5m])) * 100)'),
-    promQuery(baseUrl, "(1 - node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes) * 100"),
-    promQuery(
-      baseUrl,
-      'min(node_filesystem_avail_bytes{mountpoint="/",fstype!="tmpfs"} / node_filesystem_size_bytes{mountpoint="/",fstype!="tmpfs"}) * 100',
-    ),
-    promQuery(baseUrl, "redis_memory_used_bytes / redis_memory_max_bytes * 100"),
-    promQuery(baseUrl, "sum(pg_stat_database_numbackends)"),
-    // `or vector(0)`: with no 5xx series at all the numerator would be empty, hiding a healthy 0%.
-    // An empty denominator (no traffic, or Caddy not scraped) stays null on purpose.
-    promQuery(
-      baseUrl,
-      '(sum(increase(caddy_http_request_duration_seconds_count{code=~"5.."}[1h])) or vector(0)) / sum(increase(caddy_http_request_duration_seconds_count[1h])) * 100',
-    ),
-    promQuery(baseUrl, "sum(increase(caddy_http_request_duration_seconds_count[1h]))"),
-  ]);
+  const [up, pg, redis, cpu, mem, disk, redisMem, conns, errors5xx, requests, grafanaRules] =
+    await Promise.all([
+      promQuery(baseUrl, "up"),
+      promQuery(baseUrl, "pg_up"),
+      promQuery(baseUrl, "redis_up"),
+      promQuery(baseUrl, '100 - (avg(rate(node_cpu_seconds_total{mode="idle"}[5m])) * 100)'),
+      promQuery(baseUrl, "(1 - node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes) * 100"),
+      promQuery(
+        baseUrl,
+        'min(node_filesystem_avail_bytes{mountpoint="/",fstype!="tmpfs"} / node_filesystem_size_bytes{mountpoint="/",fstype!="tmpfs"}) * 100',
+      ),
+      promQuery(baseUrl, "redis_memory_used_bytes / redis_memory_max_bytes * 100"),
+      promQuery(baseUrl, "sum(pg_stat_database_numbackends)"),
+      // `or vector(0)`: with no 5xx series at all the numerator would be empty, hiding a healthy 0%.
+      // An empty denominator (no traffic, or Caddy not scraped) stays null on purpose.
+      promQuery(
+        baseUrl,
+        '(sum(increase(caddy_http_request_duration_seconds_count{code=~"5.."}[1h])) or vector(0)) / sum(increase(caddy_http_request_duration_seconds_count[1h])) * 100',
+      ),
+      promQuery(baseUrl, "sum(increase(caddy_http_request_duration_seconds_count[1h]))"),
+      // The scheduler's own count, not `grafana_stat_totals_alert_rules` (a statistic refreshed on a
+      // timer, which reads 0 for a long while after a start). With no rules the series may not exist
+      // at all, so a live Grafana (`up == 1`) with the series missing counts as 0; an unscraped or
+      // down Grafana stays null.
+      promQuery(baseUrl, 'grafana_alerting_schedule_alert_rules or ((up{job="grafana"} == 1) * 0)'),
+    ]);
 
   const flag = (samples: PrometheusSample[]) => (samples.length ? samples[0]!.value === 1 : null);
   return {
@@ -173,6 +181,7 @@ export async function collectInfraMetrics(): Promise<InfraMetrics> {
     postgresConnections: first(conns),
     http5xxPercent: first(errors5xx),
     httpRequests1h: first(requests),
+    grafanaAlertRules: first(grafanaRules),
   };
 }
 

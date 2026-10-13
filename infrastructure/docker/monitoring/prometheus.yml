@@ -30,3 +30,10 @@ scrape_configs:
   - job_name: caddy
     static_configs:
       - targets: ["edge-caddy-1:9180"]
+
+  # Grafana itself, so the Control Center can tell when the alerting engine is blind: the
+  # container once ran for days with zero alert rules loaded because provisioning is read
+  # only at start (see grafana_stat_totals_alert_rules in the infrastructure tile).
+  - job_name: grafana
+    static_configs:
+      - targets: ["grafana:3000"]
