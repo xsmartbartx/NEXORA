@@ -182,6 +182,10 @@ services:
       GF_SMTP_PASSWORD: ${GRAFANA_SMTP_PASSWORD:-}
       GF_SMTP_FROM_ADDRESS: nexora@onenexora.com
       GF_SMTP_FROM_NAME: NEXORA Monitoring
+      # The Notification Hub webhook contact point (alerting/contact-points.yaml) reads this
+      # through $__env{OPS_HUB_TOKEN}; unset, the webhook is rejected by the hub and Grafana
+      # logs the failed delivery, nothing else breaks.
+      OPS_HUB_TOKEN: ${OPS_HUB_TOKEN:-}
     volumes:
       - nexora-grafana-data:/var/lib/grafana
       - ./monitoring/grafana-provisioning:/etc/grafana/provisioning:ro
@@ -275,6 +279,14 @@ services:
       SENTRY_API_BASE: ${SENTRY_API_BASE:-}
       GA4_PROPERTY_ID: ${GA4_PROPERTY_ID:-}
       GA4_SERVICE_ACCOUNT_B64: ${GA4_SERVICE_ACCOUNT_B64:-}
+      # Notification Hub (docs/ops/notification-hub.md). Inert until OPS_HUB_TOKEN is set; the
+      # webhook URL is a secret (it usually carries a topic or token), so it lives in the env
+      # file with the others and is never logged.
+      OPS_HUB_TOKEN: ${OPS_HUB_TOKEN:-}
+      OPS_NOTIFY_WEBHOOK_URL: ${OPS_NOTIFY_WEBHOOK_URL:-}
+      OPS_NOTIFY_FORMAT: ${OPS_NOTIFY_FORMAT:-}
+      OPS_QUIET_HOURS: ${OPS_QUIET_HOURS:-}
+      OPS_HEARTBEAT_URL: ${OPS_HEARTBEAT_URL:-}
     depends_on:
       db-migrate:
         condition: service_completed_successfully

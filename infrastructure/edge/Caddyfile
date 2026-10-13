@@ -78,6 +78,10 @@ account.onenexora.com {
 
 console.onenexora.com {
 	import security_headers
+	# The Notification Hub's machine endpoints are for the compose network only (Grafana, the
+	# host's cron). They check a bearer token themselves; this keeps them off the internet too.
+	@internal path /api/internal/*
+	respond @internal 404
 	reverse_proxy nexora-console-1:3002
 }
 

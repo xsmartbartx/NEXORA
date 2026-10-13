@@ -162,8 +162,51 @@ export const opsChecklistCompletions = pgTable(
   (table) => [index("ops_checklist_completions_task_idx").on(table.taskId, table.completedAt)],
 );
 
+/**
+ * The Notification Hub's memory: one row per incident (a problem that is open, then
+ * resolved), keyed by a stable fingerprint of what is wrong. It is what lets the hub say
+ * "this is new", "this is still happening" or "this is over" instead of repeating itself.
+ * A resolved row is kept as history; the same problem coming back is a new row. The journal
+ * of what was sent lives in `audit_events` (actor `ops-hub`).
+ */
+export const opsAlerts = pgTable(
+  "ops_alerts",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    fingerprint: text("fingerprint").notNull(),
+    /** Where it came from: `control-center` (polled) or e.g. `grafana` (pushed). */
+    source: text("source").notNull(),
+    /** `poll` rows are resolved when they stop appearing; `push` rows when the sender says so (or go quiet). */
+    origin: text("origin").notNull(),
+    severity: text("severity").notNull(),
+    title: text("title").notNull(),
+    detail: text("detail"),
+    state: text("state").notNull().default("open"),
+    firstSeenAt: timestamp("first_seen_at", { withTimezone: true }).notNull().defaultNow(),
+    lastSeenAt: timestamp("last_seen_at", { withTimezone: true }).notNull().defaultNow(),
+    /** Null while nothing has been sent, for example during quiet hours. */
+    lastNotifiedAt: timestamp("last_notified_at", { withTimezone: true }),
+    resolvedAt: timestamp("resolved_at", { withTimezone: true }),
+    /** Consecutive polls in which a `poll` alert was absent. */
+    missedTicks: integer("missed_ticks").notNull().default(0),
+    notifyCount: integer("notify_count").notNull().default(0),
+  },
+  (table) => [
+    // At most one open incident per fingerprint; history rows are unconstrained.
+    uniqueIndex("ops_alerts_open_fingerprint_idx")
+      .on(table.fingerprint)
+      .where(sql`${table.state} = 'open'`),
+    index("ops_alerts_state_seen_idx").on(table.state, table.lastSeenAt),
+    check("ops_alerts_severity_chk", sql`${table.severity} in ('warning', 'critical')`),
+    check("ops_alerts_state_chk", sql`${table.state} in ('open', 'resolved')`),
+    check("ops_alerts_origin_chk", sql`${table.origin} in ('poll', 'push')`),
+  ],
+);
+
 export type ApiKey = typeof apiKeys.$inferSelect;
 export type NewApiKey = typeof apiKeys.$inferInsert;
+export type OpsAlert = typeof opsAlerts.$inferSelect;
+export type NewOpsAlert = typeof opsAlerts.$inferInsert;
 export type AuditEvent = typeof auditEvents.$inferSelect;
 export type NewAuditEvent = typeof auditEvents.$inferInsert;
 export type Subscription = typeof subscriptions.$inferSelect;

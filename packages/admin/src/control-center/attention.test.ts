@@ -29,6 +29,7 @@ const healthy = (): ControlCenterSnapshot => ({
       memoryPercent: 40,
       diskFreePercent: 60,
       redisMemoryPercent: 5,
+      grafanaAlertRules: 4,
       postgresConnections: 4,
       http5xxPercent: 0,
       httpRequests1h: 500,
@@ -158,6 +159,7 @@ describe("attentionItems", () => {
       memoryPercent: 40,
       diskFreePercent: 5,
       redisMemoryPercent: 5,
+      grafanaAlertRules: 4,
       postgresConnections: 4,
       http5xxPercent: 0,
       httpRequests1h: 500,
@@ -169,6 +171,22 @@ describe("attentionItems", () => {
     ]);
     expect(items.map((i) => i.text)).toContain("CPU is above 90%.");
     expect(items.map((i) => i.text)).toContain("Prometheus can't scrape redis.");
+  });
+
+  it("warns when Grafana has no alert rules loaded, and stays quiet when it has them or isn't scraped", () => {
+    const withRules = (grafanaAlertRules: number | null) => {
+      const s = healthy();
+      if (s.health.infra.state !== "ok") throw new Error("fixture changed");
+      s.health.infra = ok({ ...s.health.infra.data, grafanaAlertRules });
+      return attentionItems(s).map((i) => i.text);
+    };
+    expect(withRules(0)).toContain("Grafana has no alert rules loaded, so its alerts cannot fire.");
+    expect(withRules(4)).not.toContain(
+      "Grafana has no alert rules loaded, so its alerts cannot fire.",
+    );
+    expect(withRules(null)).not.toContain(
+      "Grafana has no alert rules loaded, so its alerts cannot fire.",
+    );
   });
 
   it("grades certificate expiry", () => {
@@ -266,6 +284,7 @@ describe("attentionItems", () => {
         memoryPercent: 40,
         diskFreePercent: 60,
         redisMemoryPercent: 5,
+        grafanaAlertRules: 4,
         postgresConnections: 4,
         http5xxPercent,
         httpRequests1h,

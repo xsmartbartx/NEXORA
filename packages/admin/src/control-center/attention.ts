@@ -64,6 +64,10 @@ export function attentionItems(snapshot: ControlCenterSnapshot): AttentionItem[]
     if (m.memoryPercent !== null && m.memoryPercent > 90) {
       items.push(level("warning", "Host memory is above 90%."));
     }
+    // The alerting engine is only a safety net if it has rules. It once ran for days with none.
+    if (m.grafanaAlertRules === 0) {
+      items.push(level("warning", "Grafana has no alert rules loaded, so its alerts cannot fire."));
+    }
     if (m.redisMemoryPercent !== null && m.redisMemoryPercent > 90) {
       items.push(level("warning", "Redis is above 90% of its memory limit."));
     }

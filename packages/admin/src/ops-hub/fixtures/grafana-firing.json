@@ -1,0 +1,56 @@
+{
+  "receiver": "nexora-infra-email",
+  "status": "firing",
+  "alerts": [
+    {
+      "status": "firing",
+      "labels": {
+        "alertname": "Postgres is down",
+        "grafana_folder": "Infrastructure",
+        "severity": "critical"
+      },
+      "annotations": {
+        "Error": "[sse.dataQueryError] failed to execute query [A]: Post \"http://prometheus:9090/api/v1/query\": dial tcp: lookup prometheus on 127.0.0.11:53: no such host",
+        "datasource_uid": "prometheus",
+        "grafana_state_reason": "Error",
+        "ref_id": "A",
+        "summary": "postgres-exporter reports pg_up=0 \u2014 Postgres is unreachable."
+      },
+      "startsAt": "2026-10-13T09:27:30Z",
+      "endsAt": "0001-01-01T00:00:00Z",
+      "generatorURL": "http://localhost:3000/",
+      "fingerprint": "922d8e02800720d9",
+      "silenceURL": "http://localhost:3000/",
+      "dashboardURL": "http://localhost:3000/",
+      "panelURL": "http://localhost:3000/",
+      "ruleUID": "postgres-down",
+      "values": null,
+      "valueString": "",
+      "orgId": 1
+    }
+  ],
+  "groupLabels": {
+    "alertname": "Postgres is down"
+  },
+  "commonLabels": {
+    "alertname": "Postgres is down",
+    "grafana_folder": "Infrastructure",
+    "severity": "critical"
+  },
+  "commonAnnotations": {
+    "Error": "[sse.dataQueryError] failed to execute query [A]: Post \"http://prometheus:9090/api/v1/query\": dial tcp: lookup prometheus on 127.0.0.11:53: no such host",
+    "datasource_uid": "prometheus",
+    "grafana_state_reason": "Error",
+    "ref_id": "A",
+    "summary": "postgres-exporter reports pg_up=0 \u2014 Postgres is unreachable."
+  },
+  "externalURL": "http://localhost:3000/",
+  "appVersion": "13.2.3",
+  "version": "1",
+  "groupKey": "{}:{alertname=\"Postgres is down\"}",
+  "truncatedAlerts": 0,
+  "orgId": 1,
+  "title": "[FIRING:1] Postgres is down (Infrastructure critical)",
+  "state": "alerting",
+  "message": "**Firing**\n\nValue: [no value]\nLabels:\n - alertname = Postgres is down\n - grafana_folder = Infrastructure\n - severity = critical\nAnnotations:\n - Error = [sse.dataQueryError] failed to execute query [A]: Post \"http://prometheus:9090/api/v1/query\": dial tcp: lookup prometheus on 127.0.0.11:53: no such host\n - datasource_uid = prometheus\n - grafana_state_reason = Error\n - ref_id = A\n - summary = postgres-exporter reports pg_up=0 \u2014 Postgres is unreachable.\nSource: http://localhost:3000/alerting/grafana/postgres-down/view?orgId=1\nSilence: http://localhost:3000/alerting/silence/new?alertmanager=grafana&matcher=__alert_rule_uid__%3Dpostgres-down&matcher=severity%3Dcritical&orgId=1\n"
+}

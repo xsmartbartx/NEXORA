@@ -1,9 +1,15 @@
-# One contact point, two recipients on the same email — not two contact
-# points — so a single notification policy can route everything here
-# without picking between them (infrastructure/docker/README.md's
-# "Alerting" section). Grafana sends its own SMTP (GF_SMTP_* env vars on
-# the grafana service, infrastructure/docker/docker-compose.prod.yml),
-# not through any app code here.
+# One contact point with two receivers — not two contact points — so a single
+# notification policy can route everything here without picking between them
+# (infrastructure/docker/README.md's "Alerting" section). The receivers are
+# independent: a failing one never blocks the other.
+#
+# - email: Grafana sends its own SMTP (GF_SMTP_* env vars on the grafana service,
+#   infrastructure/docker/docker-compose.prod.yml). Without GRAFANA_SMTP_PASSWORD
+#   it cannot send, which is why the second receiver exists.
+# - webhook: the Notification Hub (docs/ops/notification-hub.md). It deduplicates,
+#   follows up with "resolved" and forwards to the owner's phone channel. It is
+#   reached over the compose network (the edge refuses /api/internal/* from outside)
+#   and authenticates with the bearer token in OPS_HUB_TOKEN.
 apiVersion: 1
 
 contactPoints:
@@ -15,3 +21,10 @@ contactPoints:
         settings:
           addresses: security@onenexora.com;bw141105@gmail.com
           singleEmail: true
+      - uid: nexora-hub-webhook
+        type: webhook
+        settings:
+          url: http://console:3002/api/internal/ops/events
+          httpMethod: POST
+          authorization_scheme: Bearer
+          authorization_credentials: $__env{OPS_HUB_TOKEN}

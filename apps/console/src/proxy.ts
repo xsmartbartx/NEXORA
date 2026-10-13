@@ -1,6 +1,13 @@
-import { clerkMiddleware } from "@clerk/nextjs/server";
+import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
 import { isClerkConfigured } from "@nexora/auth/config";
 import { NextResponse } from "next/server";
+
+/**
+ * Machine endpoints of the Notification Hub. They have no Clerk session by design: the route
+ * handlers demand a bearer token themselves, and the edge keeps `/api/internal/*` off the
+ * internet (infrastructure/edge/Caddyfile).
+ */
+const isHubRoute = createRouteMatcher(["/api/internal/ops/(.*)"]);
 
 /**
  * Protected-first, like account's proxy — but console has no sign-in pages
@@ -11,6 +18,7 @@ import { NextResponse } from "next/server";
  */
 export default isClerkConfigured()
   ? clerkMiddleware(async (auth, req) => {
+      if (isHubRoute(req)) return;
       const accountUrl = process.env.NEXT_PUBLIC_ACCOUNT_URL ?? "https://account.onenexora.com";
       // req.url reflects the container's own bind address (e.g.
       // 0.0.0.0:3002), not the public hostname, when running as a
