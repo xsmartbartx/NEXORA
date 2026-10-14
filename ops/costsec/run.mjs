@@ -8,10 +8,11 @@
 import { evaluate, isClean, MARKER, renderReport } from "./policy.mjs";
 
 const API = "https://api.github.com";
-const rawRepo = process.env.GITHUB_REPOSITORY ?? "";
-const validRepo = /^[\w.-]+\/[\w.-]+$/.test(rawRepo);
-// Each segment is percent-encoded, so the value can only ever name a repository path.
-const repo = validRepo ? rawRepo.split("/").map(encodeURIComponent).join("/") : "";
+// This audit is for one repository. The environment may only confirm it, never choose it,
+// so no request path is built from environment input.
+const REPO = "xsmartbartx/NEXORA";
+const validRepo = process.env.GITHUB_REPOSITORY === REPO;
+const repo = REPO;
 const readToken = process.env.COSTSEC_TOKEN || process.env.GITHUB_TOKEN || "";
 const issueToken = process.env.GITHUB_TOKEN || "";
 const TITLE = "CostSec: configuration audit";
@@ -125,13 +126,15 @@ async function upsertIssue(findings, body) {
 }
 
 if (!validRepo) {
-  console.error("GITHUB_REPOSITORY is not set");
+  console.error(`GITHUB_REPOSITORY must be ${REPO}`);
   process.exit(2);
 }
 const findings = evaluate(await collect());
 const body = renderReport(findings, new Date().toISOString().slice(0, 10));
-// Control characters are stripped so nothing fetched can forge log lines.
-console.log(body.replace(/[^\n\P{Cc}]/gu, " "));
+// Log only fixed rule ids and counts; the full report goes to the issue, not the log.
+console.log(
+  `CostSec: ${findings.length} finding(s): ${findings.map((f) => f.id).join(", ") || "none"}`,
+);
 console.log(
   process.env.COSTSEC_DRY_RUN === "1"
     ? "\nissue: dry run, nothing written"
