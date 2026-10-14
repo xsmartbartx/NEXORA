@@ -1,0 +1,35 @@
+name: CostSec
+
+# Weekly, read-only audit of the repository's own configuration (branch protection, secret
+# scanning, workflow permissions, open high alerts). The result is one issue that is updated
+# in place and closed when clean; GitHub notifies the owner. See ops/costsec/README.md.
+on:
+  schedule:
+    - cron: "17 5 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+concurrency:
+  group: costsec
+  cancel-in-progress: false
+
+jobs:
+  audit:
+    name: Configuration audit
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Run the audit
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          # Optional fine-grained read-only token; without it protection and security
+          # settings are reported as UNVERIFIED.
+          COSTSEC_TOKEN: ${{ secrets.COSTSEC_TOKEN }}
+        run: node ops/costsec/run.mjs
