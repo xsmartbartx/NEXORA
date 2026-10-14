@@ -123,6 +123,10 @@ function securityRules(snapshot) {
     );
 }
 
+/** True when a line starts with `key:` (indented or not). Line-based, so no backtracking regex. */
+const hasKey = (content, key) =>
+  content.split("\n").some((line) => line.trimStart().startsWith(`${key}:`));
+
 function workflowRules(snapshot) {
   const out = [];
   if (snapshot.workflowDefaultPermissions === "write") {
@@ -137,7 +141,7 @@ function workflowRules(snapshot) {
     );
   }
   for (const wf of snapshot.workflows ?? []) {
-    if (!/^\s*permissions:/m.test(wf.content)) {
+    if (!hasKey(wf.content, "permissions")) {
       out.push(
         finding(
           "WF-NO-PERMISSIONS",
@@ -148,7 +152,7 @@ function workflowRules(snapshot) {
         ),
       );
     }
-    if (/^\s*pull_request_target\s*:?/m.test(wf.content)) {
+    if (hasKey(wf.content, "pull_request_target")) {
       out.push(
         finding(
           "WF-PR-TARGET",
@@ -206,10 +210,16 @@ export function evaluate(snapshot) {
   ].sort((a, b) => ORDER[a.severity] - ORDER[b.severity] || a.id.localeCompare(b.id));
 }
 
-const SECRET_SHAPES =
-  /\b(?:gh[pousr]_[A-Za-z0-9]{20,}|github_pat_[A-Za-z0-9_]{20,}|[sr]k_(?:live|test)_[A-Za-z0-9]{10,}|whsec_[A-Za-z0-9]{10,}|nx_test_[A-Za-z0-9]{6,})/g;
+const SECRET_SHAPES = [
+  /\bgh[pousr]_\w{20,}/g,
+  /\bgithub_pat_\w{20,}/g,
+  /\b[sr]k_(?:live|test)_\w{10,}/g,
+  /\bwhsec_\w{10,}/g,
+  /\bnx_test_\w{6,}/g,
+];
 
-export const redact = (text) => String(text).replace(SECRET_SHAPES, "[redacted]");
+export const redact = (text) =>
+  SECRET_SHAPES.reduce((out, shape) => out.replace(shape, "[redacted]"), String(text));
 
 export const MARKER = "<!-- nexora-costsec -->";
 
@@ -219,9 +229,11 @@ export function renderReport(findings, when) {
   const lines = [MARKER, `CostSec configuration audit, ${when}.`, ""];
   if (findings.length === 0) lines.push("No findings.");
   for (const f of findings) {
-    lines.push(`- **${f.severity.toUpperCase()}** \`${f.id}\`: ${f.title}`);
-    lines.push(`  - Evidence: ${f.evidence}`);
-    lines.push(`  - Suggestion: ${f.suggestion}`);
+    lines.push(
+      `- **${f.severity.toUpperCase()}** \`${f.id}\`: ${f.title}`,
+      `  - Evidence: ${f.evidence}`,
+      `  - Suggestion: ${f.suggestion}`,
+    );
   }
   lines.push(
     "",

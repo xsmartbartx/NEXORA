@@ -8,7 +8,10 @@
 import { evaluate, isClean, MARKER, renderReport } from "./policy.mjs";
 
 const API = "https://api.github.com";
-const repo = process.env.GITHUB_REPOSITORY ?? "";
+const rawRepo = process.env.GITHUB_REPOSITORY ?? "";
+const validRepo = /^[\w.-]+\/[\w.-]+$/.test(rawRepo);
+// Each segment is percent-encoded, so the value can only ever name a repository path.
+const repo = validRepo ? rawRepo.split("/").map(encodeURIComponent).join("/") : "";
 const readToken = process.env.COSTSEC_TOKEN || process.env.GITHUB_TOKEN || "";
 const issueToken = process.env.GITHUB_TOKEN || "";
 const TITLE = "CostSec: configuration audit";
@@ -52,16 +55,21 @@ async function collect() {
   const actionsPerms = await read(`/repos/${repo}/actions/permissions/workflow`);
   const list = await read(`/repos/${repo}/contents/.github/workflows`);
 
-  const workflows = [];
-  for (const file of Array.isArray(list) ? list : []) {
-    if (!/\.ya?ml$/.test(file.name)) continue;
-    const f = await read(`/repos/${repo}/contents/${file.path}`);
-    if (f?.content)
-      workflows.push({
-        path: file.path,
-        content: Buffer.from(f.content, "base64").toString("utf8"),
-      });
-  }
+  const files = (Array.isArray(list) ? list : []).filter((f) => /\.ya?ml$/.test(f.name));
+  const fetched = await Promise.all(
+    files.map(async (file) => ({
+      file,
+      body: await read(
+        `/repos/${repo}/contents/${encodeURIComponent(file.path).replaceAll("%2F", "/")}`,
+      ),
+    })),
+  );
+  const workflows = fetched
+    .filter(({ body }) => body?.content)
+    .map(({ file, body }) => ({
+      path: file.path,
+      content: Buffer.from(body.content, "base64").toString("utf8"),
+    }));
 
   const protection =
     branch === null
@@ -116,13 +124,14 @@ async function upsertIssue(findings, body) {
     : `could not open an issue (HTTP ${made.status})`;
 }
 
-if (!/^[\w.-]+\/[\w.-]+$/.test(repo)) {
+if (!validRepo) {
   console.error("GITHUB_REPOSITORY is not set");
   process.exit(2);
 }
 const findings = evaluate(await collect());
 const body = renderReport(findings, new Date().toISOString().slice(0, 10));
-console.log(body);
+// Control characters are stripped so nothing fetched can forge log lines.
+console.log(body.replace(/[^\n\P{Cc}]/gu, " "));
 console.log(
   process.env.COSTSEC_DRY_RUN === "1"
     ? "\nissue: dry run, nothing written"
