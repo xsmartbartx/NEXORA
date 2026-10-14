@@ -5,7 +5,7 @@
 // cannot see protection or security settings; those then show up as UNVERIFIED, not as passes.
 // The only write is the issue, and only when GITHUB_TOKEN may write issues.
 
-import { evaluate, isClean, MARKER, renderReport } from "./policy.mjs";
+import { evaluate, isClean, MARKER, mergeProtection, renderReport } from "./policy.mjs";
 
 import { readdirSync, readFileSync } from "node:fs";
 
@@ -35,7 +35,7 @@ async function call(token, path, init = {}) {
     },
   });
   const body = res.status === 204 ? null : await res.json().catch(() => null);
-  return { status: res.status, body };
+  return { status: res.status, body, link: res.headers.get("link") ?? "" };
 }
 
 /** The body, or null when the token may not read it. */
@@ -44,10 +44,34 @@ async function read(path) {
   return status === 200 ? body : null;
 }
 
+const MAX_PAGES = 10;
+
+/** The path of the `rel="next"` link, or null. Cursor-paged endpoints (Dependabot) need this. */
+function nextPath(link) {
+  const m = /<([^>]+)>;\s*rel="next"/.exec(link);
+  if (!m?.[1].startsWith(`${API}/`)) return null;
+  return m[1].slice(API.length);
+}
+
+/** Every page of a list endpoint, or null if any page could not be read (never a partial list). */
+async function readAll(token, path) {
+  const first = `${path}${path.includes("?") ? "&" : "?"}per_page=100`;
+  const all = [];
+  let next = first;
+  for (let page = 0; page < MAX_PAGES && next; page += 1) {
+    // Pages are sequential on purpose: each one names the next.
+    const { status, body, link } = await call(token, next); // NOSONAR
+    if (status !== 200 || !Array.isArray(body)) return null;
+    all.push(...body);
+    next = nextPath(link);
+  }
+  return next === null ? all : null;
+}
+
 async function count(path) {
-  const body = await read(`${path}?state=open&per_page=100`);
-  if (!Array.isArray(body)) return null;
-  return body.filter((a) => {
+  const list = await readAll(readToken, `${path}?state=open`);
+  if (list === null) return null;
+  return list.filter((a) => {
     const sev =
       a.security_advisory?.severity ?? a.rule?.security_severity_level ?? a.rule?.severity;
     return sev === "high" || sev === "critical";
@@ -63,20 +87,17 @@ async function collect() {
   const actionsPerms = await read(`/repos/${repo}/actions/permissions/workflow`);
   // Workflows are read from the checkout the job already has, not fetched by name.
   const dir = ".github/workflows";
-  const workflows = readdirSync(dir)
-    .filter((name) => /\.ya?ml$/.test(name))
-    .map((name) => ({ path: `${dir}/${name}`, content: readFileSync(`${dir}/${name}`, "utf8") }));
+  let workflows = null;
+  try {
+    workflows = readdirSync(dir)
+      .filter((name) => /\.ya?ml$/.test(name))
+      .map((name) => ({ path: `${dir}/${name}`, content: readFileSync(`${dir}/${name}`, "utf8") }));
+  } catch {
+    // Left null: reported as UNVERIFIED-WORKFLOWS rather than treated as "no workflows".
+  }
 
-  const protection =
-    branch === null
-      ? null
-      : {
-          protected: branch.protected === true,
-          requiredChecks: branch.protection?.required_status_checks?.contexts ?? [],
-          enforceAdmins: detail ? detail.enforce_admins?.enabled === true : null,
-          allowForcePushes: detail ? detail.allow_force_pushes?.enabled === true : null,
-          allowDeletions: detail ? detail.allow_deletions?.enabled === true : null,
-        };
+  const rules = await read(`/repos/${repo}/rules/branches/${defaultBranch}`);
+  const protection = mergeProtection(branch, detail, rules);
 
   return {
     defaultBranch,
@@ -91,24 +112,31 @@ async function collect() {
   };
 }
 
+const BOT = "github-actions[bot]";
+
+/** Only the bot's own tracking issue counts, so a user-made issue can never be edited or closed. */
+const isTracker = (i) =>
+  i.user?.login === BOT && i.title === TITLE && !i.pull_request && i.body?.includes(MARKER);
+
+async function patch(number, fields) {
+  const res = await call(issueToken, `/repos/${repo}/issues/${number}`, {
+    method: "PATCH",
+    body: JSON.stringify(fields),
+  });
+  if (res.status !== 200) throw new Error("could not update the tracking issue");
+}
+
 async function upsertIssue(findings, body) {
-  const open = await call(issueToken, `/repos/${repo}/issues?state=open&per_page=100`);
-  const existing = Array.isArray(open.body)
-    ? open.body.find((i) => i.body?.includes(MARKER))
-    : undefined;
+  const issues = await readAll(issueToken, "/repos/" + repo + "/issues?state=open");
+  if (issues === null) throw new Error("could not list issues");
+  const existing = issues.find(isTracker);
   const number = Number.parseInt(existing?.number, 10);
   if (existing && isClean(findings)) {
-    await call(issueToken, `/repos/${repo}/issues/${number}`, {
-      method: "PATCH",
-      body: JSON.stringify({ state: "closed", body }),
-    });
+    await patch(number, { state: "closed", body });
     return "closed";
   }
   if (existing) {
-    await call(issueToken, `/repos/${repo}/issues/${number}`, {
-      method: "PATCH",
-      body: JSON.stringify({ body }),
-    });
+    await patch(number, { body });
     return "updated";
   }
   if (isClean(findings)) return "clean, no issue";
@@ -116,7 +144,8 @@ async function upsertIssue(findings, body) {
     method: "POST",
     body: JSON.stringify({ title: TITLE, body }),
   });
-  return made.status === 201 ? "opened" : "could not open an issue";
+  if (made.status !== 201) throw new Error("could not open the tracking issue");
+  return "opened";
 }
 
 if (!validRepo) {

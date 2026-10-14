@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 // @ts-expect-error plain ESM module, no type declarations
 import { assess, canSpend, monthSpend, parseBudget } from "./budget.mjs";
 // @ts-expect-error plain ESM module, no type declarations
-import { evaluate, isClean, redact, renderReport } from "./policy.mjs";
+import { evaluate, isClean, mergeProtection, redact, renderReport } from "./policy.mjs";
 
 const good = () => ({
   defaultBranch: "main",
@@ -79,7 +79,7 @@ describe("policy", () => {
     expect(ids(s)).toContain(id);
   });
 
-  it("reports unreadable settings as UNVERIFIED, never as a pass", () => {
+  it("reports unreadable settings as UNVERIFIED and keeps the issue open", () => {
     const s = {
       ...good(),
       protection: null,
@@ -87,7 +87,39 @@ describe("policy", () => {
       alerts: { dependabotHigh: null, codeScanningHigh: null },
     };
     expect(ids(s)).toEqual(["UNVERIFIED-ALERTS", "UNVERIFIED-BRANCH", "UNVERIFIED-SECURITY"]);
-    expect(isClean(evaluate(s))).toBe(true);
+    expect(isClean(evaluate(s))).toBe(false);
+  });
+
+  it.each([
+    ["inline scalar", "on: pull_request_target\njobs: {}\n"],
+    ["inline list", "on: [push, pull_request_target]\n"],
+    ["nested mapping", "on:\n  pull_request_target:\n    types: [opened]\n"],
+    ["nested list", "on:\n  - push\n  - pull_request_target\n"],
+  ])("finds pull_request_target in the trigger (%s)", (_n, yaml) => {
+    const s = good();
+    s.workflows = [{ path: "w.yml", content: `permissions: {}\n${yaml}` }];
+    expect(ids(s)).toContain("WF-PR-TARGET");
+  });
+
+  it("ignores pull_request_target outside the trigger (comment, job name, step)", () => {
+    const s = good();
+    s.workflows = [
+      {
+        path: "w.yml",
+        content:
+          "permissions: {}\n# never use pull_request_target\non: push\njobs:\n  pull_request_target:\n    runs-on: x\n",
+      },
+    ];
+    expect(ids(s)).toEqual([]);
+  });
+
+  it("does not call an audit clean when it could not read the workflows or their defaults", () => {
+    const s: any = good();
+    s.workflows = null;
+    s.workflowDefaultPermissions = null;
+    const found = evaluate(s);
+    expect(ids(s)).toEqual(["UNVERIFIED-WORKFLOW-PERMISSIONS", "UNVERIFIED-WORKFLOWS"]);
+    expect(isClean(found)).toBe(false);
   });
 
   it("sorts the worst first and calls only high/medium findings unclean", () => {
@@ -103,6 +135,48 @@ describe("policy", () => {
     const s = good();
     s.protection = { protected: false };
     expect(ids(s)).toEqual(["BRANCH-PROTECTED"]);
+  });
+});
+
+describe("mergeProtection", () => {
+  const branch = { protected: false, protection: { required_status_checks: { contexts: [] } } };
+
+  it("counts rulesets: a 404 from classic protection does not mean unprotected", () => {
+    const m = mergeProtection(branch, null, [
+      {
+        type: "required_status_checks",
+        parameters: { required_status_checks: [{ context: "ci" }] },
+      },
+      { type: "non_fast_forward" },
+      { type: "deletion" },
+    ]);
+    expect(m).toMatchObject({
+      protected: true,
+      requiredChecks: ["ci"],
+      allowForcePushes: false,
+      allowDeletions: false,
+      enforceAdmins: null,
+    });
+  });
+
+  it("merges classic checks with ruleset checks without duplicates", () => {
+    const classicBranch = {
+      protected: true,
+      protection: { required_status_checks: { contexts: ["ci"] } },
+    };
+    const m = mergeProtection(classicBranch, { enforce_admins: { enabled: true } }, [
+      {
+        type: "required_status_checks",
+        parameters: { required_status_checks: [{ context: "ci" }, { context: "sonar" }] },
+      },
+    ]);
+    expect(m.requiredChecks).toEqual(["ci", "sonar"]);
+    expect(m.enforceAdmins).toBe(true);
+  });
+
+  it("is unprotected with neither mechanism, and null when the branch is unreadable", () => {
+    expect(mergeProtection(branch, null, [])).toMatchObject({ protected: false });
+    expect(mergeProtection(null, null, [])).toBeNull();
   });
 });
 
@@ -172,6 +246,15 @@ describe("budget", () => {
       expect(r.ok).toBe(false);
       expect(r.budget.killSwitch).toBe(true);
     }
+  });
+
+  it("assigns an entry to its UTC month whatever offset it is written in", () => {
+    const entries = [
+      { ts: "2026-09-30T23:30:00-01:00", costUsd: 2 }, // = 2026-10-01T00:30Z
+      { ts: "2026-10-01T00:30:00+02:00", costUsd: 5 }, // = 2026-09-30T22:30Z
+    ];
+    expect(monthSpend(entries, "2026-10")).toBe(2);
+    expect(monthSpend(entries, "2026-09")).toBe(5);
   });
 
   it("sums only the given month and ignores malformed entries", () => {

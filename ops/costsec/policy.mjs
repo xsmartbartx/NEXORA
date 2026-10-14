@@ -127,8 +127,56 @@ function securityRules(snapshot) {
 const hasKey = (content, key) =>
   content.split("\n").some((line) => line.trimStart().startsWith(`${key}:`));
 
+/** The text of the top-level `on:` block (inline value and indented lines), comments dropped. */
+function triggerText(content) {
+  const out = [];
+  let inside = false;
+  for (const raw of content.split("\n")) {
+    const line = raw.trimEnd();
+    if (line.trim() === "" || line.trimStart().startsWith("#")) continue;
+    const top = !/^\s/.test(line);
+    if (top) {
+      inside = /^(?:on|"on"|'on')\s*:/.test(line);
+      if (inside) out.push(line.slice(line.indexOf(":") + 1));
+    } else if (inside) {
+      out.push(line);
+    }
+  }
+  return out.join("\n");
+}
+
+const usesPullRequestTarget = (content) =>
+  triggerText(content)
+    .split(/[\s,[\]{}:]+/)
+    .some((word) => word === "pull_request_target");
+
 function workflowRules(snapshot) {
   const out = [];
+  if (
+    snapshot.workflowDefaultPermissions === null ||
+    snapshot.workflowDefaultPermissions === undefined
+  ) {
+    out.push(
+      finding(
+        "UNVERIFIED-WORKFLOW-PERMISSIONS",
+        "info",
+        "The default workflow permissions could not be read",
+        "The token cannot see actions/permissions/workflow.",
+        "Provide COSTSEC_TOKEN (fine-grained, read-only) to verify it.",
+      ),
+    );
+  }
+  if (snapshot.workflows === null || snapshot.workflows === undefined) {
+    out.push(
+      finding(
+        "UNVERIFIED-WORKFLOWS",
+        "info",
+        "The workflow files could not be read",
+        "The checkout has no .github/workflows directory to scan.",
+        "Check that the job checks out the repository.",
+      ),
+    );
+  }
   if (snapshot.workflowDefaultPermissions === "write") {
     out.push(
       finding(
@@ -152,7 +200,7 @@ function workflowRules(snapshot) {
         ),
       );
     }
-    if (hasKey(wf.content, "pull_request_target")) {
+    if (usesPullRequestTarget(wf.content)) {
       out.push(
         finding(
           "WF-PR-TARGET",
@@ -242,5 +290,36 @@ export function renderReport(findings, when) {
   return redact(lines.join("\n"));
 }
 
+/** Clean means nothing to fix AND nothing left unchecked: an audit that could not look is not a pass. */
 export const isClean = (findings) =>
-  findings.every((f) => f.severity === "info" || f.severity === "low");
+  findings.every(
+    (f) => (f.severity === "info" || f.severity === "low") && !f.id.startsWith("UNVERIFIED"),
+  );
+
+/**
+ * Merges classic branch protection with repository rulesets (GET /rules/branches/{branch}).
+ * Either mechanism counts; a 404 from the classic endpoint does not mean "unprotected".
+ */
+export function mergeProtection(branch, classic, rules) {
+  if (branch === null || branch === undefined) return null;
+  const list = Array.isArray(rules) ? rules : [];
+  const rulesChecks = list
+    .filter((r) => r.type === "required_status_checks")
+    .flatMap((r) => (r.parameters?.required_status_checks ?? []).map((c) => c.context));
+  const classicChecks = branch.protection?.required_status_checks?.contexts ?? [];
+  return {
+    protected: branch.protected === true || list.length > 0,
+    requiredChecks: [...new Set([...classicChecks, ...rulesChecks])],
+    enforceAdmins: classic ? classic.enforce_admins?.enabled === true : null,
+    allowForcePushes: list.some((r) => r.type === "non_fast_forward")
+      ? false
+      : classic
+        ? classic.allow_force_pushes?.enabled === true
+        : null,
+    allowDeletions: list.some((r) => r.type === "deletion")
+      ? false
+      : classic
+        ? classic.allow_deletions?.enabled === true
+        : null,
+  };
+}

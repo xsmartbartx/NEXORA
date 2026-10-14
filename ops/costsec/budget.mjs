@@ -22,7 +22,11 @@ export function parseBudget(raw) {
   return { ok: true, reason: null, budget: { monthlyLimitUsd, warnRatio, killSwitch } };
 }
 
-const monthOf = (iso) => /^(\d{4}-\d{2})/.exec(iso)?.[1] ?? null;
+/** The UTC month ("2026-10") of an ISO timestamp, whatever offset it is written in. */
+const monthOf = (iso) => {
+  const t = Date.parse(iso);
+  return Number.isNaN(t) ? null : new Date(t).toISOString().slice(0, 7);
+};
 
 /** Sum of costUsd for entries stamped in the given UTC month ("2026-10"). Bad entries are ignored. */
 export function monthSpend(entries, month) {

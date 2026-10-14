@@ -6,7 +6,7 @@ Two small, deterministic pieces. No model is involved, so a run costs $0.
 
 Weekly (Monday) and on demand. Reads the repository's settings through the GitHub API, applies
 the rules in `policy.mjs` and keeps **one** issue up to date ("CostSec: configuration audit").
-The issue is closed when only low or info findings remain. The job's only write is that issue.
+The issue is closed only when nothing is left to fix and nothing was left unchecked: low findings are fine, but an `UNVERIFIED` result (something the token could not read) keeps it open. The job's only write is that issue.
 
 Rules: default branch protected, required checks, no force push or deletion, `enforce_admins`
 (known, accepted until Guardians G3), secret scanning, push protection, Dependabot security
