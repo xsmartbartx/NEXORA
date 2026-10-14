@@ -7,6 +7,8 @@
 
 import { evaluate, isClean, MARKER, renderReport } from "./policy.mjs";
 
+import { readdirSync, readFileSync } from "node:fs";
+
 const API = "https://api.github.com";
 // This audit is for one repository. The environment may only confirm it, never choose it,
 // so no request path is built from environment input.
@@ -18,8 +20,6 @@ const issueToken = process.env.GITHUB_TOKEN || "";
 const TITLE = "CostSec: configuration audit";
 
 const SAFE_PATH = /^\/repos\/xsmartbartx\/NEXORA(?:\/[\w./?=&%-]*)?$/;
-const SAFE_WORKFLOW = /^\.github\/workflows\/[\w.-]+\.ya?ml$/;
-const SAFE_ID = /^[A-Z-]{3,40}$/;
 
 async function call(token, path, init = {}) {
   if (!SAFE_PATH.test(path) || path.includes(".."))
@@ -56,27 +56,16 @@ async function count(path) {
 
 async function collect() {
   const info = await read(`/repos/${repo}`);
-  const defaultBranch = info?.default_branch ?? "main";
+  // Fixed, like the repository: no path segment comes from a response.
+  const defaultBranch = "main";
   const branch = await read(`/repos/${repo}/branches/${defaultBranch}`);
   const detail = await read(`/repos/${repo}/branches/${defaultBranch}/protection`);
   const actionsPerms = await read(`/repos/${repo}/actions/permissions/workflow`);
-  const list = await read(`/repos/${repo}/contents/.github/workflows`);
-
-  const files = (Array.isArray(list) ? list : []).filter((f) => SAFE_WORKFLOW.test(f.path ?? ""));
-  const fetched = await Promise.all(
-    files.map(async (file) => ({
-      file,
-      body: await read(
-        `/repos/${repo}/contents/${encodeURIComponent(file.path).replaceAll("%2F", "/")}`,
-      ),
-    })),
-  );
-  const workflows = fetched
-    .filter(({ body }) => body?.content)
-    .map(({ file, body }) => ({
-      path: file.path,
-      content: Buffer.from(body.content, "base64").toString("utf8"),
-    }));
+  // Workflows are read from the checkout the job already has, not fetched by name.
+  const dir = ".github/workflows";
+  const workflows = readdirSync(dir)
+    .filter((name) => /\.ya?ml$/.test(name))
+    .map((name) => ({ path: `${dir}/${name}`, content: readFileSync(`${dir}/${name}`, "utf8") }));
 
   const protection =
     branch === null
@@ -107,19 +96,20 @@ async function upsertIssue(findings, body) {
   const existing = Array.isArray(open.body)
     ? open.body.find((i) => i.body?.includes(MARKER))
     : undefined;
+  const number = Number.parseInt(existing?.number, 10);
   if (existing && isClean(findings)) {
-    await call(issueToken, `/repos/${repo}/issues/${existing.number}`, {
+    await call(issueToken, `/repos/${repo}/issues/${number}`, {
       method: "PATCH",
       body: JSON.stringify({ state: "closed", body }),
     });
-    return `closed #${existing.number}`;
+    return `closed #${number}`;
   }
   if (existing) {
-    await call(issueToken, `/repos/${repo}/issues/${existing.number}`, {
+    await call(issueToken, `/repos/${repo}/issues/${number}`, {
       method: "PATCH",
       body: JSON.stringify({ body }),
     });
-    return `updated #${existing.number}`;
+    return `updated #${number}`;
   }
   if (isClean(findings)) return "clean, no issue";
   const made = await call(issueToken, `/repos/${repo}/issues`, {
@@ -137,15 +127,8 @@ if (!validRepo) {
 }
 const findings = evaluate(await collect());
 const body = renderReport(findings, new Date().toISOString().slice(0, 10));
-// Log only fixed rule ids and counts; the full report goes to the issue, not the log.
-console.log(
-  `CostSec: ${findings.length} finding(s): ${
-    findings
-      .map((f) => f.id)
-      .filter((id) => SAFE_ID.test(id))
-      .join(", ") || "none"
-  }`,
-);
+// Counts only; rule ids and evidence go to the issue, not the log.
+console.log(`CostSec: ${findings.length} finding(s)`);
 console.log(
   process.env.COSTSEC_DRY_RUN === "1"
     ? "\nissue: dry run, nothing written"
