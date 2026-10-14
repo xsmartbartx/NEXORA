@@ -17,7 +17,13 @@ const readToken = process.env.COSTSEC_TOKEN || process.env.GITHUB_TOKEN || "";
 const issueToken = process.env.GITHUB_TOKEN || "";
 const TITLE = "CostSec: configuration audit";
 
+const SAFE_PATH = /^\/repos\/xsmartbartx\/NEXORA(?:\/[\w./?=&%-]*)?$/;
+const SAFE_WORKFLOW = /^\.github\/workflows\/[\w.-]+\.ya?ml$/;
+const SAFE_ID = /^[A-Z-]{3,40}$/;
+
 async function call(token, path, init = {}) {
+  if (!SAFE_PATH.test(path) || path.includes(".."))
+    throw new Error("refusing an unexpected API path");
   const res = await fetch(`${API}${path}`, {
     ...init,
     redirect: "error",
@@ -56,7 +62,7 @@ async function collect() {
   const actionsPerms = await read(`/repos/${repo}/actions/permissions/workflow`);
   const list = await read(`/repos/${repo}/contents/.github/workflows`);
 
-  const files = (Array.isArray(list) ? list : []).filter((f) => /\.ya?ml$/.test(f.name));
+  const files = (Array.isArray(list) ? list : []).filter((f) => SAFE_WORKFLOW.test(f.path ?? ""));
   const fetched = await Promise.all(
     files.map(async (file) => ({
       file,
@@ -133,7 +139,12 @@ const findings = evaluate(await collect());
 const body = renderReport(findings, new Date().toISOString().slice(0, 10));
 // Log only fixed rule ids and counts; the full report goes to the issue, not the log.
 console.log(
-  `CostSec: ${findings.length} finding(s): ${findings.map((f) => f.id).join(", ") || "none"}`,
+  `CostSec: ${findings.length} finding(s): ${
+    findings
+      .map((f) => f.id)
+      .filter((id) => SAFE_ID.test(id))
+      .join(", ") || "none"
+  }`,
 );
 console.log(
   process.env.COSTSEC_DRY_RUN === "1"
