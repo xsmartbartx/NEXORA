@@ -352,4 +352,14 @@ describe("readConfig", () => {
     expect(c.maxPerTick).toBe(10);
     expect(c.heartbeatUrl).toBe("https://hc-ping.com/x");
   });
+
+  it("falls back to the default zone when the zone is invalid, so a typo cannot switch alerting off", () => {
+    expect(readConfig({ OPS_QUIET_TZ: "Europe/Warsw" }).timeZone).toBe("Europe/Warsaw");
+    expect(readConfig({ OPS_QUIET_TZ: "   " }).timeZone).toBe("Europe/Warsaw");
+    expect(readConfig({ OPS_QUIET_TZ: "UTC" }).timeZone).toBe("UTC");
+    expect(readConfig({ OPS_QUIET_TZ: " America/New_York " }).timeZone).toBe("America/New_York");
+    // The fallback is usable: quiet-hours maths still works with it.
+    const config = readConfig({ OPS_QUIET_TZ: "Not/AZone", OPS_QUIET_HOURS: "23:00-07:00" });
+    expect(() => isQuiet(new Date(), config.quietHours, config.timeZone)).not.toThrow();
+  });
 });

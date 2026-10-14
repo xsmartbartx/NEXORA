@@ -1,5 +1,5 @@
 {
-  "id": "85f40f7f-e97c-4b9c-9da6-3c176796e1fc",
+  "id": "897365c6-c101-4dc2-83a4-9d3cd5f58a79",
   "prevId": "5821d947-399e-45b6-a289-4b2588d5c517",
   "version": "7",
   "dialect": "postgresql",
@@ -334,6 +334,13 @@
           "primaryKey": false,
           "notNull": true,
           "default": 0
+        },
+        "resolution_pending": {
+          "name": "resolution_pending",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
         }
       },
       "indexes": {

@@ -96,4 +96,30 @@ describe("POST /api/internal/ops/events", () => {
     const res = await events(post("/api/internal/ops/events", JSON.stringify({ hello: "world" })));
     expect(res.status).toBe(422);
   });
+
+  it("answers 503 with Retry-After when nothing was stored because a tick was running", async () => {
+    hub.receiveHubEvents.mockResolvedValue({ ...summary, ran: false, sent: 0, opened: 0 });
+    const res = await events(
+      post("/api/internal/ops/events", JSON.stringify({ source: "x", title: "y" })),
+    );
+    expect(res.status).toBe(503);
+    expect(res.headers.get("Retry-After")).toBe("30");
+  });
+
+  it("answers 503 when a message could not be delivered, so the sender retries", async () => {
+    hub.receiveHubEvents.mockResolvedValue({ ...summary, sent: 0, failed: 1 });
+    const res = await events(
+      post("/api/internal/ops/events", JSON.stringify({ source: "x", title: "y" })),
+    );
+    expect(res.status).toBe(503);
+    expect(await res.json()).toMatchObject({ failed: 1 });
+  });
+
+  it("stays 200 when messages were only deferred (a later tick sends them)", async () => {
+    hub.receiveHubEvents.mockResolvedValue({ ...summary, deferred: 3 });
+    const res = await events(
+      post("/api/internal/ops/events", JSON.stringify({ source: "x", title: "y" })),
+    );
+    expect(res.status).toBe(200);
+  });
 });

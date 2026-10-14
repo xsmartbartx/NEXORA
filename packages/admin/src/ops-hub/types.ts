@@ -27,6 +27,8 @@ export interface AlertRow {
   lastNotifiedAt: Date | null;
   missedTicks: number;
   notifyCount: number;
+  /** A pushed incident declared over whose "resolved" message has not been delivered yet. */
+  resolutionPending: boolean;
 }
 
 export type NotificationKind = "opened" | "escalated" | "reminder" | "resolved";
@@ -54,6 +56,8 @@ export type Action =
       notify: Notification | null;
     }
   | { type: "miss"; id: string }
+  /** Announce only; the row is not refreshed, so a pushed incident's TTL still runs. */
+  | { type: "notify"; id: string; notify: Notification }
   | { type: "resolve"; id: string; notify: Notification | null };
 
 export interface ReconcileConfig {

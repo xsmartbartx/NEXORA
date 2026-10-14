@@ -36,6 +36,7 @@ function row(text: string, over: Partial<AlertRow> = {}): AlertRow {
     lastNotifiedAt: new Date(NOW.getTime() - 2 * HOUR),
     missedTicks: 0,
     notifyCount: 1,
+    resolutionPending: false,
     ...over,
   };
 }
@@ -231,6 +232,73 @@ describe("pushed alerts (Grafana)", () => {
   it("keeps a fresh pushed incident open on a tick", () => {
     const fresh = row("Postgres is down", { origin: "push", source: "grafana" });
     expect(run({ open: [fresh], polled: [], expirePush: true })).toEqual([]);
+  });
+});
+
+describe("pushed incidents on a tick", () => {
+  const pushedRow = (over: Partial<AlertRow> = {}) =>
+    row("Postgres is down", { origin: "push", source: "grafana", ...over });
+
+  it("owes the first message if it never went out, without refreshing the row", () => {
+    const unannounced = pushedRow({ lastNotifiedAt: null });
+    const actions = run({ open: [unannounced], polled: [] });
+    expect(kinds(actions)).toEqual(["notify:opened"]);
+    expect(actions[0]).toMatchObject({ type: "notify", id: unannounced.id });
+  });
+
+  it("holds a pushed warning during quiet hours and sends it afterwards", () => {
+    const held = pushedRow({ severity: "warning", lastNotifiedAt: null });
+    expect(run({ warningsAllowed: false, open: [held], polled: [] })).toEqual([]);
+    expect(kinds(run({ open: [held], polled: [] }))).toEqual(["notify:opened"]);
+  });
+
+  it("reminds about a pushed critical when due, never about a warning", () => {
+    const due = pushedRow({ lastNotifiedAt: new Date(NOW.getTime() - 7 * HOUR) });
+    expect(kinds(run({ open: [due], polled: [] }))).toEqual(["notify:reminder"]);
+    const warn = pushedRow({
+      severity: "warning",
+      lastNotifiedAt: new Date(NOW.getTime() - 30 * HOUR),
+    });
+    expect(run({ open: [warn], polled: [] })).toEqual([]);
+  });
+
+  it("says nothing between reminders", () => {
+    expect(run({ open: [pushedRow()], polled: [] })).toEqual([]);
+  });
+
+  it("is left alone by a batch of pushed events (no tick, nothing concluded)", () => {
+    const unannounced = pushedRow({ lastNotifiedAt: null });
+    expect(run({ open: [unannounced], polled: null, pushed: [] })).toEqual([]);
+  });
+
+  it("retries a resolution whose message did not go out", () => {
+    const pending = pushedRow({ resolutionPending: true });
+    expect(kinds(run({ open: [pending], polled: [] }))).toEqual(["resolve:resolved"]);
+    // A reminder is not due and the incident is fresh, yet the pending resolution wins.
+    expect(
+      kinds(
+        run({ open: [pushedRow({ resolutionPending: true, lastNotifiedAt: null })], polled: [] }),
+      ),
+    ).toEqual(["resolve"]);
+  });
+
+  it("treats a pushed incident that fires again as alive, not as resolved", () => {
+    const pending = pushedRow({ resolutionPending: true });
+    const actions = run({
+      open: [pending],
+      polled: null,
+      pushed: [item("Postgres is down", "critical", "push")],
+    });
+    expect(kinds(actions)).toEqual(["touch"]);
+  });
+
+  it("closes a stale pushed incident silently, even when a reminder would be due", () => {
+    const stale = pushedRow({
+      lastSeenAt: new Date(NOW.getTime() - 13 * HOUR),
+      lastNotifiedAt: new Date(NOW.getTime() - 8 * HOUR),
+    });
+    expect(kinds(run({ open: [stale], polled: [], expirePush: true }))).toEqual(["resolve"]);
+    expect(run({ open: [stale], polled: [] })).toEqual([]);
   });
 });
 

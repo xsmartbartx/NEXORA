@@ -33,6 +33,12 @@ Grafana webhook ──(POST /events)────────────┘     
   Grafana says so. It is only sent if you were told about the problem in the first place.
 - **A failed poll resolves nothing.** If the Control Center cannot be collected, nothing is concluded.
 - **A failed delivery is retried** on the next tick, because an unsent alert is never marked sent.
+  This holds for pushed alerts too: a tick sends the "opened" message or reminder a pushed incident
+  is still owed, without waiting for Grafana to repeat itself.
+- **An incident closes only after its "resolved" message is delivered.** If the message fails or does
+  not fit under the cap, a polled incident stays open and the next tick resolves it again; a pushed
+  one is flagged (`resolution_pending`) and the next tick retries. With no channel configured there
+  is nobody to tell, so incidents close at once.
 - **At most 10 messages per tick**, new criticals first; the rest follow on the next tick.
 - Items that belong on the page only (overdue owner reviews) are filtered out of the push.
 
@@ -53,6 +59,9 @@ Both are for machines on the compose network only.
 - The edge Caddy answers 404 to `/api/internal/*` from the internet, so a request has to come from
   inside the compose network (Grafana, or `docker exec` on the host).
 - Replies are counts only, never alert text.
+- `/events` answers **503** with `Retry-After` when nothing was stored (a tick was running) or a
+  message could not be delivered, so Grafana retries; the hub de-duplicates the retry. A batch whose
+  messages were merely deferred by the cap answers 200: the next tick sends them.
 
 ## Configuration
 
@@ -65,7 +74,7 @@ All optional except the token. Set them in the production env file (they reach t
 | `OPS_NOTIFY_WEBHOOK_URL`   | where messages go (https only). A secret: it usually contains a topic or token                  |
 | `OPS_NOTIFY_FORMAT`        | `ntfy`, `discord`, `slack` or `generic`; guessed from the host when unset                       |
 | `OPS_QUIET_HOURS`          | e.g. `23:00-07:00`: warnings wait, criticals never do                                           |
-| `OPS_QUIET_TZ`             | time zone for quiet hours, default `Europe/Warsaw`                                              |
+| `OPS_QUIET_TZ`             | time zone for quiet hours, default `Europe/Warsaw` (an unknown zone falls back to it)           |
 | `OPS_REMINDER_HOURS`       | reminder interval for open criticals, default 6                                                 |
 | `OPS_RESOLVE_AFTER_MISSED` | clean polls before "resolved", default 2                                                        |
 | `OPS_NOTIFY_MAX_PER_TICK`  | messages per tick, default 10                                                                   |
@@ -109,6 +118,7 @@ These change production and need a person.
 - If the Hub itself stops (the cron dies, the console is down) it cannot tell you. Set
   `OPS_HEARTBEAT_URL` to an external check (healthchecks.io or similar) that alerts you when the pings stop.
 - The Hub reports what the Control Center and Grafana already know. It adds no new probes except
-  one: it flags Grafana running with no rules loaded.
+  one: it flags Grafana running with no active alert rules scheduled (a Grafana whose rules are all
+  paused looks the same).
 - Grafana's own e-mail still needs `GRAFANA_SMTP_PASSWORD`; the webhook does not.
 - A pushed incident that nobody refreshes for 12 hours is closed without a message.

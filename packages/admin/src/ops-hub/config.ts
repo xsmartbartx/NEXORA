@@ -19,6 +19,20 @@ export interface HubConfig {
 
 type Env = Record<string, string | undefined>;
 
+const DEFAULT_ZONE = "Europe/Warsaw";
+
+/** A typo in an optional setting must not switch alerting off: an unknown zone falls back to the default. */
+function validZone(raw: string | undefined): string {
+  const zone = raw?.trim();
+  if (!zone) return DEFAULT_ZONE;
+  try {
+    new Intl.DateTimeFormat("en-GB", { timeZone: zone });
+    return zone;
+  } catch {
+    return DEFAULT_ZONE;
+  }
+}
+
 /** A whole number inside [min, max], else the fallback. Never trust an environment variable to be sane. */
 function bounded(raw: string | undefined, min: number, max: number, fallback: number): number {
   const n = Number(raw);
@@ -31,7 +45,7 @@ export function readConfig(env: Env = process.env): HubConfig {
     token: env.OPS_HUB_TOKEN,
     channel: channelUrl ? { url: channelUrl, format: env.OPS_NOTIFY_FORMAT?.trim() } : null,
     quietHours: parseQuietHours(env.OPS_QUIET_HOURS),
-    timeZone: env.OPS_QUIET_TZ?.trim() || "Europe/Warsaw",
+    timeZone: validZone(env.OPS_QUIET_TZ),
     reconcile: {
       reminderMs:
         bounded(env.OPS_REMINDER_HOURS, 1, 72, DEFAULT_RECONCILE.reminderMs / 3_600_000) *

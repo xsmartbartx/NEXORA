@@ -98,17 +98,42 @@ function resolution(row: AlertRow, ctx: Context): Action {
   };
 }
 
+/**
+ * An open pushed incident on a tick. Nothing new is learned about it, but a message that is
+ * still owed (the first one failed or was held back, or a critical is due its reminder) must not
+ * wait for the sender to repeat itself.
+ */
+function owed(row: AlertRow, ctx: Context): Action | null {
+  let kind: NotificationKind | null = null;
+  if (row.lastNotifiedAt === null) {
+    if (canSend(row.severity, ctx)) kind = "opened";
+  } else if (
+    row.severity === "critical" &&
+    ctx.now.getTime() - row.lastNotifiedAt.getTime() >= ctx.config.reminderMs
+  ) {
+    kind = "reminder";
+  }
+  if (!kind) return null;
+  return {
+    type: "notify",
+    id: row.id,
+    notify: note(kind, row.fingerprint, rowItem(row), row.firstSeenAt),
+  };
+}
+
 /** A problem that was not reported this time. */
 function absent(row: AlertRow, input: ReconcileInput, ctx: Context): Action | null {
+  if (input.polled === null) return null; // a batch of pushed events says nothing about the others
   if (row.origin === "poll") {
-    if (input.polled === null) return null;
     const missed = row.missedTicks + 1;
     return missed < ctx.config.resolveAfterMissed
       ? { type: "miss", id: row.id }
       : resolution(row, ctx);
   }
+  if (row.resolutionPending) return resolution(row, ctx);
   const stale = ctx.now.getTime() - row.lastSeenAt.getTime() > ctx.config.pushTtlMs;
-  return input.expirePush && stale ? { type: "resolve", id: row.id, notify: null } : null;
+  if (stale) return input.expirePush ? { type: "resolve", id: row.id, notify: null } : null;
+  return owed(row, ctx);
 }
 
 /**

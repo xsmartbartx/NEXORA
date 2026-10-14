@@ -35,6 +35,7 @@ function memoryStore() {
             lastNotifiedAt: null,
             missedTicks: 0,
             notifyCount: 0,
+            resolutionPending: false,
           });
           continue;
         }
@@ -44,10 +45,19 @@ function memoryStore() {
           row.severity = a.item.severity;
           row.lastSeenAt = now;
           row.missedTicks = 0;
+          row.resolutionPending = false;
           if (a.resetNotified) row.lastNotifiedAt = null;
         } else if (a.type === "miss") row.missedTicks += 1;
-        else row.state = "resolved";
+        else if (a.type === "resolve") row.state = "resolved";
+        // a "notify" action stores nothing
       }
+    },
+    async resolve(ids: string[]) {
+      for (const r of rows) if (r.state === "open" && ids.includes(r.id)) r.state = "resolved";
+    },
+    async markResolutionPending(ids: string[]) {
+      for (const r of rows)
+        if (r.state === "open" && ids.includes(r.id)) r.resolutionPending = true;
     },
     async markNotified(fingerprints: string[], now: Date) {
       for (const r of rows) {
@@ -316,5 +326,131 @@ describe("the hub, end to end", () => {
     expect(events).toContain("opened:success");
     expect(JSON.stringify(journal)).not.toContain("topic-that-must-never-leak");
     expect(JSON.stringify(sent)).not.toContain("topic-that-must-never-leak");
+  });
+
+  describe("no message is lost", () => {
+    const firing: HubItem = {
+      source: "grafana",
+      origin: "push",
+      severity: "critical",
+      text: "Postgres is down",
+    };
+
+    it("keeps a polled incident open until its 'resolved' message is delivered", async () => {
+      const { deps, rows } = make();
+      await tick(deps, [item("Website is down.")]);
+      advance(5);
+      await tick(deps, []);
+      advance(5);
+      outcome = { ok: false, error: "the channel answered 500" };
+      const failed = await tick(deps, []);
+      expect(failed).toMatchObject({ resolved: 0, failed: 1, open: 1 });
+      expect(rows[0]?.state).toBe("open");
+
+      advance(5);
+      outcome = { ok: true };
+      const retried = await tick(deps, []);
+      expect(retried).toMatchObject({ resolved: 1, sent: 1, open: 0 });
+      expect(rows[0]?.state).toBe("resolved");
+      expect(sent.at(-1)?.kind).toBe("resolved");
+    });
+
+    it("does not drop a 'resolved' message that did not fit under the cap", async () => {
+      const { deps, rows } = make({ maxPerTick: 1 });
+      const both = [item("a is down."), item("b is down.")];
+      await tick(deps, both);
+      advance(5);
+      await tick(deps, both);
+      expect(rows.every((r) => r.lastNotifiedAt !== null)).toBe(true);
+
+      advance(5);
+      await tick(deps, []);
+      advance(5);
+      const first = await tick(deps, []);
+      expect(first).toMatchObject({ resolved: 1, deferred: 1, sent: 1 });
+      expect(rows.map((r) => r.state).sort()).toEqual(["open", "resolved"]);
+
+      advance(5);
+      const second = await tick(deps, []);
+      expect(second).toMatchObject({ resolved: 1, sent: 1, open: 0 });
+      expect(sent.filter((m) => m.kind === "resolved")).toHaveLength(2);
+    });
+
+    it("retries a pushed 'resolved' message that failed, without waiting for Grafana", async () => {
+      const { deps, rows } = make();
+      await processBatch(deps, { polled: null, pushed: [firing] });
+      outcome = { ok: false, error: "the channel answered 500" };
+      const failed = await processBatch(deps, {
+        polled: null,
+        resolved: [rows[0]!.fingerprint],
+      });
+      expect(failed).toMatchObject({ resolved: 0, failed: 1 });
+      expect(rows[0]).toMatchObject({ state: "open", resolutionPending: true });
+
+      advance(5);
+      outcome = { ok: true };
+      const retried = await tick(deps, []);
+      expect(retried).toMatchObject({ resolved: 1, sent: 1 });
+      expect(rows[0]?.state).toBe("resolved");
+    });
+
+    it("forgets a pending resolution when the alert fires again", async () => {
+      const { deps, rows } = make();
+      await processBatch(deps, { polled: null, pushed: [firing] });
+      outcome = { ok: false, error: "x" };
+      await processBatch(deps, { polled: null, resolved: [rows[0]!.fingerprint] });
+      expect(rows[0]?.resolutionPending).toBe(true);
+
+      advance(5);
+      outcome = { ok: true };
+      await processBatch(deps, { polled: null, pushed: [firing] });
+      expect(rows[0]?.resolutionPending).toBe(false);
+      const quiet = await tick(deps, []);
+      expect(quiet).toMatchObject({ resolved: 0, open: 1 });
+      expect(rows[0]?.state).toBe("open");
+    });
+
+    it("retries a pushed 'opened' message that failed, on the next tick", async () => {
+      const { deps, rows } = make();
+      outcome = { ok: false, error: "the channel could not be reached" };
+      const first = await processBatch(deps, { polled: null, pushed: [firing] });
+      expect(first).toMatchObject({ opened: 1, sent: 0, failed: 1 });
+      expect(rows[0]?.lastNotifiedAt).toBeNull();
+
+      advance(5);
+      outcome = { ok: true };
+      const retried = await tick(deps, []);
+      expect(retried).toMatchObject({ sent: 1, failed: 0 });
+      expect(sent.at(-1)?.kind).toBe("opened");
+      expect(rows[0]?.lastNotifiedAt).not.toBeNull();
+    });
+
+    it("reminds about a long-open pushed critical on a tick, and still lets its TTL close it", async () => {
+      const { deps, rows } = make();
+      await processBatch(deps, { polled: null, pushed: [firing] });
+      const seenAt = rows[0]!.lastSeenAt;
+
+      advance(7 * 60);
+      const reminded = await tick(deps, []);
+      expect(reminded).toMatchObject({ sent: 1, resolved: 0 });
+      expect(sent.at(-1)?.kind).toBe("reminder");
+      expect(rows[0]?.lastSeenAt).toEqual(seenAt);
+
+      advance(6 * 60);
+      const expired = await tick(deps, []);
+      expect(expired).toMatchObject({ resolved: 1, sent: 0 });
+      expect(rows[0]?.state).toBe("resolved");
+    });
+
+    it("closes an incident at once when there is nobody to tell", async () => {
+      const { deps, rows } = make({ channel: null }, false);
+      await tick(deps, [item("Website is down.")]);
+      advance(5);
+      await tick(deps, []);
+      advance(5);
+      const done = await tick(deps, []);
+      expect(done).toMatchObject({ resolved: 1, open: 0, channel: false });
+      expect(rows[0]?.state).toBe("resolved");
+    });
   });
 });

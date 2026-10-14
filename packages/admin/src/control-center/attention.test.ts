@@ -180,12 +180,14 @@ describe("attentionItems", () => {
       s.health.infra = ok({ ...s.health.infra.data, grafanaAlertRules });
       return attentionItems(s).map((i) => i.text);
     };
-    expect(withRules(0)).toContain("Grafana has no alert rules loaded, so its alerts cannot fire.");
+    expect(withRules(0)).toContain(
+      "Grafana has no active alert rules scheduled, so its alerts cannot fire.",
+    );
     expect(withRules(4)).not.toContain(
-      "Grafana has no alert rules loaded, so its alerts cannot fire.",
+      "Grafana has no active alert rules scheduled, so its alerts cannot fire.",
     );
     expect(withRules(null)).not.toContain(
-      "Grafana has no alert rules loaded, so its alerts cannot fire.",
+      "Grafana has no active alert rules scheduled, so its alerts cannot fire.",
     );
   });
 

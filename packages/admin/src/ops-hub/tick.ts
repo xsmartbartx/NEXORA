@@ -4,7 +4,7 @@ import { isQuiet } from "./quiet-hours";
 import { reconcile } from "./reconcile";
 import { render, type Rendered } from "./render";
 import type { JournalEntry, Store } from "./store";
-import type { Action, HubItem, Notification } from "./types";
+import type { Action, AlertRow, HubItem, Notification } from "./types";
 
 export interface HubDeps {
   store: Store;
@@ -19,10 +19,15 @@ export interface Summary {
   ran: boolean;
   open: number;
   opened: number;
+  /** Incidents actually closed this run. */
   resolved: number;
   sent: number;
   failed: number;
-  /** Messages over the per-tick cap; they go out on the next tick. */
+  /**
+   * Messages over the per-tick cap. They are not lost: an unsent "opened" or reminder is owed
+   * again on the next tick, and an incident whose "resolved" message did not go out stays open
+   * until it has (a polled one is resolved again by the next tick, a pushed one is flagged).
+   */
   deferred: number;
   /** True when there is somewhere to send messages. */
   channel: boolean;
@@ -78,13 +83,21 @@ function transitions(actions: Action[]): JournalEntry[] {
   return entries;
 }
 
+interface Announced {
+  sent: number;
+  failed: number;
+  deferred: number;
+  /** Fingerprints whose "resolved" message was delivered. */
+  resolvedDelivered: Set<string>;
+}
+
 /** Sends what fits, remembers what arrived, and journals both outcomes. */
 async function announce(
   deps: HubDeps,
   notifications: Notification[],
   now: Date,
-): Promise<{ sent: number; failed: number; deferred: number }> {
-  const result = { sent: 0, failed: 0, deferred: 0 };
+): Promise<Announced> {
+  const result: Announced = { sent: 0, failed: 0, deferred: 0, resolvedDelivered: new Set() };
   if (!deps.send || notifications.length === 0) return result;
   const batch = notifications.slice(0, deps.config.maxPerTick);
   result.deferred = notifications.length - batch.length;
@@ -96,7 +109,8 @@ async function announce(
     const entry = { fingerprint: n.fingerprint, source: n.source, severity: n.severity };
     if (outcome.ok) {
       result.sent += 1;
-      if (n.kind !== "resolved") delivered.push(n.fingerprint);
+      if (n.kind === "resolved") result.resolvedDelivered.add(n.fingerprint);
+      else delivered.push(n.fingerprint);
       journal.push({ ...entry, event: n.kind, outcome: "success" });
     } else {
       result.failed += 1;
@@ -106,6 +120,34 @@ async function announce(
   await deps.store.markNotified(delivered, now);
   await deps.store.journal(journal);
   return result;
+}
+
+/**
+ * A resolution that has a message to send is closed only once the message is out. If it is not
+ * (the channel failed, or it did not fit under the cap) the incident stays open: a polled one is
+ * resolved again by the next tick; a pushed one cannot be re-derived from a poll, so it is
+ * flagged and the next tick retries. Returns how many incidents were closed.
+ */
+async function closeResolutions(
+  deps: HubDeps,
+  held: Extract<Action, { type: "resolve" }>[],
+  announced: Announced,
+  open: AlertRow[],
+  now: Date,
+): Promise<number> {
+  const done: string[] = [];
+  const stuckPushed: string[] = [];
+  const originOf = new Map(open.map((row) => [row.id, row.origin]));
+  for (const action of held) {
+    if (action.notify && announced.resolvedDelivered.has(action.notify.fingerprint)) {
+      done.push(action.id);
+    } else if (originOf.get(action.id) === "push") {
+      stuckPushed.push(action.id);
+    }
+  }
+  await deps.store.resolve(done, now);
+  await deps.store.markResolutionPending(stuckPushed);
+  return done.length;
 }
 
 let running = false;
@@ -133,14 +175,33 @@ export async function processBatch(deps: HubDeps, batch: Batch): Promise<Summary
       resolved: batch.resolved,
       expirePush: batch.expirePush,
     });
-    await deps.store.apply(actions, now);
+
+    // With nobody to tell, a resolution has no message to wait for.
+    const holdsMessage = (a: Action): a is Extract<Action, { type: "resolve" }> =>
+      channel && a.type === "resolve" && a.notify !== null;
+    const held = actions.filter(holdsMessage);
+    await deps.store.apply(
+      actions.filter((a) => !holdsMessage(a)),
+      now,
+    );
     await deps.store.journal(transitions(actions));
 
-    const delivery = await announce(deps, notificationsOf(actions), now);
+    const announced = await announce(deps, notificationsOf(actions), now);
+    const closedWithMessage = await closeResolutions(deps, held, announced, open, now);
+
     const opened = actions.filter((a) => a.type === "open").length;
-    const resolved = actions.filter((a) => a.type === "resolve").length;
-    const stillOpen = open.length + opened - resolved;
-    return { ran: true, open: stillOpen, opened, resolved, channel, ...delivery };
+    const silent = actions.filter((a) => a.type === "resolve" && !holdsMessage(a)).length;
+    const resolved = silent + closedWithMessage;
+    return {
+      ran: true,
+      open: open.length + opened - resolved,
+      opened,
+      resolved,
+      channel,
+      sent: announced.sent,
+      failed: announced.failed,
+      deferred: announced.deferred,
+    };
   } finally {
     running = false;
   }

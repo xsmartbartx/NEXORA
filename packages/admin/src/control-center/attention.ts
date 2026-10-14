@@ -65,8 +65,11 @@ export function attentionItems(snapshot: ControlCenterSnapshot): AttentionItem[]
       items.push(level("warning", "Host memory is above 90%."));
     }
     // The alerting engine is only a safety net if it has rules. It once ran for days with none.
+    // The metric counts rules that are scheduled, so a Grafana whose rules are all paused reads 0 too.
     if (m.grafanaAlertRules === 0) {
-      items.push(level("warning", "Grafana has no alert rules loaded, so its alerts cannot fire."));
+      items.push(
+        level("warning", "Grafana has no active alert rules scheduled, so its alerts cannot fire."),
+      );
     }
     if (m.redisMemoryPercent !== null && m.redisMemoryPercent > 90) {
       items.push(level("warning", "Redis is above 90% of its memory limit."));

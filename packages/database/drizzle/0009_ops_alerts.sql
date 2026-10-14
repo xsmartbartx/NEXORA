@@ -13,6 +13,7 @@ CREATE TABLE "ops_alerts" (
 	"resolved_at" timestamp with time zone,
 	"missed_ticks" integer DEFAULT 0 NOT NULL,
 	"notify_count" integer DEFAULT 0 NOT NULL,
+	"resolution_pending" boolean DEFAULT false NOT NULL,
 	CONSTRAINT "ops_alerts_severity_chk" CHECK ("ops_alerts"."severity" in ('warning', 'critical')),
 	CONSTRAINT "ops_alerts_state_chk" CHECK ("ops_alerts"."state" in ('open', 'resolved')),
 	CONSTRAINT "ops_alerts_origin_chk" CHECK ("ops_alerts"."origin" in ('poll', 'push'))

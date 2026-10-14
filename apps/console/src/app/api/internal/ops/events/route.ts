@@ -25,5 +25,10 @@ export async function POST(request: Request) {
   }
   const summary = await receiveHubEvents(body);
   if (!summary) return NextResponse.json({ error: "unrecognised event" }, { status: 422 });
+  // A 200 tells the sender "handled". If a tick was running (nothing was stored) or a message could
+  // not be delivered, say so with a 503: Grafana retries those, and the hub de-duplicates the retry.
+  if (!summary.ran || summary.failed > 0) {
+    return NextResponse.json(summary, { status: 503, headers: { "Retry-After": "30" } });
+  }
   return NextResponse.json(summary);
 }

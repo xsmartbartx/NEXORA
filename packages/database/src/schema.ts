@@ -1,4 +1,5 @@
 import {
+  boolean,
   check,
   index,
   integer,
@@ -190,6 +191,12 @@ export const opsAlerts = pgTable(
     /** Consecutive polls in which a `poll` alert was absent. */
     missedTicks: integer("missed_ticks").notNull().default(0),
     notifyCount: integer("notify_count").notNull().default(0),
+    /**
+     * A pushed incident the sender has declared over, whose "resolved" message could not be
+     * delivered yet. The row stays open and the next tick tries again, so a failed message is
+     * never silently lost.
+     */
+    resolutionPending: boolean("resolution_pending").notNull().default(false),
   },
   (table) => [
     // At most one open incident per fingerprint; history rows are unconstrained.

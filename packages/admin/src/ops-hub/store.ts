@@ -16,7 +16,12 @@ export interface JournalEntry {
 /** The hub's whole view of storage. The real one is below; tests use an in-memory twin. */
 export interface Store {
   loadOpen(): Promise<AlertRow[]>;
+  /** Stores what changed. A `resolve` that carries a message is NOT applied here: see `resolve`. */
   apply(actions: Action[], now: Date): Promise<void>;
+  /** Closes incidents, once the message announcing it has been delivered (or there was none to send). */
+  resolve(ids: string[], now: Date): Promise<void>;
+  /** The sender declared these over but their "resolved" message did not go out: keep them open and try again. */
+  markResolutionPending(ids: string[]): Promise<void>;
   markNotified(fingerprints: string[], now: Date): Promise<void>;
   journal(entries: JournalEntry[]): Promise<void>;
 }
@@ -39,6 +44,7 @@ function toRow(row: OpsAlert): AlertRow {
     lastNotifiedAt: row.lastNotifiedAt,
     missedTicks: row.missedTicks,
     notifyCount: row.notifyCount,
+    resolutionPending: row.resolutionPending,
   };
 }
 
@@ -78,6 +84,8 @@ export function createDbStore(): Store {
                   detail: action.item.detail ?? null,
                   lastSeenAt: now,
                   missedTicks: 0,
+                  // Reported again: whatever was said about it ending no longer holds.
+                  resolutionPending: false,
                   ...(action.resetNotified ? { lastNotifiedAt: null } : {}),
                 })
                 .where(and(eq(opsAlerts.id, action.id), eq(opsAlerts.state, "open")));
@@ -91,12 +99,31 @@ export function createDbStore(): Store {
             case "resolve":
               await tx
                 .update(opsAlerts)
-                .set({ state: "resolved", resolvedAt: now })
+                .set({ state: "resolved", resolvedAt: now, resolutionPending: false })
                 .where(and(eq(opsAlerts.id, action.id), eq(opsAlerts.state, "open")));
+              break;
+            case "notify":
+              // Announce only: nothing to store, and last_seen_at must stay put so the TTL still runs.
               break;
           }
         }
       });
+    },
+
+    async resolve(ids, now) {
+      if (ids.length === 0) return;
+      await db
+        .update(opsAlerts)
+        .set({ state: "resolved", resolvedAt: now, resolutionPending: false })
+        .where(and(eq(opsAlerts.state, "open"), inArray(opsAlerts.id, ids)));
+    },
+
+    async markResolutionPending(ids) {
+      if (ids.length === 0) return;
+      await db
+        .update(opsAlerts)
+        .set({ resolutionPending: true })
+        .where(and(eq(opsAlerts.state, "open"), inArray(opsAlerts.id, ids)));
     },
 
     async markNotified(fingerprints, now) {
