@@ -102,23 +102,21 @@ async function upsertIssue(findings, body) {
       method: "PATCH",
       body: JSON.stringify({ state: "closed", body }),
     });
-    return `closed #${number}`;
+    return "closed";
   }
   if (existing) {
     await call(issueToken, `/repos/${repo}/issues/${number}`, {
       method: "PATCH",
       body: JSON.stringify({ body }),
     });
-    return `updated #${number}`;
+    return "updated";
   }
   if (isClean(findings)) return "clean, no issue";
   const made = await call(issueToken, `/repos/${repo}/issues`, {
     method: "POST",
     body: JSON.stringify({ title: TITLE, body }),
   });
-  return made.status === 201
-    ? `opened #${made.body.number}`
-    : `could not open an issue (HTTP ${made.status})`;
+  return made.status === 201 ? "opened" : "could not open an issue";
 }
 
 if (!validRepo) {
