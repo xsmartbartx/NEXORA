@@ -48,9 +48,13 @@ const MAX_PAGES = 10;
 
 /** The path of the `rel="next"` link, or null. Cursor-paged endpoints (Dependabot) need this. */
 function nextPath(link) {
-  const m = /<([^>]+)>;\s*rel="next"/.exec(link);
-  if (!m?.[1].startsWith(`${API}/`)) return null;
-  return m[1].slice(API.length);
+  const part = link
+    .split(",")
+    .map((p) => p.trim())
+    .find((p) => p.endsWith('rel="next"'));
+  if (!part) return null;
+  const url = part.slice(part.indexOf("<") + 1, part.indexOf(">"));
+  return url.startsWith(`${API}/`) ? url.slice(API.length) : null;
 }
 
 /** Every page of a list endpoint, or null if any page could not be read (never a partial list). */
@@ -65,7 +69,7 @@ async function readAll(token, path) {
     all.push(...body);
     next = nextPath(link);
   }
-  return next === null ? all : null;
+  return next ? null : all;
 }
 
 async function count(path) {

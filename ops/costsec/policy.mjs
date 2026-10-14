@@ -148,7 +148,7 @@ function triggerText(content) {
 const usesPullRequestTarget = (content) =>
   triggerText(content)
     .split(/[\s,[\]{}:]+/)
-    .some((word) => word === "pull_request_target");
+    .includes("pull_request_target");
 
 function workflowRules(snapshot) {
   const out = [];
@@ -307,19 +307,15 @@ export function mergeProtection(branch, classic, rules) {
     .filter((r) => r.type === "required_status_checks")
     .flatMap((r) => (r.parameters?.required_status_checks ?? []).map((c) => c.context));
   const classicChecks = branch.protection?.required_status_checks?.contexts ?? [];
+  // A ruleset that forbids it wins; otherwise the classic setting; null when neither is readable.
+  const classicFlag = (key) => (classic ? classic[key]?.enabled === true : null);
+  const flag = (ruleType, key) =>
+    list.some((r) => r.type === ruleType) ? false : classicFlag(key);
   return {
     protected: branch.protected === true || list.length > 0,
     requiredChecks: [...new Set([...classicChecks, ...rulesChecks])],
-    enforceAdmins: classic ? classic.enforce_admins?.enabled === true : null,
-    allowForcePushes: list.some((r) => r.type === "non_fast_forward")
-      ? false
-      : classic
-        ? classic.allow_force_pushes?.enabled === true
-        : null,
-    allowDeletions: list.some((r) => r.type === "deletion")
-      ? false
-      : classic
-        ? classic.allow_deletions?.enabled === true
-        : null,
+    enforceAdmins: classicFlag("enforce_admins"),
+    allowForcePushes: flag("non_fast_forward", "allow_force_pushes"),
+    allowDeletions: flag("deletion", "allow_deletions"),
   };
 }
