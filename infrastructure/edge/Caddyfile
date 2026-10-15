@@ -36,7 +36,7 @@ http://:9180 {
 # React Server Components RCE (CVE-2025-55182); the apps are patched, but
 # each probe otherwise reaches Next.js and is logged as an error. Only
 # import this into sites whose code has no "use server" — console,
-# sentinel, cspm and gateway use Server Actions and must not get it.
+# sentinel, cspm, gateway and vigilo use Server Actions and must not get it.
 (no_server_actions) {
 	@server_action header Next-Action *
 	respond @server_action 403
@@ -125,7 +125,6 @@ gateway.onenexora.com {
 }
 
 vigilo.onenexora.com {
-	import no_server_actions
 	reverse_proxy vigilo-self-host-web-1:3000
 }
 
