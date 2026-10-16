@@ -42,6 +42,20 @@ const lines = (dir: string) =>
     .split("\n")
     .map((l) => JSON.parse(l));
 
+/** Starts the same job `starters` times at once with a slow executor; returns how many succeeded. */
+async function race(dir: string, theJob: ReturnType<typeof job>, starters: number) {
+  const slow = vi.fn(
+    () => new Promise<{ status: number }>((r) => setTimeout(() => r({ status: 0 }), 20)),
+  );
+  const results = await Promise.all(
+    Array.from({ length: starters }, () => runJob(theJob, ctx(dir, { exec: slow }))),
+  );
+  return {
+    succeeded: results.filter((r: { outcome: string }) => r.outcome === "succeeded").length,
+    ran: slow.mock.calls.length,
+  };
+}
+
 describe("the registry", () => {
   it("accepts the jobs that ship in the repository", () => {
     const { jobs, errors } = loadJobs();
@@ -99,15 +113,7 @@ describe("running a job", () => {
 
   it("two simultaneous starters: exactly one runs", async () => {
     const dir = tmp();
-    const slow = vi.fn(
-      () => new Promise<{ status: number }>((r) => setTimeout(() => r({ status: 0 }), 20)),
-    );
-    const results = await Promise.all([
-      runJob(job(), ctx(dir, { exec: slow })),
-      runJob(job(), ctx(dir, { exec: slow })),
-    ]);
-    expect(results.filter((r: { outcome: string }) => r.outcome === "succeeded")).toHaveLength(1);
-    expect(slow).toHaveBeenCalledTimes(1);
+    expect(await race(dir, job(), 2)).toEqual({ succeeded: 1, ran: 1 });
   });
 
   it("the kill switch stops everything", async () => {
@@ -210,31 +216,14 @@ describe("running a job", () => {
   it("simultaneous retries after a failure: exactly one wins the next attempt, nobody's claim is deleted", async () => {
     const dir = tmp();
     await runJob(job(), ctx(dir, { exec: vi.fn(async () => ({ status: 1 })) }));
-    const slow = vi.fn(
-      () => new Promise<{ status: number }>((r) => setTimeout(() => r({ status: 0 }), 20)),
-    );
-    const results = await Promise.all([
-      runJob(job(), ctx(dir, { exec: slow })),
-      runJob(job(), ctx(dir, { exec: slow })),
-      runJob(job(), ctx(dir, { exec: slow })),
-    ]);
-    expect(results.filter((r: { outcome: string }) => r.outcome === "succeeded")).toHaveLength(1);
-    expect(slow).toHaveBeenCalledTimes(1);
+    expect(await race(dir, job(), 3)).toEqual({ succeeded: 1, ran: 1 });
   });
 
   it("the claim is won before the single-use approval is spent: one approval, two starters, one run", async () => {
     const dir = tmp();
     const guarded = job({ command: "deploy edge", requiresApproval: true });
     approve(path.join(dir, "approvals"), "deploy edge", 60, NOW);
-    const slow = vi.fn(
-      () => new Promise<{ status: number }>((r) => setTimeout(() => r({ status: 0 }), 20)),
-    );
-    const results = await Promise.all([
-      runJob(guarded, ctx(dir, { exec: slow })),
-      runJob(guarded, ctx(dir, { exec: slow })),
-    ]);
-    expect(results.filter((r: { outcome: string }) => r.outcome === "succeeded")).toHaveLength(1);
-    expect(slow).toHaveBeenCalledTimes(1);
+    expect(await race(dir, guarded, 2)).toEqual({ succeeded: 1, ran: 1 });
     const used = readFileSync(path.join(dir, "approvals", "used.log"), "utf8")
       .trim()
       .split("\n");
