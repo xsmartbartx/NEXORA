@@ -1,0 +1,11 @@
+{
+  "id": "backup-listing",
+  "title": "Record the backup directory listing as a daily baseline",
+  "schedule": "daily",
+  "command": "audit backups",
+  "maxCostUsd": 0,
+  "timeoutSeconds": 60,
+  "requiresApproval": false,
+  "enabled": true,
+  "rollback": "Read-only. Nothing to roll back."
+}

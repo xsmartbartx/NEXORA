@@ -1,0 +1,11 @@
+{
+  "id": "restore-drill",
+  "title": "Restore the newest nightly backup into a throwaway database",
+  "schedule": "monthly",
+  "command": "restore-drill",
+  "maxCostUsd": 0,
+  "timeoutSeconds": 1800,
+  "requiresApproval": false,
+  "enabled": true,
+  "rollback": "Read-only against production: it only reads the archive and removes its own throwaway container on exit. Nothing to roll back."
+}
