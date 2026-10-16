@@ -56,7 +56,12 @@ export function parseJob(raw) {
   if (typeof command !== "string") return bad("command");
   const resolved = resolveCommand(command);
   if (!resolved.ok) return bad(`command refused by the guard registry (${resolved.reason})`);
-  if (typeof maxCostUsd !== "number" || !(maxCostUsd >= 0) || maxCostUsd > 10)
+  if (
+    typeof maxCostUsd !== "number" ||
+    maxCostUsd < 0 ||
+    Number.isNaN(maxCostUsd) ||
+    maxCostUsd > 10
+  )
     return bad("maxCostUsd");
   if (!Number.isInteger(timeoutSeconds) || timeoutSeconds < 1 || timeoutSeconds > 7200)
     return bad("timeoutSeconds");
@@ -112,14 +117,29 @@ export function loadJobs(dir = path.join(here, "jobs")) {
   return { jobs, errors };
 }
 
-const stateFile = (dir, job, period) => path.join(dir, "runs", `${job.id}__${period}.json`);
+// One file per attempt: runs/<job>__<period>.<n>.json. A retry creates the next number with an
+// exclusive create and never deletes or rewrites anyone else's file, so two starters cannot both win.
+const attemptFile = (dir, job, period, n) =>
+  path.join(dir, "runs", `${job.id}__${period}.${n}.json`);
 
-function readState(dir, job, period) {
-  try {
-    return JSON.parse(readFileSync(stateFile(dir, job, period), "utf8"));
-  } catch {
-    return null;
-  }
+/** Attempts recorded for this (job, period), oldest first: [{ n, status }]. */
+function readAttempts(dir, job, period) {
+  const prefix = `${job.id}__${period}.`;
+  return readdirSync(path.join(dir, "runs"))
+    .filter((name) => name.startsWith(prefix) && name.endsWith(".json"))
+    .map((name) => Number(name.slice(prefix.length, -".json".length)))
+    .filter((n) => Number.isInteger(n) && n > 0)
+    .sort((x, y) => x - y)
+    .map((n) => {
+      try {
+        return {
+          n,
+          status: JSON.parse(readFileSync(attemptFile(dir, job, period, n), "utf8")).status,
+        };
+      } catch {
+        return { n, status: "running" }; // unreadable: treat as unfinished, never as free
+      }
+    });
 }
 
 function readLedger(dir) {
@@ -140,11 +160,17 @@ function readLedger(dir) {
 }
 
 function readBudget(dir) {
+  let text;
   try {
-    return parseBudget(JSON.parse(readFileSync(path.join(dir, "budget.json"), "utf8")));
+    text = readFileSync(path.join(dir, "budget.json"), "utf8");
+  } catch (error) {
+    if (error.code !== "ENOENT") return parseBudget(null); // unreadable host file: stop
+    text = readFileSync(path.join(here, "../costsec/budget.json"), "utf8"); // none: repository default
+  }
+  try {
+    return parseBudget(JSON.parse(text));
   } catch {
-    // no file: fall back to the repository's default limit
-    return parseBudget(JSON.parse(readFileSync(path.join(here, "../costsec/budget.json"), "utf8")));
+    return parseBudget(null); // present but not JSON: stop, do not fall back
   }
 }
 
@@ -153,6 +179,43 @@ const log = (dir, entry) =>
     path.join(dir, "runs.jsonl"),
     `${JSON.stringify({ ts: new Date().toISOString(), ...entry })}\n`,
   );
+
+/** Why this job must not start now, or null. Checks only; nothing is claimed or consumed. */
+function blockedReason(job, ctx, attempts) {
+  const { dir, now } = ctx;
+  if (!job.enabled) return "disabled";
+  if (existsSync(path.join(dir, "KILL"))) return "kill-switch";
+  const { ok, reason, budget } = readBudget(dir);
+  if (!ok) return `budget config invalid (${reason})`;
+  const spent = monthSpend(readLedger(dir), new Date(now).toISOString().slice(0, 7));
+  if (!canSpend(budget, spent, job.maxCostUsd)) return `budget (${assess(budget, spent).state})`;
+  if (attempts.some((a) => a.status === "succeeded")) return "already succeeded this period";
+  if (attempts.some((a) => a.status === "running")) return "another run holds this period";
+  if (attempts.length >= MAX_ATTEMPTS) return `gave up after ${MAX_ATTEMPTS} failed attempts`;
+  return null;
+}
+
+async function execute(job, ctx, argv) {
+  try {
+    return await ctx.exec(argv, job.timeoutSeconds * 1000);
+  } catch (error) {
+    return { status: 1, error: String(error?.message ?? error).slice(0, 200) };
+  }
+}
+
+async function notifyFailure(job, ctx, period, attempt) {
+  // A notifier that throws (synchronously or not) must never turn a recorded failure into a crash.
+  try {
+    await ctx.notify?.({
+      source: `worker.${job.id}`,
+      title: `Job ${job.id} failed (attempt ${attempt} of ${MAX_ATTEMPTS})`,
+      severity: "warning",
+      detail: `Period ${period}. Rollback: ${job.rollback}`,
+    });
+  } catch {
+    log(ctx.dir, { event: "notify-failed", job: job.id, period });
+  }
+}
 
 /**
  * Runs one job if, and only if, it is due and allowed. `ctx`: { dir, now, exec, notify }.
@@ -167,55 +230,40 @@ export async function runJob(job, ctx) {
     return { outcome: "skipped", reason, period };
   };
 
-  if (!job.enabled) return skip("disabled");
-  if (existsSync(path.join(dir, "KILL"))) return skip("kill-switch");
-  const { ok, reason: cfgReason, budget } = readBudget(dir);
-  if (!ok) return skip(`budget config invalid (${cfgReason})`);
-  const spent = monthSpend(readLedger(dir), new Date(now).toISOString().slice(0, 7));
-  if (!canSpend(budget, spent, job.maxCostUsd))
-    return skip(`budget (${assess(budget, spent).state})`);
-
-  const previous = readState(dir, job, period);
-  if (previous?.status === "succeeded") return skip("already succeeded this period");
-  if (previous?.status === "running") return skip("another run holds this period");
-  if (previous && previous.attempts >= MAX_ATTEMPTS)
-    return skip(`gave up after ${MAX_ATTEMPTS} failed attempts`);
-
-  if (job.requiresApproval && !consumeApproval(path.join(dir, "approvals"), job.command, now)) {
-    return skip("needs a human approval");
-  }
-
+  const attempts = readAttempts(dir, job, period);
+  const blocked = blockedReason(job, ctx, attempts);
+  if (blocked) return skip(blocked);
   const resolved = resolveCommand(job.command);
   if (!resolved.ok) return skip("command no longer allowed");
 
-  // The claim: an exclusive create. A failed earlier attempt is removed first, so the claim below is
-  // still the single point where two starters race and exactly one wins.
-  const file = stateFile(dir, job, period);
-  const attempts = (previous?.attempts ?? 0) + 1;
-  if (previous) rmSync(file, { force: true });
+  // The claim: an exclusive create of the next attempt's file. Whoever creates it owns the attempt.
+  const attempt = (attempts.at(-1)?.n ?? 0) + 1;
+  const file = attemptFile(dir, job, period, attempt);
   try {
     writeFileSync(
       file,
-      JSON.stringify({ status: "running", attempts, startedAt: new Date(now).toISOString() }),
-      { flag: "wx" },
+      JSON.stringify({ status: "running", startedAt: new Date(now).toISOString() }),
+      {
+        flag: "wx",
+      },
     );
   } catch {
     return skip("claimed by another starter");
   }
-  log(dir, { event: "started", job: job.id, period, attempt: attempts });
 
-  let result;
-  try {
-    result = await ctx.exec(resolved.argv, job.timeoutSeconds * 1000);
-  } catch (error) {
-    result = { status: 1, error: String(error?.message ?? error).slice(0, 200) };
+  // The single-use approval is spent only after the claim is won, so a loser wastes nothing.
+  if (job.requiresApproval && !consumeApproval(path.join(dir, "approvals"), job.command, now)) {
+    rmSync(file, { force: true }); // our own claim, released: nothing ran
+    return skip("needs a human approval");
   }
+  log(dir, { event: "started", job: job.id, period, attempt });
+
+  const result = await execute(job, ctx, resolved.argv);
   const succeeded = result.status === 0;
   writeFileSync(
     file,
     JSON.stringify({
       status: succeeded ? "succeeded" : "failed",
-      attempts,
       finishedAt: new Date().toISOString(),
       exit: result.status,
     }),
@@ -228,25 +276,12 @@ export async function runJob(job, ctx) {
     event: succeeded ? "succeeded" : "failed",
     job: job.id,
     period,
-    attempt: attempts,
+    attempt,
     exit: result.status,
     error: result.error,
   });
-
-  if (!succeeded) {
-    // A notifier that throws (synchronously or not) must never turn a recorded failure into a crash.
-    try {
-      await ctx.notify?.({
-        source: `worker.${job.id}`,
-        title: `Job ${job.id} failed (attempt ${attempts} of ${MAX_ATTEMPTS})`,
-        severity: "warning",
-        detail: `Period ${period}. Rollback: ${job.rollback}`,
-      });
-    } catch {
-      log(dir, { event: "notify-failed", job: job.id, period });
-    }
-  }
-  return { outcome: succeeded ? "succeeded" : "failed", period, attempts };
+  if (!succeeded) await notifyFailure(job, ctx, period, attempt);
+  return { outcome: succeeded ? "succeeded" : "failed", period, attempts: attempt };
 }
 
 function realExec(argv, timeoutMs) {
@@ -265,7 +300,7 @@ function realExec(argv, timeoutMs) {
 async function hubNotify(event) {
   const body = JSON.stringify({ ...event, status: "firing" });
   execFileSync(
-    "docker",
+    "/usr/bin/docker",
     [
       "exec",
       "-i",
@@ -278,34 +313,43 @@ async function hubNotify(event) {
   );
 }
 
+function printStatus(dir, jobs) {
+  for (const job of jobs) {
+    const period = periodKey(job.schedule, Date.now());
+    const last = readAttempts(dir, job, period).at(-1);
+    const flag = job.enabled ? "" : "\t(disabled)";
+    console.log([job.id, job.schedule, period, last?.status ?? "not run"].join("\t") + flag);
+  }
+}
+
+function chooseJobs(mode, jobId, jobs) {
+  if (mode === "run-due") return jobs;
+  if (mode === "run") return jobs.filter((j) => j.id === jobId);
+  return [];
+}
+
 async function main() {
   const dir = process.env.NEXORA_WORKER_DIR ?? "/opt/nexora/worker";
   const [mode, jobId] = process.argv.slice(2);
   const { jobs, errors } = loadJobs();
   for (const e of errors) console.error(`registry error: ${e}`);
   if (errors.length > 0) process.exit(2);
-  mkdirSync(dir, { recursive: true });
+  mkdirSync(path.join(dir, "runs"), { recursive: true });
 
   if (mode === "status") {
-    for (const job of jobs) {
-      const period = periodKey(job.schedule, Date.now());
-      const s = readState(dir, job, period);
-      console.log(
-        `${job.id}\t${job.schedule}\t${period}\t${s?.status ?? "not run"}${job.enabled ? "" : "\t(disabled)"}`,
-      );
-    }
+    printStatus(dir, jobs);
     return;
   }
-  const chosen =
-    mode === "run-due" ? jobs : mode === "run" ? jobs.filter((j) => j.id === jobId) : null;
-  if (!chosen || chosen.length === 0) {
+  const chosen = chooseJobs(mode, jobId, jobs);
+  if (chosen.length === 0) {
     console.error("usage: worker.mjs run-due | run <jobId> | status");
     process.exit(2);
   }
   let failed = false;
   for (const job of chosen) {
-    const r = await runJob(job, { dir, now: Date.now(), exec: realExec, notify: hubNotify });
-    console.log(`${job.id}: ${r.outcome}${r.reason ? ` (${r.reason})` : ""}`);
+    // Jobs run one after another on purpose: they share the host and the budget.
+    const r = await runJob(job, { dir, now: Date.now(), exec: realExec, notify: hubNotify }); // NOSONAR
+    console.log(job.id + ": " + r.outcome + (r.reason ? " (" + r.reason + ")" : ""));
     if (r.outcome === "failed") failed = true;
   }
   if (failed) process.exit(1);

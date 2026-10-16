@@ -11,8 +11,9 @@ is the allow-list).
 
 ## Rules every job obeys
 
-- **Once per period (UTC).** The claim for `(job, period)` is an exclusive file create, so a second
-  start the same day, week or month (cron overlap, a retry, two starters) does nothing. A failed run
+- **Once per period (UTC).** Each attempt is its own file, `runs/<job>__<period>.<n>.json`, created exclusively, so two starters
+  (cron overlap, a manual run during `run-due`) cannot both own an attempt, and nobody deletes anyone
+  else's claim. A second start the same day, week or month does nothing. A failed run
   is retried by the next invocation, at most 3 attempts per period, then it gives up and says so.
 - **Closed command set.** `command` must be accepted by the Guardians G2 registry
   (`ops/guardians/host/nexora-guard.mjs`): no free-form shell. Guarded commands (`db-migrate`,
@@ -39,7 +40,8 @@ registry or usage.
    7 * * * * cd /opt/nexora && /usr/bin/node ops/worker/worker.mjs run-due >> /opt/nexora/worker/cron.log 2>&1
    ```
 3. Kill switch: `touch /opt/nexora/worker/KILL` stops all jobs at once; remove it to resume.
-   A different limit for the host: put a `budget.json` in `/opt/nexora/worker/`.
+   A different limit for the host: put a `budget.json` in `/opt/nexora/worker/`; a host file that exists but is
+   unreadable or invalid stops the worker (only a missing file falls back to the repository default).
 4. Check: `node ops/worker/worker.mjs status`, then the next day's `runs.jsonl`.
 
 ## Limits

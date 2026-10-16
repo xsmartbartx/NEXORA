@@ -191,12 +191,54 @@ describe("running a job", () => {
     const dir = tmp();
     mkdirSync(path.join(dir, "runs"), { recursive: true });
     writeFileSync(
-      path.join(dir, "runs", "backup-listing__2026-10-16.json"),
-      JSON.stringify({ status: "running", attempts: 1 }),
+      path.join(dir, "runs", "backup-listing__2026-10-16.1.json"),
+      JSON.stringify({ status: "running" }),
     );
     const c = ctx(dir);
     expect((await runJob(job(), c)).reason).toBe("another run holds this period");
     expect(c.exec).not.toHaveBeenCalled();
+  });
+
+  it("an invalid host budget file stops the worker instead of falling back to the default", async () => {
+    const dir = tmp();
+    writeFileSync(path.join(dir, "budget.json"), "{not json");
+    const c = ctx(dir);
+    expect((await runJob(job(), c)).reason).toMatch(/budget config invalid/);
+    expect(c.exec).not.toHaveBeenCalled();
+  });
+
+  it("simultaneous retries after a failure: exactly one wins the next attempt, nobody's claim is deleted", async () => {
+    const dir = tmp();
+    await runJob(job(), ctx(dir, { exec: vi.fn(async () => ({ status: 1 })) }));
+    const slow = vi.fn(
+      () => new Promise<{ status: number }>((r) => setTimeout(() => r({ status: 0 }), 20)),
+    );
+    const results = await Promise.all([
+      runJob(job(), ctx(dir, { exec: slow })),
+      runJob(job(), ctx(dir, { exec: slow })),
+      runJob(job(), ctx(dir, { exec: slow })),
+    ]);
+    expect(results.filter((r: { outcome: string }) => r.outcome === "succeeded")).toHaveLength(1);
+    expect(slow).toHaveBeenCalledTimes(1);
+  });
+
+  it("the claim is won before the single-use approval is spent: one approval, two starters, one run", async () => {
+    const dir = tmp();
+    const guarded = job({ command: "deploy edge", requiresApproval: true });
+    approve(path.join(dir, "approvals"), "deploy edge", 60, NOW);
+    const slow = vi.fn(
+      () => new Promise<{ status: number }>((r) => setTimeout(() => r({ status: 0 }), 20)),
+    );
+    const results = await Promise.all([
+      runJob(guarded, ctx(dir, { exec: slow })),
+      runJob(guarded, ctx(dir, { exec: slow })),
+    ]);
+    expect(results.filter((r: { outcome: string }) => r.outcome === "succeeded")).toHaveLength(1);
+    expect(slow).toHaveBeenCalledTimes(1);
+    const used = readFileSync(path.join(dir, "approvals", "used.log"), "utf8")
+      .trim()
+      .split("\n");
+    expect(used).toHaveLength(1);
   });
 
   it("a guarded job needs a single-use approval for its exact command", async () => {
