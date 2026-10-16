@@ -136,6 +136,13 @@ neurawall.onenexora.com {
 	reverse_proxy neurawall-control-plane-1:8080
 }
 
+# NeuraWall's public demo: a separate, read-only instance with synthetic traffic (compose profile
+# "demo" in the NeuraWall repo; deploy.sh neurawall demo). The DNS record must exist before this
+# block is reloaded, or Caddy cannot get a certificate for it.
+neurawall-demo.onenexora.com {
+	reverse_proxy neurawall-demo-1:8080
+}
+
 monitoring.onenexora.com {
 	reverse_proxy nexora-grafana-1:3000
 }
