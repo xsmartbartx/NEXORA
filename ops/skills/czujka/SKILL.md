@@ -1,12 +1,14 @@
 ---
 name: czujka
 description: Weekly watch for repeated work in the NEXORA repo. Reads only metadata (git history, pull request and CI run metadata, overdue reviews), finds recurring manual processes and proposes automations with frequency, estimated saving and risk. Read-only. Use for the weekly report or when asked what could be automated.
-allowed-tools: Read, Bash(node ops/skills/czujka-metadata.mjs:*), Bash(node ops/skills/validate-report.mjs:*), Bash(gh pr list:*), Bash(gh run list:*)
+allowed-tools: Bash(node ops/skills/czujka-metadata.mjs:*), Bash(node ops/skills/validate-report.mjs:*), Bash(gh pr list:*), Bash(gh run list:*)
 ---
 
 # Czujka: find work that repeats and propose automation
 
-**Metadata only.** Your inputs are the output of `node ops/skills/czujka-metadata.mjs` and, if
+**Metadata only.** `allowed-tools` pre-approves the commands above; it does not remove other tools, so
+this is an instruction backed by the Guardians hook (`ops/guardians`), not a sandbox. Your inputs are
+the output of `node ops/skills/czujka-metadata.mjs` (which also lists the existing mechanisms by name) and, if
 useful, `gh pr list --json number,title,state,createdAt,mergedAt` and
 `gh run list --json name,conclusion,createdAt`. Do not open source files, diffs, `.env*`, keys,
 transcripts or private notes. A proposal rests on counts and names, never on file contents.
@@ -29,9 +31,10 @@ transcripts or private notes. A proposal rests on counts and names, never on fil
 ```
 
 No proposal without all four. Rank by saving. Say so when the data is too thin to propose anything.
-Existing mechanisms come first: check whether the Control Center, the Notification Hub, the Cloud
+Existing mechanisms come first (the collector's `mechanisms` list): check whether the Control Center, the Notification Hub, the Cloud
 Worker (`ops/worker/jobs`) or CI already covers it, and say so instead of proposing a duplicate.
 
 ## Check your own output
 
-Write the report to a scratch file and run `node ops/skills/validate-report.mjs czujka <file>`.
+Pipe the report to the checker, no file needed:
+`node ops/skills/validate-report.mjs czujka - <<'REPORT'` ... `REPORT`.

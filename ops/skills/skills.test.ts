@@ -56,6 +56,15 @@ describe("End report format", () => {
     },
   );
 
+  it("requires the summary before the improvements and a non-empty summary", () => {
+    expect(
+      validateEndReport(`## Improvements\n${improvement(1)}\n## Summary\n${words(20)}\n`),
+    ).toEqual(["## Summary must come before ## Improvements"]);
+    expect(validateEndReport(`## Summary\n\n## Improvements\n${improvement(1)}`)).toEqual([
+      "the summary is empty",
+    ]);
+  });
+
   it("rejects an empty field value, missing sections, and padding without a statement", () => {
     expect(
       validateEndReport(endReport(50, improvement(1).replace("7 s (runs.jsonl, 2026-10-22)", " "))),
@@ -111,6 +120,14 @@ describe("the validator command line", () => {
     const bad = run("end", endReport(50, improvement(1, "Target")));
     expect(bad.status).toBe(1);
     expect(bad.stderr).toContain("missing Target");
+  });
+
+  it("reads the report from stdin with -, so no scratch file is needed", () => {
+    const r = spawnSync(process.execPath, [path.join(here, "validate-report.mjs"), "end", "-"], {
+      encoding: "utf8",
+      input: endReport(50, improvement(1)),
+    });
+    expect(r.status).toBe(0);
   });
 
   it("exits 2 on bad usage", () => {
@@ -180,6 +197,27 @@ describe("Czujka metadata", () => {
     expect(out).not.toContain("token=");
     expect(out).toContain("config.txt");
     expect(out).toContain("update config");
+  });
+
+  it("lists the existing mechanisms by name so proposals do not duplicate them", () => {
+    const r = collect({ cwd: path.resolve(here, "../.."), since: "30 days ago", min: 3 });
+    expect(r.mechanisms.workerJobs).toContain("restore-drill.json");
+    expect(r.mechanisms.workflows).toContain("costsec.yml");
+    expect(r.mechanisms.opsAreas).toEqual(
+      expect.arrayContaining(["worker", "costsec", "guardians"]),
+    );
+  });
+
+  it("rejects a --min that is not a positive integer", () => {
+    for (const bad of ["abc", "0", "-2", "1.5"]) {
+      const r = spawnSync(
+        process.execPath,
+        [path.join(here, "czujka-metadata.mjs"), "--min", bad],
+        { encoding: "utf8" },
+      );
+      expect(r.status).toBe(2);
+      expect(r.stderr).toContain("positive integer");
+    }
   });
 
   it("refuses a since value that is not a plain date or age", () => {

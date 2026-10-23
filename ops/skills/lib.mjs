@@ -41,7 +41,9 @@ export function validateEndReport(text) {
   if (summaryAt < 0) problems.push("missing the ## Summary section");
   if (improvementsAt < 0) problems.push("missing the ## Improvements section");
   if (problems.length > 0) return problems;
+  if (summaryAt > improvementsAt) return ["## Summary must come before ## Improvements"];
   const summary = text.slice(summaryAt + "## Summary".length, improvementsAt);
+  if (wordCount(summary) === 0) return ["the summary is empty"];
   const words = wordCount(summary);
   if (words >= MAX_SUMMARY_WORDS)
     problems.push(`summary has ${words} words, the limit is under ${MAX_SUMMARY_WORDS}`);

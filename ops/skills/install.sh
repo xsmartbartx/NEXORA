@@ -6,6 +6,11 @@ here="$(cd "$(dirname "$0")" && pwd)"
 dest="${HOME}/.claude/skills"
 mkdir -p "$dest"
 for name in end czujka; do
-  ln -sfn "$here/$name" "$dest/nexora-$name"
-  echo "linked $dest/nexora-$name -> $here/$name"
+  target="$dest/nexora-$name"
+  if [ -e "$target" ] && [ ! -L "$target" ]; then
+    echo "error: $target exists and is not a symlink; move it away and run again" >&2
+    exit 1
+  fi
+  ln -sfn "$here/$name" "$target"
+  echo "linked $target -> $here/$name"
 done

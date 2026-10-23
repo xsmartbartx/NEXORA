@@ -1,13 +1,15 @@
 ---
 name: end
 description: End-of-session review for the NEXORA repo. Summarises what the session did in under 300 words and proposes at most three measurable improvements, each with a metric, a baseline, a target and a way to measure it. Read-only. Use when the user types /end or says they are finishing the session.
-allowed-tools: Read, Grep, Glob, Bash(git status:*), Bash(git log:*), Bash(git diff:*), Bash(node ops/skills/validate-report.mjs:*)
+allowed-tools: Bash(git status:*), Bash(git log:*), Bash(git diff --stat:*), Bash(node ops/skills/validate-report.mjs:*)
 ---
 
 # /end: close the session with a short summary and at most three measurable improvements
 
 You only read. You change no files, run nothing that writes, and never read secret files
-(`.env*`, `*.pem`, key files, session transcripts). If the session touched secrets, say that it did,
+(`.env*`, `*.pem`, key files, session transcripts). This is an instruction, not a sandbox: `allowed-tools`
+only pre-approves the commands listed above and does not remove other tools. The hard boundary is the
+Guardians hook (`ops/guardians`), which blocks secret paths and destructive commands. If the session touched secrets, say that it did,
 never what they were.
 
 ## 1. Summary (under 300 words)
@@ -32,6 +34,6 @@ No proposal without all four. If nothing qualifies, write "No improvement propos
 
 ## 3. Check your own output
 
-Write the report to a scratch file and run
-`node ops/skills/validate-report.mjs end <file>`. Fix what it reports, then show the report.
-Shape: `## Summary`, then `## Improvements`.
+Pipe the report to the checker, no file needed:
+`node ops/skills/validate-report.mjs end - <<'REPORT'` ... `REPORT`. Fix what it reports, then show the
+report. Shape: `## Summary` (non-empty), then `## Improvements`.
