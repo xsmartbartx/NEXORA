@@ -7,7 +7,7 @@ dest="${HOME}/.claude/skills"
 mkdir -p "$dest"
 for name in end czujka; do
   target="$dest/nexora-$name"
-  if [ -e "$target" ] && [ ! -L "$target" ]; then
+  if [[ -e "$target" && ! -L "$target" ]]; then
     echo "error: $target exists and is not a symlink; move it away and run again" >&2
     exit 1
   fi
