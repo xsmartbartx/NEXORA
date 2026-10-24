@@ -14,6 +14,7 @@ services:
       - nexora_default
       - vigilo-self-host_default
       - neurawall_default
+      - omniflow_default
     volumes:
       # Mount the directory, not the single file: `git pull` replaces Caddyfile with a
       # new inode, and a single-file bind mount keeps showing the old one, so
@@ -28,6 +29,9 @@ networks:
   vigilo-self-host_default:
     external: true
   neurawall_default:
+    external: true
+  omniflow_default:
+    # Created by `docker compose up` in ~/omniflow; that stack must have been started once before this one.
     external: true
 
 volumes:
