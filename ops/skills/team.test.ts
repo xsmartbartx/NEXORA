@@ -40,6 +40,14 @@ describe("team plan boundaries", () => {
     ["the private notes", "NEXORA-private-notes/x.md"],
     ["the whole repository", "."],
     ["a parent of a forbidden folder", "infrastructure"],
+    ["a .. segment into workflows", "apps/../.github/workflows/ci.yml"],
+    ["a .. segment into the deployment", "apps/api/../../infrastructure/deployment"],
+    ["a glob over infrastructure", "infrastructure/*"],
+    ["a brace pattern", "apps/{api,../.github}"],
+    ["a differently cased folder", ".GitHub/Workflows"],
+    ["a path above the repository", "../outside"],
+    ["an absolute path", "/etc/passwd"],
+    ["a backslash path", "infrastructure\\deployment\\deploy.sh"],
   ])("refuses a scope that reaches %s", (_n, scope) => {
     const found = problems(plan({ tasks: [task("alpha", { scope: [scope] })] }));
     expect(found.length).toBeGreaterThan(0);
@@ -92,6 +100,16 @@ describe("team plan boundaries", () => {
     expect(problems(plan({ validator: undefined })).join()).toMatch(/no validator/);
   });
 
+  it("reports null and non-object tasks as a problem instead of throwing", () => {
+    expect(problems(plan({ tasks: [null] })).join()).toMatch(/every task must be an object/);
+    expect(() => validateTeamPlan({ tasks: [null, 5, "x", [1]], validator: {} })).not.toThrow();
+  });
+
+  it("rejects a non-numeric budget", () => {
+    expect(problems(plan({ budgetUsd: "4" })).join()).toMatch(/budgetUsd/);
+    expect(problems(plan({ budgetUsd: Number.NaN })).join()).toMatch(/budgetUsd/);
+  });
+
   it("rejects non-objects and empty plans", () => {
     expect(problems(null)).toEqual(["the plan is not an object"]);
     expect(problems(plan({ tasks: [] }))).toContain("no tasks");
@@ -119,6 +137,34 @@ describe("independent validator report", () => {
     );
     expect(rv(review("PASS", "- npm test -> exit 1", "none")).join()).toMatch(/contradicts/);
     expect(rv(review("PASS", "- npm test -> ok", "none", "")).join()).toMatch(/Wrote files: no/);
+  });
+
+  it.each([
+    "3 failed",
+    "1 failing",
+    "exit code 1",
+    "FAILED (2)",
+    "2 errors",
+    "Error: boom",
+    "exit 2",
+  ])("a PASS beside the result '%s' is rejected", (result) => {
+    expect(rv(review("PASS", `- npm test -> ${result}`, "none")).join()).toMatch(/contradicts/);
+  });
+
+  it.each(["0 failed, 597 passed", "no errors", "0 errors", "597 passed", "ok"])(
+    "a PASS beside the result '%s' is fine",
+    (result) => {
+      expect(rv(review("PASS", `- npm test -> ${result}`, "none"))).toEqual([]);
+    },
+  );
+
+  it("anchors 'Wrote files: no' to a whole line", () => {
+    expect(rv(review("PASS", "- t -> ok", "none", "Wrote files: notes.md")).join()).toMatch(
+      /Wrote files: no/,
+    );
+    expect(rv(review("PASS", "- t -> ok", "- low x: Wrote files: no", "")).join()).toMatch(
+      /Wrote files: no/,
+    );
   });
 
   it("rejects a command with no result, a vague verdict and missing sections", () => {
@@ -154,7 +200,7 @@ describe("CTO card", () => {
     [
       "no source link",
       [row("Cost", "4", "e", "see docs"), ...allRows.slice(1)],
-      /Cost: no source link/,
+      /Cost: no https source link/,
     ],
   ])("rejects %s", (_n, rows, expected) => {
     expect(cto(card(rows as string[])).join()).toMatch(expected as RegExp);

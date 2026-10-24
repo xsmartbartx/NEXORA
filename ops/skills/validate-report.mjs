@@ -7,11 +7,13 @@ import { validateCtoCard, validateReviewReport, validateTeamPlan } from "./lib-t
 
 const [kind, file] = process.argv.slice(2);
 const planFrom = (text) => {
+  let plan;
   try {
-    return validateTeamPlan(JSON.parse(text));
+    plan = JSON.parse(text);
   } catch {
     return ["the plan is not valid JSON"];
   }
+  return validateTeamPlan(plan);
 };
 const validators = {
   end: validateEndReport,

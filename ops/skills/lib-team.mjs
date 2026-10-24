@@ -5,6 +5,8 @@ export const MAX_WORKERS = 4;
 export const MAX_BUDGET_USD = 10;
 const ID = /^[a-z][a-z0-9-]{1,30}$/;
 
+import path from "node:path";
+
 // Agents work at tier T1 (propose, never operate). Their scopes must stay out of secrets, the
 // production host, edge and Terraform, CI, and the Guardians policy itself (a human, T3).
 export const FORBIDDEN_SCOPES = [
@@ -16,16 +18,24 @@ export const FORBIDDEN_SCOPES = [
   "NEXORA-private-notes",
 ];
 
-const normalise = (p) =>
-  String(p)
-    .replace(/^\.?\//, "")
-    .replace(/\/+$/, "");
+/** Canonical form for comparison: trimmed, lower-case (case-insensitive disks), `..` and `.` resolved. */
+function normalise(p) {
+  let out = path.posix.normalize(String(p).trim().toLowerCase().replaceAll("\\", "/"));
+  while (out.startsWith("./")) out = out.slice(2);
+  while (out.length > 1 && out.endsWith("/")) out = out.slice(0, -1);
+  return out;
+}
+const GLOB = /[*?[\]{}!~$]/;
 const covers = (a, b) => a === b || b.startsWith(`${a}/`) || a.startsWith(`${b}/`);
 const sameText = (a, b) => String(a).trim().toLowerCase() === String(b).trim().toLowerCase();
 
 function forbiddenHit(scope) {
+  if (typeof scope !== "string") return "a non-text scope";
+  if (GLOB.test(scope)) return "a glob or shell pattern";
   const s = normalise(scope);
   if (s === "" || s === ".") return "the whole repository";
+  if (s.startsWith("/") || s === ".." || s.startsWith("../"))
+    return "a path outside the repository";
   const hit = FORBIDDEN_SCOPES.find((f) => covers(normalise(f), s));
   if (hit) return hit;
   if (s.split("/").some((segment) => segment.startsWith(".env"))) return "an environment file";
@@ -72,7 +82,9 @@ function validatorProblems(plan) {
   if (v.canWrite !== false) out.push("validator must have canWrite: false");
   if (!Array.isArray(v.runs) || !v.runs.some((r) => /test/i.test(String(r))))
     out.push("validator must run the tests");
-  const tasks = Array.isArray(plan.tasks) ? plan.tasks : [];
+  const tasks = (Array.isArray(plan.tasks) ? plan.tasks : []).filter(
+    (t) => t && typeof t === "object",
+  );
   if (tasks.some((t) => sameText(t.prompt ?? "", v.prompt ?? "")))
     out.push("validator prompt must differ from every worker prompt");
   return out;
@@ -82,8 +94,10 @@ function validatorProblems(plan) {
 export function validateTeamPlan(plan) {
   if (plan === null || typeof plan !== "object" || Array.isArray(plan))
     return ["the plan is not an object"];
-  const tasks = Array.isArray(plan.tasks) ? plan.tasks : [];
+  const raw = Array.isArray(plan.tasks) ? plan.tasks : [];
+  const tasks = raw.filter((t) => t !== null && typeof t === "object" && !Array.isArray(t));
   const out = [];
+  if (tasks.length !== raw.length) out.push("every task must be an object");
   if (typeof plan.goal !== "string" || plan.goal.trim() === "") out.push("no goal");
   if (tasks.length === 0) return [...out, "no tasks"];
   if (tasks.length > MAX_WORKERS) out.push(`${tasks.length} workers, the limit is ${MAX_WORKERS}`);
@@ -97,10 +111,10 @@ export function validateTeamPlan(plan) {
     (sum, t) => sum + (Number.isFinite(t.estimatedCostUsd) ? t.estimatedCostUsd : 0),
     0,
   );
-  if (!(plan.budgetUsd > 0) || plan.budgetUsd > MAX_BUDGET_USD)
+  const budget = plan.budgetUsd;
+  if (typeof budget !== "number" || Number.isNaN(budget) || budget <= 0 || budget > MAX_BUDGET_USD)
     out.push(`budgetUsd must be above 0 and at most ${MAX_BUDGET_USD}`);
-  else if (total > plan.budgetUsd)
-    out.push(`estimated cost ${total} exceeds budgetUsd ${plan.budgetUsd}`);
+  else if (total > budget) out.push(`estimated cost ${total} exceeds budgetUsd ${budget}`);
   if (typeof plan.integrator !== "string" || plan.integrator.trim() === "")
     out.push("no integrator step");
   return [...out, ...validatorProblems(plan)];
@@ -112,6 +126,16 @@ function section(text, name) {
   const rest = text.slice(at + name.length + 3);
   const next = rest.indexOf("\n## ");
   return (next < 0 ? rest : rest.slice(0, next)).trim();
+}
+
+const ZERO_FAILURES =
+  /\b0\s*(?:failed|failing|failures?|errors?)\b|\bno\s+(?:failures?|errors?)\b/gi;
+const EXIT_NONZERO = /\bexit(?:\s+code)?\s*[1-9]/i;
+
+/** True when a command's result text says it failed ("3 failed", "exit code 1", "FAILED (2)"), not "0 failed". */
+function reportsFailure(result) {
+  const cleaned = result.replace(ZERO_FAILURES, " ");
+  return EXIT_NONZERO.test(cleaned) || /\b(?:failed|failing|failures?|errors?)\b/i.test(cleaned);
 }
 
 /** The independent validator's report. @returns {string[]} */
@@ -135,13 +159,13 @@ export function validateReviewReport(text) {
     .split("\n")
     .filter((l) => l.trimStart().startsWith("- ") && l.includes("->"));
   if (ran.length === 0) out.push('no command with a result ("- <command> -> <result>")');
-  if (!/wrote files:\s*no/i.test(text)) out.push('missing the line "Wrote files: no"');
+  if (!/^\s*wrote files:\s*no\s*$/im.test(text)) out.push('missing the line "Wrote files: no"');
   if (diff === "") out.push("the diff section is empty");
   const items = findings.split("\n").filter((l) => l.trimStart().startsWith("- "));
   if (verdict.startsWith("FAIL") && items.length === 0)
     out.push("a FAIL needs at least one finding");
-  if (verdict.startsWith("PASS") && ran.some((l) => /->\s*(fail|error|exit [1-9])/i.test(l)))
-    out.push("PASS contradicts a failing command");
+  const failing = ran.some((l) => reportsFailure(l.slice(l.indexOf("->") + 2)));
+  if (verdict.startsWith("PASS") && failing) out.push("PASS contradicts a failing command");
   return out;
 }
 
@@ -168,7 +192,7 @@ function criterionProblems(rows) {
     else if (!/^[1-5]$/.test(row[1] ?? ""))
       out.push(`${name}: the score must be an integer from 1 to 5`);
     else if (!row[2]) out.push(`${name}: no evidence`);
-    else if (!/https?:\/\//.test(row[3] ?? "")) out.push(`${name}: no source link`);
+    else if (!/https:\/\/\S+/.test(row[3] ?? "")) out.push(`${name}: no https source link`);
   }
   return out;
 }

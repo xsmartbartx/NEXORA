@@ -1,7 +1,7 @@
 ---
 name: cto-analyst
 description: Monthly evaluation of one tool, model or repository against a fixed card (cost, security, license, maintenance, fit) with evidence and links, ending in a draft ADR for a pull request. Read-only research. Use for the monthly review or when asked whether to adopt a tool.
-allowed-tools: Bash(node ops/skills/validate-report.mjs:*), Bash(gh repo view:*), Bash(gh api repos:*), Bash(npm view:*), WebSearch, WebFetch
+allowed-tools: Bash(node ops/skills/validate-report.mjs:*), Bash(gh repo view:*), Bash(npm view:*), WebSearch, WebFetch
 ---
 
 # CTO Analyst: evaluate one candidate, draft an ADR
