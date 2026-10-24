@@ -140,7 +140,7 @@ function reportsFailure(result) {
 
 /** True for a line that says exactly "Wrote files: no" (case and spacing aside). */
 const isNoWriteLine = (line) =>
-  line.trim().toLowerCase().split(/\s+/).join(" ") === "wrote files: no";
+  line.trim().toLowerCase().replaceAll(/\s+/g, " ") === "wrote files: no";
 
 /** The independent validator's report. @returns {string[]} */
 export function validateReviewReport(text) {
