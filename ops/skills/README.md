@@ -1,7 +1,8 @@
-# End and Czujka (Guardians tier T0: read only)
+# Skills: End, Czujka, Agent Team, CTO Analyst
 
-Two Claude Code skills and the small tools that keep them honest. Neither writes anything, neither
-touches production, neither reads secrets. They are not scheduled and cost nothing until you run them.
+Claude Code skills and the small tools that keep them honest. None touches production or reads
+secrets. End and Czujka are tier T0 (read only); Agent Team is T1 (proposes changes in pull requests, never
+deploys or merges); CTO Analyst only researches. Nothing is scheduled and nothing costs until you run it.
 
 | skill    | when                    | produces                                                                                                       |
 | -------- | ----------------------- | -------------------------------------------------------------------------------------------------------------- |
@@ -30,6 +31,23 @@ The skills live here, not in `.claude/skills`, because `.claude/` is git-ignored
 ```bash
 node ops/skills/czujka-metadata.mjs --since "30 days ago" --min 3
 ```
+
+## Agent Team and CTO Analyst: what code enforces
+
+`validate-report.mjs plan|review|cto` checks:
+
+- **plan:** at most 4 workers; budget above 0 and at most 10 USD, estimates adding up to it; every task
+  has a prompt, scope and acceptance command; scopes do not overlap unless `dependsOn` orders them;
+  **no scope reaches secrets (any `.env*`, key files), CI workflows, the deployment, edge or Terraform
+  folders, `ops/guardians` or the private notes**; the validator cannot write, runs the tests and has a
+  prompt unlike any worker's.
+- **review:** `PASS`/`FAIL`, at least one command with its result, the diff that was reviewed,
+  "Wrote files: no", a finding for every FAIL, and no PASS beside a failing command.
+- **cto:** all five criteria with an integer score 1 to 5, evidence and an https source, a recommendation
+  that is adopt, trial, hold or reject, and an ADR draft with status Proposed, context, decision and consequences.
+
+The check cannot make the validator truly independent or stop a model from ignoring its own plan:
+the plan is checked before workers start, and the Guardians hook is what blocks the actions themselves.
 
 ## Limits
 
