@@ -128,15 +128,19 @@ function section(text, name) {
   return (next < 0 ? rest : rest.slice(0, next)).trim();
 }
 
-const ZERO_FAILURES =
-  /\b0\s*(?:failed|failing|failures?|errors?)\b|\bno\s+(?:failures?|errors?)\b/gi;
+const ZERO_COUNT = /\b0\s*(?:failed|failing|failures?|errors?)\b/gi;
+const NO_FAILURES = /\bno\s+(?:failures?|errors?)\b/gi;
 const EXIT_NONZERO = /\bexit(?:\s+code)?\s*[1-9]/i;
 
 /** True when a command's result text says it failed ("3 failed", "exit code 1", "FAILED (2)"), not "0 failed". */
 function reportsFailure(result) {
-  const cleaned = result.replace(ZERO_FAILURES, " ");
+  const cleaned = result.replace(ZERO_COUNT, " ").replace(NO_FAILURES, " ");
   return EXIT_NONZERO.test(cleaned) || /\b(?:failed|failing|failures?|errors?)\b/i.test(cleaned);
 }
+
+/** True for a line that says exactly "Wrote files: no" (case and spacing aside). */
+const isNoWriteLine = (line) =>
+  line.trim().toLowerCase().split(/\s+/).join(" ") === "wrote files: no";
 
 /** The independent validator's report. @returns {string[]} */
 export function validateReviewReport(text) {
@@ -159,7 +163,7 @@ export function validateReviewReport(text) {
     .split("\n")
     .filter((l) => l.trimStart().startsWith("- ") && l.includes("->"));
   if (ran.length === 0) out.push('no command with a result ("- <command> -> <result>")');
-  if (!/^\s*wrote files:\s*no\s*$/im.test(text)) out.push('missing the line "Wrote files: no"');
+  if (!text.split("\n").some(isNoWriteLine)) out.push('missing the line "Wrote files: no"');
   if (diff === "") out.push("the diff section is empty");
   const items = findings.split("\n").filter((l) => l.trimStart().startsWith("- "));
   if (verdict.startsWith("FAIL") && items.length === 0)
