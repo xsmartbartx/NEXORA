@@ -124,6 +124,12 @@ gateway.onenexora.com {
 	reverse_proxy nexora-gateway-1:3009
 }
 
+# OmniFlow (product #6) runs as its own compose project (~/omniflow on the host); this container joins its
+# network below. It sets its own CSP and frame rules, so it does not import security_headers.
+omniflow.onenexora.com {
+	reverse_proxy omniflow-omniflow-1:8080
+}
+
 vigilo.onenexora.com {
 	reverse_proxy vigilo-self-host-web-1:3000
 }
