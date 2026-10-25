@@ -18,6 +18,20 @@ describe("backup-all.sh", () => {
     expect(upload.split("\n").slice(0, 3).join(" ")).toContain("--no-multipart");
   });
 
+  it("expires old archives before it writes the new one", () => {
+    expect(text.indexOf("-mtime +14 -delete")).toBeGreaterThan(-1);
+    expect(text.indexOf("-mtime +14 -delete")).toBeLessThan(text.indexOf('tar czf "$archive"'));
+  });
+
+  it("refuses to archive a volume that does not exist instead of backing up an empty one", () => {
+    const check = text.indexOf("docker volume inspect");
+    expect(check).toBeGreaterThan(-1);
+    expect(check).toBeLessThan(text.indexOf("docker run --rm"));
+    for (const volume of ["neurawall_cpdata", "vigilo-self-host_vigilo_self_host_minio_data"]) {
+      expect(text.slice(0, text.indexOf("docker volume inspect") + 200)).toContain(volume);
+    }
+  });
+
   it("uses instance principal and never refers to stored credentials", () => {
     expect(text).toContain("--auth instance_principal");
     expect(text).not.toMatch(/password|secret|token|api[_-]?key/i);
