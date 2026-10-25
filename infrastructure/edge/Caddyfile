@@ -113,6 +113,17 @@ sentinel.onenexora.com {
 	import security_headers
 	reverse_proxy nexora-sentinel-1:3007
 }
+# Linegist (the product that used to be served as "sentinel"): its own Compose project in ~/linegist, reached by its full
+# container name like everything else here. It uses Server Actions, so it gets security_headers but NOT no_server_actions.
+# Samples can be up to 4 MB, so allow a little more than that for multipart overhead.
+linegist.onenexora.com {
+	import security_headers
+	encode zstd gzip
+	request_body {
+		max_size 6MB
+	}
+	reverse_proxy linegist-app-1:3000
+}
 
 cspm.onenexora.com {
 	import security_headers

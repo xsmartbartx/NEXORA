@@ -16,6 +16,7 @@ services:
       - neurawall_default
       - omniflow_default
       - gateway_default
+      - linegist_default
     volumes:
       # Mount the directory, not the single file: `git pull` replaces Caddyfile with a
       # new inode, and a single-file bind mount keeps showing the old one, so
@@ -37,6 +38,11 @@ networks:
 
   gateway_default:
     # Created by `docker compose up` in /opt/gateway (Secure_AI_API_Gateway); that stack must have been started once before this one.
+    external: true
+
+  linegist_default:
+    # Created by `docker compose up` in ~/linegist/deploy/oci; that stack must have been started once before this one,
+    # otherwise this stack (and with it every site on 80/443) fails to start.
     external: true
 
 volumes:
