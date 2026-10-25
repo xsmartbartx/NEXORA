@@ -130,6 +130,12 @@ omniflow.onenexora.com {
 	reverse_proxy omniflow-omniflow-1:8080
 }
 
+# OmniFlow's product site (static; `docker compose --profile site up -d site` in ~/omniflow). The hostname is a
+# placeholder until the product has its own domain. It sets its own CSP, so no security_headers import.
+www.omniflow.onenexora.com {
+	reverse_proxy omniflow-site-1:80
+}
+
 vigilo.onenexora.com {
 	reverse_proxy vigilo-self-host-web-1:3000
 }
