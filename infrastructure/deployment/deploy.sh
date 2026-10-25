@@ -14,8 +14,8 @@ set -euo pipefail
 
 # Run as the deploy user, never as root: a root `git pull` leaves root-owned files in the checkout
 # and the next ordinary deploy then fails with "unable to unlink ... Permission denied".
-if [ "$(id -u)" -eq 0 ]; then
-  exec sudo -u "${SUDO_USER:-opc}" -- "$0" "$@"
+if [[ "$(id -u)" -eq 0 ]]; then
+  exec sudo -u opc -- "$0" "$@"
 fi
 
 project="${1:?usage: deploy.sh nexora|vigilo|neurawall|edge [service...]}"
