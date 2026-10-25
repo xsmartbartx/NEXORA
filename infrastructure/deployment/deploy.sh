@@ -13,6 +13,12 @@
 # Waits up to 30 minutes for a running deploy to finish, then gives up.
 set -euo pipefail
 
+# Run as the deploy user, never as root: a root `git pull` leaves root-owned files in the checkout
+# and the next ordinary deploy then fails with "unable to unlink ... Permission denied".
+if [[ "$(id -u)" -eq 0 ]]; then
+  exec sudo -u opc -- "$0" "$@"
+fi
+
 project="${1:?usage: deploy.sh nexora|vigilo|neurawall|gateway|edge [service...]}"
 shift
 
