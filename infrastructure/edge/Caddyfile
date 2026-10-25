@@ -124,6 +124,17 @@ gateway.onenexora.com {
 	reverse_proxy nexora-gateway-1:3009
 }
 
+# Standalone NEXORA Gateway (xsmartbartx/Secure_AI_API_Gateway, /opt/gateway) runs beside the monorepo gateway above, as its
+# own compose project; this container joins its network below.
+gateway-next.onenexora.com {
+	import security_headers
+	reverse_proxy gateway-web-1:3000
+}
+
+gateway-next-api.onenexora.com {
+	reverse_proxy gateway-api-1:8000
+}
+
 # OmniFlow (product #6) runs as its own compose project (~/omniflow on the host); this container joins its
 # network below. It sets its own CSP and frame rules, so it does not import security_headers.
 omniflow.onenexora.com {
