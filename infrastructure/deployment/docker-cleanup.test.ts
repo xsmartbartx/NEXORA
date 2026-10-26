@@ -6,6 +6,11 @@ import { describe, expect, it } from "vitest";
 
 const script = path.join(path.dirname(fileURLToPath(import.meta.url)), "docker-cleanup.sh");
 const text = readFileSync(script, "utf8");
+// Code only: the header comment mentions --keep-storage on purpose, as history.
+const code = text
+  .split("\n")
+  .filter((line) => !line.trimStart().startsWith("#"))
+  .join("\n");
 
 describe("docker-cleanup.sh", () => {
   it("is valid bash and fails on any error", () => {
@@ -20,7 +25,7 @@ describe("docker-cleanup.sh", () => {
 
   it("caps the cache with --max-used-space and never with the deprecated --keep-storage", () => {
     expect(text).toMatch(/builder prune -f --max-used-space "\$\{MAX_CACHE_GB\}gb"/);
-    expect(text).not.toMatch(/builder prune[^\n]*--keep-storage/);
+    expect(code).not.toMatch(/builder prune[^\n]*--keep-storage/);
     expect(text).toContain("CACHE_MAX_GB:-12");
   });
 
