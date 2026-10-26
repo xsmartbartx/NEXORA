@@ -28,3 +28,9 @@ variable "ssh_authorized_key" {
   description = "Public SSH key installed on the instance for the opc user."
   type        = string
 }
+
+variable "backup_retention_days" {
+  description = "How long off-site backup objects are kept before the bucket's lifecycle rule deletes them. The host can create objects but never delete them, so this rule is the only expiry."
+  type        = number
+  default     = 30
+}
