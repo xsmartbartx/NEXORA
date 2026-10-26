@@ -6,7 +6,8 @@ as whatever's currently clicked together in the OCI Console. This does not
 change how you deploy application code — that's still
 `infrastructure/deployment/deploy.sh`. This only covers the OCI resources
 themselves: the VCN, subnet, security list, internet gateway, route table and
-the compute instance.
+the compute instance, plus (in `storage.tf`) the off-site backup bucket with its
+expiry rule and the dynamic group and policy that let the host write to it.
 
 ## Setup
 
