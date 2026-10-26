@@ -18,6 +18,9 @@ set -euo pipefail
 
 THRESHOLD="${DISK_PRUNE_THRESHOLD:-75}"
 KEEP="${CACHE_KEEP_HOURS:-48}"
+# Upper bound for the build cache that survives the age filter. A deploy-heavy week can leave
+# more than that under 48 hours old; this keeps the most recently used part, up to the cap.
+MAX_CACHE_GB="${CACHE_MAX_GB:-12}"
 
 exec 9>/opt/.platform-deploy.lock
 flock -w 1800 9 || { echo "$(date -u +%FT%TZ) skipped: deploy lock busy for 30 minutes"; exit 1; }
@@ -29,8 +32,10 @@ before=$(pct)
 sudo docker image prune -f > /dev/null
 freed=$(sudo docker builder prune -f --all --filter "until=${KEEP}h" 2>&1 | reclaimed)
 
-# A deploy-heavy week can outrun the age filter: if the disk is still full,
-# drop every unused cache record.
+# A deploy-heavy week can outrun the age filter: cap what is left (Docker 29's replacement for the
+# deprecated --keep-storage), and if the disk is still full, drop every unused cache record.
+capped=$(sudo docker builder prune -f --max-used-space "${MAX_CACHE_GB}gb" 2>&1 | reclaimed)
+freed="${freed:-0B}+${capped:-0B}"
 if [ "$(pct)" -ge "$THRESHOLD" ]; then
   freed="${freed:-0B}+$(sudo docker builder prune -af 2>&1 | reclaimed)"
 fi
