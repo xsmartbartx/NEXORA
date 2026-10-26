@@ -25,7 +25,10 @@ secrets, the NeuraWall signing key inside its data volume backup).
    instance, the backup bucket with its expiry rule, and the dynamic group and policy that let the host
    write to it. The dynamic group matches the instance OCID, so it follows the new instance
    automatically; if you created an instance by hand, update that rule or uploads fail with a misleading
-   `BucketNotFound`. A1 capacity in Frankfurt can be unavailable: retry another availability domain, or
+   `BucketNotFound`. That message is also what OCI says for any permission it denies: the policy gives the
+   host only `OBJECT_CREATE` and `OBJECT_INSPECT`, so uploads must be single-part (`--no-multipart` in
+   `backup-all.sh`); the OCI CLI switches to multipart above about 128 MiB, which stopped the off-site
+   copies from 21 to 25 October 2026. A1 capacity in Frankfurt can be unavailable: retry another availability domain, or
    use the Hetzner fallback below.
 2. **Packages on the host** (not yet scripted): Docker with the compose plugin, git, `nodejs:22`
    (`dnf module enable nodejs:22 && dnf install nodejs`, needed by the worker), the OCI CLI, `gpg`,
@@ -57,6 +60,17 @@ Images are built on the host, so they build on any arm64 or x86 Linux machine. T
 from step 2 with a Hetzner server in place of the OCI instance (an ARM `CAX31`, 8 vCPU and 16 GB, keeps
 the arm64 images identical). Nothing in the application code is OCI-specific except the backup upload,
 which uses OCI instance principals: on another provider use `offsite-copy.sh` (rclone) as the primary.
+
+## Staying on OCI: what to watch
+
+- The account is on Free Tier after the trial. Resources outside Always Free can be removed, and Oracle
+  may reclaim idle Always Free instances (check its current thresholds). The host runs the whole A1
+  allowance (4 OCPU, 24 GB), so there is no free headroom left; upgrading to Pay As You Go keeps
+  Always Free resources free and removes the trial-expiry risk. It needs a payment card, which only you can add.
+- Disk: build cache grows 1-4 GB per deploy; `deploy.sh` prunes it above 75% and a weekly cron does too.
+  NeuraWall's `flows` table is capped by its 7-day retention (about 6 GB).
+- Moving is justified by a customer SLA, an Oracle notice about the instance, a hard limit on RAM or
+  disk, or the need for more than one node. None applies today.
 
 ## What is not independent yet
 
