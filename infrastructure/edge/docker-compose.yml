@@ -17,6 +17,7 @@ services:
       - omniflow_default
       - gateway_default
       - cspm_internal
+      - linegist_default
     volumes:
       # Mount the directory, not the single file: `git pull` replaces Caddyfile with a
       # new inode, and a single-file bind mount keeps showing the old one, so
@@ -41,6 +42,11 @@ networks:
     external: true
   cspm_internal:
     # Created by `docker compose -p cspm up` in ~/cspm-deploy/deploy/oci; that stack must have been started once before this one.
+    external: true
+
+  linegist_default:
+    # Created by `docker compose up` in ~/linegist/deploy/oci; that stack must have been started once before this one,
+    # otherwise this stack (and with it every site on 80/443) fails to start.
     external: true
 
 volumes:
