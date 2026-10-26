@@ -125,9 +125,11 @@ linegist.onenexora.com {
 	reverse_proxy linegist-app-1:3000
 }
 
-cspm.onenexora.com {
-	import security_headers
-	reverse_proxy nexora-cspm-1:3008
+# NEXORA CSPM is now a standalone product (github.com/xsmartbartx/AI-Driven-CSPM, deployed from ~/cspm-deploy as compose
+# project "cspm"). One web container serves the site, the dashboard and the API by Host. It sets its own security headers
+# and CSP, so security_headers is not imported. The previous app (apps/cspm, container nexora-cspm-1) is no longer routed.
+cspm.onenexora.com, app.cspm.onenexora.com, api.cspm.onenexora.com {
+	reverse_proxy cspm-web-1:80
 }
 
 gateway.onenexora.com {

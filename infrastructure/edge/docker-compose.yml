@@ -16,6 +16,7 @@ services:
       - neurawall_default
       - omniflow_default
       - gateway_default
+      - cspm_internal
       - linegist_default
     volumes:
       # Mount the directory, not the single file: `git pull` replaces Caddyfile with a
@@ -38,6 +39,9 @@ networks:
 
   gateway_default:
     # Created by `docker compose up` in /opt/gateway (Secure_AI_API_Gateway); that stack must have been started once before this one.
+    external: true
+  cspm_internal:
+    # Created by `docker compose -p cspm up` in ~/cspm-deploy/deploy/oci; that stack must have been started once before this one.
     external: true
 
   linegist_default:
