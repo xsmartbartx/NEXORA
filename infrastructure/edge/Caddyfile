@@ -134,14 +134,11 @@ cspm.onenexora.com, app.cspm.onenexora.com, api.cspm.onenexora.com {
 	reverse_proxy cspm-web-1:80
 }
 
-gateway.onenexora.com {
-	import security_headers
-	reverse_proxy nexora-gateway-1:3009
-}
-
-# Standalone NEXORA Gateway (xsmartbartx/Secure_AI_API_Gateway, /opt/gateway) runs beside the monorepo gateway above, as its
-# own compose project; this container joins its network below.
-gateway-next.onenexora.com {
+# The NEXORA Gateway is the standalone product (xsmartbartx/Secure_AI_API_Gateway, /opt/gateway), its own compose project that
+# this container joins. gateway-next.* is kept as an alias. The previous monorepo app (apps/gateway, container
+# nexora-gateway-1) is still running but no longer routed; to roll back, point gateway.onenexora.com at
+# nexora-gateway-1:3009 again and `deploy.sh edge`.
+gateway.onenexora.com, gateway-next.onenexora.com {
 	import security_headers
 	reverse_proxy gateway-web-1:3000
 }

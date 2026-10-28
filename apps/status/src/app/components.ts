@@ -74,7 +74,7 @@ export const components: StatusComponent[] = [
     name: "Gateway",
     description: "gateway.onenexora.com",
     category: "products",
-    checkUrl: "https://gateway.onenexora.com/api/health",
+    checkUrl: "https://gateway-next-api.onenexora.com/v1/health",
   },
   {
     name: "Vigilo",
