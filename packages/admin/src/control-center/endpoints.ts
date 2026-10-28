@@ -21,7 +21,11 @@ export const ENDPOINTS: Endpoint[] = [
   { name: "Status", url: "https://status.onenexora.com", category: "platform" },
   { name: "Sentinel", url: "https://sentinel.onenexora.com/api/health", category: "products" },
   { name: "CSPM", url: "https://cspm.onenexora.com/api/health", category: "products" },
-  { name: "Gateway", url: "https://gateway-next-api.onenexora.com/v1/health", category: "products" },
+  {
+    name: "Gateway",
+    url: "https://gateway-next-api.onenexora.com/v1/health",
+    category: "products",
+  },
   { name: "Vigilo", url: "https://vigilo.onenexora.com", category: "partners" },
   { name: "Vigilo API", url: "https://vigilo-api.onenexora.com/healthz", category: "partners" },
   { name: "NeuraWall", url: "https://neurawall.onenexora.com/readyz", category: "partners" },
