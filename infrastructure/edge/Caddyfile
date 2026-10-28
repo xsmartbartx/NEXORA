@@ -109,9 +109,11 @@ developers.onenexora.com {
 	reverse_proxy nexora-developers-1:3006
 }
 
+# Temporary (302) redirect to Linegist. Rollback: restore the previous block, which was:
+#   sentinel.onenexora.com { import security_headers; reverse_proxy nexora-sentinel-1:3007 }
+# Make it permanent only after a few weeks.
 sentinel.onenexora.com {
-	import security_headers
-	reverse_proxy nexora-sentinel-1:3007
+	redir https://linegist.onenexora.com{uri} temporary
 }
 # Linegist (the product that used to be served as "sentinel"): its own Compose project in ~/linegist, reached by its full
 # container name like everything else here. It uses Server Actions, so it gets security_headers but NOT no_server_actions.
