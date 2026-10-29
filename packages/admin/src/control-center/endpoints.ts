@@ -19,7 +19,7 @@ export const ENDPOINTS: Endpoint[] = [
   { name: "Docs", url: "https://docs.onenexora.com", category: "platform" },
   { name: "Developers", url: "https://developers.onenexora.com", category: "platform" },
   { name: "Status", url: "https://status.onenexora.com", category: "platform" },
-  { name: "Sentinel", url: "https://sentinel.onenexora.com/api/health", category: "products" },
+  { name: "Linegist", url: "https://linegist.onenexora.com/api/health", category: "products" },
   { name: "CSPM", url: "https://cspm.onenexora.com/api/health", category: "products" },
   {
     name: "Gateway",

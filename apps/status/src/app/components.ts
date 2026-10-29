@@ -59,10 +59,10 @@ export const components: StatusComponent[] = [
   },
   { name: "Status", description: "status.onenexora.com", category: "platform" },
   {
-    name: "Sentinel",
-    description: "sentinel.onenexora.com",
+    name: "Linegist",
+    description: "linegist.onenexora.com",
     category: "products",
-    checkUrl: "https://sentinel.onenexora.com/api/health",
+    checkUrl: "https://linegist.onenexora.com/api/health",
   },
   {
     name: "CSPM",
