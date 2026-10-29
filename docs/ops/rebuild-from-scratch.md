@@ -41,7 +41,8 @@ secrets, the NeuraWall signing key inside its data volume backup).
      with the private key (the host never had it), and copy the archive over.
 
    `infrastructure/deployment/restore-drill.sh` shows the exact restore of the NEXORA database into a
-   throwaway container; for production, start the stack's Postgres, then `pg_restore` each dump into
+   throwaway container and `restore-rehearsal.sh` does all three with timings (NeuraWall needs a
+   PostgreSQL 17 server, the others 16: a dump cannot be restored by an older major version); for production, start the stack's Postgres, then `pg_restore` each dump into
    its database (`nexora`, `vigilo`, `neurawall`), and untar the NeuraWall data and Vigilo MinIO
    volumes into their Docker volumes.
 
@@ -79,6 +80,6 @@ which uses OCI instance principals: on another provider use `offsite-copy.sh` (r
 
 ## Rehearsal log
 
-| date | from | to  | time to a working platform | what broke |
-| ---- | ---- | --- | -------------------------- | ---------- |
-|      |      |     |                            |            |
+| date       | from                            | to                                                                        | time to a working platform                                                       | what broke                                                                                                                                                                                  |
+| ---------- | ------------------------------- | ------------------------------------------------------------------------- | -------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 2026-10-28 | newest nightly archive (380 MB) | throwaway containers on the same host (data only, `restore-rehearsal.sh`) | databases: NEXORA 7 s, Vigilo 4 s, NeuraWall 432 s (4.6 M rows); whole run 446 s | my first attempt used Postgres 16 for NeuraWall and failed: its dump is from PostgreSQL 17, so each database needs its own major version. Not measured: server provisioning, packages, DNS. |
