@@ -31,18 +31,14 @@ const EXTRA = [
 
 /** Redacted text and how many values were replaced. */
 export function redactText(text) {
-  let count = 0;
-  const bump = (match) => {
-    count += 1;
-    return match;
-  };
+  const marker = /\[redacted\]/g;
+  const countMarkers = (t) => (t.match(marker) ?? []).length;
   let out = text;
-  for (const shape of EXTRA) out = out.replace(shape, (m) => (bump(m), "[redacted]"));
+  for (const shape of EXTRA) out = out.replaceAll(shape, "[redacted]");
   const shared = redact(out);
-  // The shared redactor does not report a count; count what it removed from what is left.
-  const before = (out.match(/\[redacted\]/g) ?? []).length;
-  const after = (shared.match(/\[redacted\]/g) ?? []).length;
-  return { text: shared, count: count + (after - before) };
+  // The markers present before any redaction (text may already contain some) cancel out, so the
+  // count is the number of values this call replaced.
+  return { text: shared, count: countMarkers(shared) - countMarkers(text) };
 }
 
 function* walk(dir, depth = 0) {
@@ -85,14 +81,15 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
     process.exit(2);
   }
   const results = run(dir, { apply });
+  const verb = apply ? "redacted" : "found";
   for (const r of results.filter((x) => x.count > 0 || x.skipped)) {
-    console.log(
-      `${r.count}\t${r.skipped ? `skipped (${r.skipped})` : apply ? "redacted" : "found"}\t${r.file}`,
-    );
+    const status = r.skipped ? "skipped (" + r.skipped + ")" : verb;
+    console.log(r.count + "\t" + status + "\t" + r.file);
   }
   const total = results.reduce((sum, r) => sum + r.count, 0);
   const files = results.filter((r) => r.count > 0).length;
+  const tail = apply ? ", rewritten" : " (dry run, nothing changed; add --apply)";
   console.log(
-    `${total} value(s) in ${files} file(s) of ${results.length} scanned${apply ? ", rewritten" : " (dry run, nothing changed; add --apply)"}`,
+    total + " value(s) in " + files + " file(s) of " + results.length + " scanned" + tail,
   );
 }
