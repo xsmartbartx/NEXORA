@@ -157,10 +157,12 @@ describe("offsite-copy.sh", () => {
     mkdirSync(path.join(h.remote, "linegist"), { recursive: true });
     const r = h.run();
     expect(r.status).toBe(0);
-    expect(readFileSync(path.join(h.remote, "linegist", "linegist-20261002T033000Z.sql.gz.gpg"), "utf8")).toBe(
-      "ENC:new dump",
-    );
-    expect(existsSync(path.join(h.remote, "linegist", "linegist-20261001T033000Z.sql.gz.gpg"))).toBe(false);
+    expect(
+      readFileSync(path.join(h.remote, "linegist", "linegist-20261002T033000Z.sql.gz.gpg"), "utf8"),
+    ).toBe("ENC:new dump");
+    expect(
+      existsSync(path.join(h.remote, "linegist", "linegist-20261001T033000Z.sql.gz.gpg")),
+    ).toBe(false);
     expect(readFileSync(h.state, "utf8")).toContain("linegist/linegist-20261002T033000Z.sql.gz");
     const before = h.log();
     expect(h.run().stdout).toContain("already copied");
@@ -181,7 +183,9 @@ describe("offsite-copy.sh", () => {
     // remote/linegist does not exist, so the fake rclone cannot write there
     const r = h.run();
     expect(r.status).toBe(1);
-    expect(existsSync(path.join(h.remote, "platform-backup-20261002T030000Z.tar.gz.gpg"))).toBe(true);
+    expect(existsSync(path.join(h.remote, "platform-backup-20261002T030000Z.tar.gz.gpg"))).toBe(
+      true,
+    );
     expect(existsSync(h.heartbeat)).toBe(false);
   });
 });
