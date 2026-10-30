@@ -33,3 +33,19 @@ Then merge `settings.example.json` into `~/.claude/settings.json` (use the full 
 ## Limits (read this)
 
 G1 inspects the text of a command or the path of a file. It does **not** see what a script does once it runs: `python3 -c`, `node -e` or a heredoc piped to an interpreter can read a secret without the guard noticing. G1 stops accidents and the obvious paths; it is not a security boundary against a compromised agent. The boundary is the next layers: a host user without `sudo` behind a forced command (G2), and branch protection with required reviews plus a non-admin bot identity (G3).
+
+## Cleaning session transcripts
+
+Claude Code keeps every session as a `.jsonl` transcript under `~/.claude/projects`. Whatever key was
+shown to the model is in there too. After **rotating** such a key at its provider (rotation is what makes
+it safe), remove the stale copies from disk:
+
+```bash
+node ops/guardians/redact-transcripts.mjs            # dry run: counts per file, changes nothing
+node ops/guardians/redact-transcripts.mjs --apply    # rewrites the files in place
+```
+
+It replaces GitHub, Stripe, webhook, Anthropic, AWS, Google and Slack key shapes with `[redacted]` (every JSON
+line stays valid), never prints a value, skips files changed in the last 10 minutes (a running session) and
+does not follow symlinks. Run it from a terminal, not from an agent session: the hook rightly stops agents
+from reading transcripts.
