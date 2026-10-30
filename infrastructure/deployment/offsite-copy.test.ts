@@ -22,6 +22,7 @@ function host(opts: { config?: string | null; failRclone?: boolean; shortUpload?
   const bin = path.join(root, "bin");
   const remote = path.join(root, "remote");
   const archives = path.join(root, "archives");
+  const linegist = path.join(root, "linegist-backups");
   for (const dir of [bin, remote, archives]) mkdirSync(dir, { recursive: true });
   const calls = path.join(root, "calls.log");
 
@@ -72,10 +73,11 @@ esac
         OFFSITE_ARCHIVES: archives,
         OFFSITE_STATE: state,
         OFFSITE_HEARTBEAT: heartbeat,
+        OFFSITE_LINEGIST_BACKUPS: linegist,
       },
     });
   const log = () => (existsSync(calls) ? readFileSync(calls, "utf8") : "");
-  return { run, log, remote, state, heartbeat, archives };
+  return { run, log, remote, state, heartbeat, archives, linegist };
 }
 
 describe("offsite-copy.sh", () => {
@@ -145,5 +147,41 @@ describe("offsite-copy.sh", () => {
     expect(r.stderr).toContain("size mismatch");
     expect(existsSync(h.heartbeat)).toBe(false);
     expect(readFileSync(h.state, "utf8")).toBe("");
+  });
+
+  it("also copies the newest Linegist dump into a linegist/ folder, once", () => {
+    const h = host();
+    mkdirSync(h.linegist, { recursive: true });
+    writeFileSync(path.join(h.linegist, "linegist-20261001T033000Z.sql.gz"), "old dump");
+    writeFileSync(path.join(h.linegist, "linegist-20261002T033000Z.sql.gz"), "new dump");
+    mkdirSync(path.join(h.remote, "linegist"), { recursive: true });
+    const r = h.run();
+    expect(r.status).toBe(0);
+    expect(readFileSync(path.join(h.remote, "linegist", "linegist-20261002T033000Z.sql.gz.gpg"), "utf8")).toBe(
+      "ENC:new dump",
+    );
+    expect(existsSync(path.join(h.remote, "linegist", "linegist-20261001T033000Z.sql.gz.gpg"))).toBe(false);
+    expect(readFileSync(h.state, "utf8")).toContain("linegist/linegist-20261002T033000Z.sql.gz");
+    const before = h.log();
+    expect(h.run().stdout).toContain("already copied");
+    expect(h.log()).toBe(before);
+  });
+
+  it("a missing Linegist folder is skipped, not an error", () => {
+    const h = host();
+    const r = h.run();
+    expect(r.status).toBe(0);
+    expect(r.stdout).toContain("nothing matching");
+  });
+
+  it("a failing Linegist upload still lets the platform archive copy, but the run fails and the heartbeat stays", () => {
+    const h = host();
+    mkdirSync(h.linegist, { recursive: true });
+    writeFileSync(path.join(h.linegist, "linegist-20261002T033000Z.sql.gz"), "new dump");
+    // remote/linegist does not exist, so the fake rclone cannot write there
+    const r = h.run();
+    expect(r.status).toBe(1);
+    expect(existsSync(path.join(h.remote, "platform-backup-20261002T030000Z.tar.gz.gpg"))).toBe(true);
+    expect(existsSync(h.heartbeat)).toBe(false);
   });
 });
