@@ -2,7 +2,7 @@ import { mkdtemp, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { beforeAll, describe, expect, it } from "vitest";
-import { MAX_AGE_MS, readBackupFreshness } from "./freshness";
+import { MAX_AGE_MS, RESTORE_DRILL_MAX_AGE_MS, readBackupFreshness } from "./freshness";
 
 describe("readBackupFreshness", () => {
   let dir: string;
@@ -39,5 +39,18 @@ describe("readBackupFreshness", () => {
     expect((await readBackupFreshness(await heartbeat("not a number"), now)).status).toBe(
       "missing",
     );
+  });
+
+  it("takes a longer window for the monthly restore drill", async () => {
+    const twentyDays = String((now - 20 * 86_400_000) / 1000);
+    expect((await readBackupFreshness(await heartbeat(twentyDays), now)).status).toBe("stale");
+    expect(
+      (await readBackupFreshness(await heartbeat(twentyDays), now, RESTORE_DRILL_MAX_AGE_MS))
+        .status,
+    ).toBe("ok");
+    const fortyDays = String((now - 40 * 86_400_000) / 1000);
+    expect(
+      (await readBackupFreshness(await heartbeat(fortyDays), now, RESTORE_DRILL_MAX_AGE_MS)).status,
+    ).toBe("stale");
   });
 });
