@@ -3,6 +3,9 @@ import { readFile } from "node:fs/promises";
 /** Nightly job plus slack for a slow run — past this, a night was missed. */
 export const MAX_AGE_MS = 26 * 60 * 60 * 1000;
 
+/** Monthly restore drill (cron on the 1st) plus slack for a 31-day month and a late run. */
+export const RESTORE_DRILL_MAX_AGE_MS = 35 * 24 * 60 * 60 * 1000;
+
 export interface BackupFreshness {
   status: "ok" | "stale" | "missing";
   lastSuccess: string | null;
@@ -16,6 +19,7 @@ export interface BackupFreshness {
 export async function readBackupFreshness(
   file: string,
   now: number = Date.now(),
+  maxAgeMs: number = MAX_AGE_MS,
 ): Promise<BackupFreshness> {
   let seconds: number;
   try {
@@ -27,7 +31,7 @@ export async function readBackupFreshness(
 
   const lastSuccess = new Date(seconds * 1000);
   return {
-    status: now - lastSuccess.getTime() <= MAX_AGE_MS ? "ok" : "stale",
+    status: now - lastSuccess.getTime() <= maxAgeMs ? "ok" : "stale",
     lastSuccess: lastSuccess.toISOString(),
   };
 }

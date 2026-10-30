@@ -35,6 +35,8 @@ jobs:
             https://neurawall.onenexora.com/readyz
             # 503 once the nightly backup (incl. off-site upload) is >26h old.
             https://status.onenexora.com/api/backup
+            # 503 once the monthly restore drill has not passed for 35 days (or never ran).
+            https://status.onenexora.com/api/restore-drill
           )
           failed=0
           for url in "${endpoints[@]}"; do
