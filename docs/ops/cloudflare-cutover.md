@@ -6,15 +6,21 @@ Read 2026-10-30 from the host, so check against the registrar's DNS page before 
 
 ## Records to carry over
 
-| name                                                                                                               | type  | value                                                                              | Cloudflare proxy                                                         |
-| ------------------------------------------------------------------------------------------------------------------ | ----- | ---------------------------------------------------------------------------------- | ------------------------------------------------------------------------ |
-| `onenexora.com`, `www`, `account`, `console`, `api`, `status`, `docs`, `developers`, `sentinel`, `cspm`, `gateway` | A     | the VM's IP                                                                        | **Proxied** (orange)                                                     |
-| `vigilo`, `vigilo-api`, `neurawall`, `monitoring`                                                                  | A     | the VM's IP                                                                        | **DNS only** at first; proxy later once the NEXORA hosts have run a week |
-| `accounts`, `clerk`, `clkmail`, `clk._domainkey`, `clk2._domainkey`                                                | CNAME | Clerk's targets (`*.clerk.services`)                                               | **DNS only**: Clerk and its mail provider must stay reachable directly   |
-| `@`                                                                                                                | MX    | `smtp.google.com` (priority 1)                                                     | n/a                                                                      |
-| `@`                                                                                                                | TXT   | `v=spf1 include:_spf.google.com ~all` and the `google-site-verification=...` value | n/a                                                                      |
-| `google._domainkey`                                                                                                | TXT   | the Workspace DKIM key                                                             | n/a                                                                      |
-| `_dmarc`                                                                                                           | TXT   | `v=DMARC1; p=none; rua=mailto:security@onenexora.com` (add it now if not done)     | n/a                                                                      |
+Read from Squarespace's DNS page on 2026-10-31 (the 2026-10-30 lookup from the host missed hostnames it did not know to ask for, so use this list, not the earlier one). All A records point at the VM.
+
+| name                                                                                                        | type  | Cloudflare proxy                                                                                                                           |
+| ----------------------------------------------------------------------------------------------------------- | ----- | ------------------------------------------------------------------------------------------------------------------------------------------ |
+| `@`, `www`, `account`, `console`, `api`, `status`, `docs`, `developers`, `sentinel`                         | A     | **Proxied** (orange). `sentinel` only redirects to Linegist now                                                                            |
+| `gateway`, `cspm`, `gateway-next`, `gateway-next-api`, `app`, `app.cspm`, `api.cspm`                        | A     | **DNS only**: Gateway and CSPM are stopped or moved on purpose; leave them out of the proxy until their new homes are settled              |
+| `linegist`, `omniflow`, `www.omniflow`, `neurawall`, `neurawall-demo`, `vigilo`, `vigilo-api`, `monitoring` | A     | **DNS only** at first (other products, agents and Grafana); proxy later, one at a time                                                     |
+| `accounts`, `clerk`, `clkmail`, `clk._domainkey`, `clk2._domainkey`                                         | CNAME | **DNS only**: Clerk and its mail provider must stay reachable directly (targets under `clerk.services`)                                    |
+| `_domainconnect`                                                                                            | CNAME | **DNS only**; only Squarespace's Domain Connect uses it, safe to drop once DNS has moved                                                   |
+| `@`                                                                                                         | MX    | `smtp.google.com`, priority 1 (not proxiable)                                                                                              |
+| `@`                                                                                                         | TXT   | `v=spf1 include:_spf.google.com ~all` and the `google-site-verification=...` value                                                         |
+| `google._domainkey`                                                                                         | TXT   | the Workspace DKIM key                                                                                                                     |
+| `_dmarc`                                                                                                    | TXT   | `v=DMARC1; p=none; rua=mailto:security@onenexora.com` (**not yet added**; add it in Cloudflare after the switch, or at Squarespace before) |
+
+Squarespace requires a Google sign-in re-verification before it accepts any DNS change; that step is the owner's.
 
 Cloudflare auto-imports records when the site is added; compare its list with this table and add anything missing (an unlisted record at Squarespace would silently vanish at the switch).
 
