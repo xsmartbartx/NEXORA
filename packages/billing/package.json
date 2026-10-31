@@ -14,7 +14,7 @@
   "dependencies": {
     "@nexora/database": "*",
     "@nexora/telemetry": "*",
-    "stripe": "^22.6.2"
+    "stripe": "^23.0.1"
   },
   "devDependencies": {
     "@types/node": "^20",
