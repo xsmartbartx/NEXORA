@@ -12,7 +12,7 @@
   },
   "dependencies": {
     "@nexora/database": "*",
-    "ioredis": "^5"
+    "ioredis": "^6"
   },
   "devDependencies": {
     "@types/node": "^20",
