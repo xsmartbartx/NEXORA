@@ -26,7 +26,7 @@ Cloudflare auto-imports records when the site is added; compare its list with th
 
 ## Order (matters)
 
-1. **Turn DNSSEC off at Squarespace first.** A DS record is published today. Changing nameservers with it in place makes validating resolvers reject the domain. Remove it, then wait at least its TTL (an hour is safe).
+1. **Turn DNSSEC off at Squarespace first.** A DS record is published today. Changing nameservers with it in place makes validating resolvers reject the domain. Turn DNSSEC off at Squarespace; the registry can take up to 48 hours to drop the DS record (check with `dig DS onenexora.com`), and resolvers may cache it for its TTL, 24 hours for .com. **Change the nameservers only once the DS record is gone from the .com servers and at least 24 hours have passed since.** (An earlier version of this runbook said an hour; that is not enough.)
 2. Create the Cloudflare account (free plan), add `onenexora.com`, review the imported records, set the proxy flags above.
 3. **SSL/TLS: set the mode to "Full (strict)" before the switch.** Caddy has valid Let's Encrypt certificates. Never use "Flexible" (redirect loops, plain HTTP to the origin).
 4. At Squarespace, replace the four `nsd*.squarespacedns.com` nameservers with the two Cloudflare gives you. The records are identical, so the cut is seamless. Cloudflare emails when the zone is active.
