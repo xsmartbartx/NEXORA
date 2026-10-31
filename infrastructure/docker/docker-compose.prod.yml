@@ -278,6 +278,8 @@ services:
       STRIPE_COUPON_BUNDLE_2: ${STRIPE_COUPON_BUNDLE_2:-}
       STRIPE_COUPON_BUNDLE_3: ${STRIPE_COUPON_BUNDLE_3:-}
       NEXORA_ADMIN_EMAILS: ${NEXORA_ADMIN_EMAILS}
+      # Linegist usage card on /usage. Same value as CONSOLE_SHARED_SECRET in ~/linegist/deploy/oci/.env; unset hides the card.
+      LINEGIST_SHARED_SECRET: ${LINEGIST_SHARED_SECRET:-}
       DATABASE_URL: postgres://postgres:${POSTGRES_PASSWORD}@postgres:5432/nexora
       # Staff Control Center (/admin/control-center). Prometheus is reached
       # over this compose network; the rest are optional read-only tokens —
