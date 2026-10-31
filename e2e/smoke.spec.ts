@@ -11,7 +11,6 @@ const nexoraHosts = [
   "api",
   "docs",
   "developers",
-  "sentinel",
   "cspm",
   "gateway",
 ];
@@ -58,6 +57,14 @@ test.describe("authenticated surfaces reject anonymous visitors", () => {
   }
 });
 
+test.describe("moved products", () => {
+  test("sentinel redirects to Linegist", async ({ request }) => {
+    const res = await request.get(url("sentinel"), { maxRedirects: 0 });
+    expect(res.status()).toBe(302);
+    expect(res.headers()["location"]).toContain(`linegist.${domain}`);
+  });
+});
+
 test.describe("F03/F04 API key rejection", () => {
   test("F03-N no key", async ({ request }) => {
     const res = await request.get(url("api", "/v1/products"));
@@ -73,10 +80,8 @@ test.describe("F03/F04 API key rejection", () => {
     expect((await res.json()).error.code).toBe("invalid_api_key");
   });
 
-  test("F04-N gateway without a key", async ({ request }) => {
-    const res = await request.post(url("gateway", "/v1/chat"), { data: {} });
-    expect(res.status()).toBe(401);
-  });
+  // The Gateway app was stopped on purpose on 2026-10-30, so there is no "no key" 401 to
+  // assert; add the case back when it is redeployed.
 });
 
 test.describe("F05 webhooks verify signatures", () => {
