@@ -14,7 +14,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@clerk/nextjs": "^7.9.4",
+    "@clerk/nextjs": "^7.9.22",
     "@clerk/shared": "^4.33.0"
   },
   "devDependencies": {
