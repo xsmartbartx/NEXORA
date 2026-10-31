@@ -1,0 +1,26 @@
+# Version updates. Security updates are enabled separately in the repository settings.
+# Minor and patch bumps are grouped so a quiet week is one PR, not twenty.
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+    open-pull-requests-limit: 5
+    groups:
+      minor-and-patch:
+        update-types: [minor, patch]
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: monthly
+    groups:
+      actions:
+        patterns: ["*"]
+
+  - package-ecosystem: docker
+    directory: /infrastructure/docker
+    schedule:
+      interval: monthly
