@@ -71,6 +71,12 @@ ENV HOSTNAME=0.0.0.0
 RUN addgroup --system --gid 1001 nodejs \
   && adduser --system --uid 1001 nextjs
 
+# The app starts with `node`, never npm. The npm that ships in the Node image carries its own
+# bundled dependencies (brace-expansion, pacote, sigstore, ...), which is where every HIGH
+# finding Trivy reports in these images lives. Removing it clears them and drops a package
+# manager from the runtime image.
+RUN rm -rf /usr/local/lib/node_modules/npm /usr/local/bin/npm /usr/local/bin/npx
+
 # `next.config.ts`'s `output: "standalone"` + `outputFileTracingRoot`
 # (pointed at the monorepo root) traces exactly the node_modules this app
 # needs into apps/<name>/.next/standalone, mirroring the monorepo's own
