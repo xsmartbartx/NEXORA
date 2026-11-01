@@ -86,16 +86,16 @@ jobs:
             --build-arg APP_PORT=${{ matrix.port }} \
             -t nexora-${{ matrix.app }}:ci .
 
-      # Report only for now (exit-code 0): lists fixable HIGH and CRITICAL findings in
-      # the image's OS packages and dependencies in the job log. Flip exit-code to "1"
-      # once the baseline is clean so a new fixable finding fails the build.
-      - name: Scan ${{ matrix.app }} image (report only)
+      # Fails the build on any fixable HIGH or CRITICAL finding in the image (OS packages and
+      # dependencies). The baseline is clean since the runtime image dropped npm, so a failure
+      # here is new: bump the base image or the dependency. Unfixed findings are ignored.
+      - name: Scan ${{ matrix.app }} image
         uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
         with:
           image-ref: nexora-${{ matrix.app }}:ci
           severity: HIGH,CRITICAL
           ignore-unfixed: true
-          exit-code: "0"
+          exit-code: "1"
           format: table
 
       - name: Run and health-check
