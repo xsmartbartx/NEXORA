@@ -20,7 +20,7 @@
   "devDependencies": {
     "@types/node": "^20",
     "@types/react": "^19",
-    "typescript": "^5"
+    "typescript": "^7"
   },
   "peerDependencies": {
     "next": "^16",
