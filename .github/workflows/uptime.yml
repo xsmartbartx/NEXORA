@@ -1,6 +1,6 @@
 name: Uptime
 
-# Probes every public endpoint of NEXORA, Vigilo and NeuraWall. A failed run is the
+# Probes every public endpoint of NEXORA, Vigilo, NeuraWall and CodeReviewer. A failed run is the
 # alert: GitHub emails the repository owner when a scheduled workflow fails.
 on:
   schedule:
@@ -33,6 +33,7 @@ jobs:
             https://vigilo.onenexora.com
             https://vigilo-api.onenexora.com/healthz
             https://neurawall.onenexora.com/readyz
+            https://codereviewer.onenexora.com/api/health
             # 503 once the nightly backup (incl. off-site upload) is >26h old.
             https://status.onenexora.com/api/backup
             # 503 once the monthly restore drill has not passed for 35 days (or never ran).

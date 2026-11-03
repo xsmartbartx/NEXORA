@@ -32,6 +32,19 @@ describe("backup-all.sh", () => {
     }
   });
 
+  it("dumps every product database, CodeReviewer's included", () => {
+    for (const [container, db] of [
+      ["vigilo-self-host-postgres-1", "vigilo"],
+      ["nexora-postgres-1", "nexora"],
+      ["neurawall-postgres-1", "neurawall"],
+      ["codereviewer-postgres-1", "codereviewer"],
+    ]) {
+      expect(text).toMatch(
+        new RegExp(`docker exec ${container} pg_dump .* > "\\$work/${db}-postgres.dump"`),
+      );
+    }
+  });
+
   it("uses instance principal and never refers to stored credentials", () => {
     expect(text).toContain("--auth instance_principal");
     expect(text).not.toMatch(/password|secret|token|api[_-]?key/i);

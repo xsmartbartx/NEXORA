@@ -8,11 +8,11 @@ times in the table at the bottom and correct anything that turned out wrong.
 
 | thing                                                           | where it lives                                                      | survives losing the VM? | survives losing the OCI account? |
 | --------------------------------------------------------------- | ------------------------------------------------------------------- | ----------------------- | -------------------------------- |
-| code                                                            | GitHub (`NEXORA`, Vigilo, NeuraWall repos)                          | yes                     | yes                              |
-| nightly backup (3 Postgres dumps, NeuraWall data, Vigilo MinIO) | host `/opt/backups/archives` (14 days)                              | no                      | no                               |
+| code                                                            | GitHub (`NEXORA`, Vigilo, NeuraWall, CodeReviewer repos)            | yes                     | yes                              |
+| nightly backup (4 Postgres dumps, NeuraWall data, Vigilo MinIO) | host `/opt/backups/archives` (14 days)                              | no                      | no                               |
 | off-site copy 1                                                 | OCI bucket `nexora-backups` (expires after `backup_retention_days`) | yes                     | **no**                           |
 | off-site copy 2                                                 | other provider, encrypted (`offsite-copy.sh`)                       | yes                     | yes, needs the private GPG key   |
-| secrets (`.env.prod`, Vigilo and NeuraWall env)                 | the host only                                                       | no                      | no                               |
+| secrets (`.env.prod`, Vigilo, NeuraWall and CodeReviewer env)   | the host only                                                       | no                      | no                               |
 | infrastructure definition                                       | `infrastructure/terraform`                                          | yes                     | yes                              |
 
 **Secrets are the gap.** The environment files exist only on the host. Keep a copy of each in your
@@ -33,21 +33,22 @@ secrets, the NeuraWall signing key inside its data volume backup).
 2. **Packages on the host** (not yet scripted): Docker with the compose plugin, git, `nodejs:22`
    (`dnf module enable nodejs:22 && dnf install nodejs`, needed by the worker), the OCI CLI, `gpg`,
    `rclone`. Create `/opt/nexora` (owned by `opc`), `/opt/backups`, `/opt/vigilo`, `/opt/neurawall`, and
-   clone the three repositories. Vigilo's remote must point at the Vigilo repository, not NEXORA.
+   `/home/opc/codereviewer`, and clone the four repositories (CodeReviewer also needs its server-only
+   `docker-compose.override.yml`, which publishes no host ports). Vigilo's remote must point at the Vigilo repository, not NEXORA.
 3. **Secrets.** Put the environment files back from the password manager (mode 600). Do not commit them.
 4. **Data.** Fetch the newest archive:
    - from OCI: `oci os object get --auth instance_principal --bucket-name nexora-backups --name platform/<archive> --file <archive>`
    - or from the second copy: download the `.gpg` file, then `gpg --decrypt` it on **your own machine**
      with the private key (the host never had it), and copy the archive over.
 
-   `infrastructure/deployment/restore-drill.sh` shows the exact restore of the NEXORA database into a
-   throwaway container and `restore-rehearsal.sh` does all three with timings (NeuraWall needs a
-   PostgreSQL 17 server, the others 16: a dump cannot be restored by an older major version); for production, start the stack's Postgres, then `pg_restore` each dump into
-   its database (`nexora`, `vigilo`, `neurawall`), and untar the NeuraWall data and Vigilo MinIO
+   `infrastructure/deployment/restore-drill.sh` shows the exact restore of the NEXORA and CodeReviewer
+   databases into throwaway containers and `restore-rehearsal.sh` does all four with timings (NeuraWall
+   and CodeReviewer need a PostgreSQL 17 server, the others 16: a dump cannot be restored by an older major version); for production, start the stack's Postgres, then `pg_restore` each dump into
+   its database (`nexora`, `vigilo`, `neurawall`, `codereviewer`), and untar the NeuraWall data and Vigilo MinIO
    volumes into their Docker volumes.
 
 5. **Start.** `infrastructure/deployment/deploy.sh nexora db-migrate website account console api gateway docs developers status sentinel cspm`,
-   then the Vigilo and NeuraWall stacks, then `deploy.sh edge`.
+   then the Vigilo and NeuraWall stacks, `deploy.sh codereviewer`, then `deploy.sh edge`.
 6. **DNS.** Point the `A` records at the new public IP (lower the TTL beforehand if you know a move is
    coming). Caddy obtains certificates on its own once DNS resolves.
 7. **Crons and jobs.** Install the crontab entries documented in `docs/ops/notification-hub.md`,

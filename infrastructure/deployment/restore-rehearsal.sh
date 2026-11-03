@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# Full-data restore rehearsal: restores all three Postgres dumps of the newest archive into
-# throwaway containers (NeuraWall runs PostgreSQL 17, the others 16), never touching production,
+# Full-data restore rehearsal: restores every Postgres dump of the newest archive into
+# throwaway containers (NeuraWall and CodeReviewer run PostgreSQL 17, the others 16), never touching production,
 # and prints per-database timings (the measured restore time for each). Run it on the host; it
 # needs about twice the archive size in free disk and, for NeuraWall, around 7 minutes.
 #
@@ -39,6 +39,12 @@ restore() { # db image
 restore nexora postgres:16-alpine
 restore vigilo postgres:16-alpine
 restore neurawall postgres:17-alpine
+# Archives from before CodeReviewer was added to the nightly backup do not have its dump.
+if [[ -f "$work/codereviewer-postgres.dump" ]]; then
+  restore codereviewer postgres:17-alpine
+else
+  echo "codereviewer: not in this archive"
+fi
 for f in neurawall-data.tar.gz vigilo-minio.tar.gz; do
   echo "$f: $(tar tzf "$work/$f" | wc -l) entries"
 done

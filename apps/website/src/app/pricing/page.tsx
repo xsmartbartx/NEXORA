@@ -6,12 +6,13 @@ import { buttonVariants, cn } from "@nexora/ui";
 export const metadata: Metadata = {
   title: "Pricing",
   description:
-    "Sentinel, CSPM and Gateway are each free to start, with independent Starter, Pro, Business and Scale tiers. Vigilo starts at $0; NeuraWall plans run from $149 a month to dedicated enterprise deployments. Yearly billing saves up to 20%.",
+    "Sentinel, CSPM and Gateway are each free to start, with independent Starter, Pro, Business and Scale tiers. Vigilo and CodeReviewer start at $0; NeuraWall plans run from $149 a month to dedicated enterprise deployments. Yearly billing saves up to 20%.",
 };
 
 const consoleUrl = process.env.NEXT_PUBLIC_CONSOLE_URL ?? "https://console.onenexora.com";
 const vigiloUrl = "https://vigilo.onenexora.com";
 const neurawallUrl = "https://neurawall.onenexora.com";
+const codereviewerUrl = "https://codereviewer.onenexora.com";
 
 function neurawallSales(plan: string): Tier["cta"] {
   return {
@@ -208,6 +209,47 @@ const products: ProductPricing[] = [
       },
     ],
     note: "Organisations can also subscribe in NEXORA Console for an installation linked to the organisation. Professional services — architecture, deployment and training — at $125 per hour.",
+  },
+  // CodeReviewer's plans mirror its own plan table (src/lib/billing/plans.ts in the
+  // CodeReviewer repository), which bills them through Stripe and enforces the review quota.
+  // A plan is per GitHub account (user or organisation) that installs the app. Monthly only.
+  {
+    product: "CodeReviewer",
+    summary: "A Claude review on every GitHub pull request, with inline fixes and merge checks.",
+    tiers: [
+      {
+        name: "Free",
+        monthlyCents: 0,
+        yearlyCents: 0,
+        features: [
+          "20 reviews / month",
+          "Public and private repositories",
+          "Up to 50 files a review",
+        ],
+        cta: { label: "Start free", href: codereviewerUrl },
+      },
+      {
+        name: "Pro",
+        monthlyCents: 3900,
+        yearlyCents: 0,
+        features: [
+          "250 reviews / month",
+          "Incremental reviews on every push",
+          "Request-changes workflow and checks",
+          "Up to 150 files a review",
+        ],
+        cta: { label: "Upgrade in CodeReviewer", href: `${codereviewerUrl}/dashboard` },
+        highlighted: true,
+      },
+      {
+        name: "Team",
+        monthlyCents: 14900,
+        yearlyCents: 0,
+        features: ["1,000 reviews / month", "Everything in Pro", "Up to 300 files a review"],
+        cta: { label: "Upgrade in CodeReviewer", href: `${codereviewerUrl}/dashboard` },
+      },
+    ],
+    note: "Plans apply per GitHub account that installs CodeReviewer.",
   },
 ];
 

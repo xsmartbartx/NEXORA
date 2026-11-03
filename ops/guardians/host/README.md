@@ -10,6 +10,7 @@ approval where a change is hard to undo, logs every call, and supports `--dry-ru
 | `deploy <project> <service...>`                | T2   | no                 | `deploy.sh` as `opc` (host lock, as today) |
 | `deploy nexora ... db-migrate`                 | T2   | **yes**            | same                                       |
 | `deploy edge`                                  | T2   | **yes**            | same                                       |
+| `deploy codereviewer` (runs its migrations)    | T2   | **yes**            | same                                       |
 | `restore-drill`                                | T2   | no                 | `restore-drill.sh` as `opc`                |
 | anything else                                  |      | refused (exit 126) |                                            |
 

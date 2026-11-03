@@ -29,6 +29,11 @@ export const ENDPOINTS: Endpoint[] = [
   { name: "Vigilo", url: "https://vigilo.onenexora.com", category: "partners" },
   { name: "Vigilo API", url: "https://vigilo-api.onenexora.com/healthz", category: "partners" },
   { name: "NeuraWall", url: "https://neurawall.onenexora.com/readyz", category: "partners" },
+  {
+    name: "CodeReviewer",
+    url: "https://codereviewer.onenexora.com/api/health",
+    category: "partners",
+  },
 ];
 
 export const BACKUP_URL = "https://status.onenexora.com/api/backup";
