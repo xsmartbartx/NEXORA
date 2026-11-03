@@ -249,7 +249,7 @@ const products: ProductPricing[] = [
         cta: { label: "Upgrade in CodeReviewer", href: `${codereviewerUrl}/dashboard` },
       },
     ],
-    note: "Plans apply per GitHub account that installs CodeReviewer.",
+    note: "Plans apply per GitHub account that installs CodeReviewer. Organisations can also subscribe in NEXORA Console, billed with their other NEXORA products, for the GitHub accounts they link.",
   },
 ];
 

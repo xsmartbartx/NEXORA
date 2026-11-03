@@ -113,7 +113,7 @@ export const products: Product[] = [
     short_name: "CodeReviewer",
     tagline: "A Claude review on every GitHub pull request.",
     description:
-      "CodeReviewer is a GitHub App that reviews each pull request with Claude: a summary of the change, inline comments with suggested fixes, and a check that can block a risky merge. It reviews again on every push, only the new commits, and takes commands in PR comments. Per-repository rules live in a `.codereviewer.yaml` file. Independently built and hosted, with its own GitHub sign-in and billing — not yet on Core identity/entitlements, so it's `beta` here (ADR-0015).",
+      "CodeReviewer is a GitHub App that reviews each pull request with Claude: a summary of the change, inline comments with suggested fixes, and a check that can block a risky merge. It reviews again on every push, only the new commits, and takes commands in PR comments. Per-repository rules live in a `.codereviewer.yaml` file. Independently built and hosted: organisations can buy it in Console and sign in with their NEXORA account, while review quotas stay enforced in CodeReviewer itself (ADR-0015), so it's `beta` here.",
     category: "developer",
     platform_pillar: "ai",
     lifecycle: "beta",
