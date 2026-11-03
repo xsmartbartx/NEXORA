@@ -8,6 +8,7 @@
 #   deploy.sh vigilo web api             # Vigilo services (its COMPOSE_FILE in .env)
 #   deploy.sh neurawall control-plane    # NeuraWall (/opt/neurawall, deploy/compose/nexora-host.yml)
 #   deploy.sh gateway api web            # standalone Gateway (/opt/gateway, deploy/compose.prod.yml)
+#   deploy.sh codereviewer               # CodeReviewer (/home/opc/codereviewer): migrate, web and worker
 #   deploy.sh edge                       # reload the shared Caddy config
 #
 # Waits up to 30 minutes for a running deploy to finish, then gives up.
@@ -19,7 +20,7 @@ if [[ "$(id -u)" -eq 0 ]]; then
   exec sudo -u opc -- "$0" "$@"
 fi
 
-project="${1:?usage: deploy.sh nexora|vigilo|neurawall|gateway|edge [service...]}"
+project="${1:?usage: deploy.sh nexora|vigilo|neurawall|gateway|codereviewer|edge [service...]}"
 shift
 
 exec 9>/opt/.platform-deploy.lock
@@ -60,12 +61,23 @@ case "$project" in
     "${compose[@]}" build "$@"
     "${compose[@]}" up -d --no-deps "$@"
     ;;
+  codereviewer)
+    # One image serves migrate, web and worker, so the whole stack deploys together: build
+    # it once (migrate is the service with `build:`), then `up -d` runs the migrations to
+    # completion before web and worker restart (depends_on). Compose reads the checkout's own
+    # .env and the server-only docker-compose.override.yml (no host ports, edge network).
+    [ "$#" -eq 0 ] || { echo "CodeReviewer deploys as a whole; it takes no service names." >&2; exit 2; }
+    checkout=/home/opc/codereviewer
+    cd "$checkout" && git pull --ff-only
+    sudo docker compose build migrate
+    sudo docker compose up -d
+    ;;
   edge)
     cd /opt/nexora && git pull --ff-only
     sudo docker exec edge-caddy-1 caddy reload --config /etc/caddy/Caddyfile
     ;;
   *)
-    echo "Unknown project: $project (expected nexora, vigilo, neurawall, gateway or edge)." >&2
+    echo "Unknown project: $project (expected nexora, vigilo, neurawall, gateway, codereviewer or edge)." >&2
     exit 2
     ;;
 esac
@@ -79,4 +91,4 @@ if [ "$disk" -ge "${DISK_PRUNE_THRESHOLD:-75}" ]; then
   echo "Disk was ${disk}%: pruned build cache, freed ${freed:-0B}"
 fi
 
-echo "Deployed $project${*:+: $*} at $(date -u +%FT%TZ) ($(git -C "/opt/${project/edge/nexora}" log --oneline -1))"
+echo "Deployed $project${*:+: $*} at $(date -u +%FT%TZ) ($(git -C "${checkout:-/opt/${project/edge/nexora}}" log --oneline -1))"

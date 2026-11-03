@@ -12,7 +12,9 @@ import type { ProductPlan } from "../types";
  *
  * Vigilo and NeuraWall are independently hosted and not yet on Core
  * billing (per their `products.ts` descriptions), so they have no plan
- * records here.
+ * records here. CodeReviewer bills itself too, but its product page here is
+ * a real page rather than a redirect, so its references are kept in sync by
+ * hand with its own `src/lib/billing/plans.ts`.
  */
 export const productPlans: ProductPlan[] = [
   { product: "sentinel", name: "Free", limits: "20 scans/mo", price_reference: "$0" },
@@ -23,4 +25,12 @@ export const productPlans: ProductPlan[] = [
 
   { product: "gateway", name: "Free", limits: "100 calls/mo", price_reference: "$0" },
   { product: "gateway", name: "Starter", limits: "1,500 calls/mo", price_reference: "From $19/mo" },
+
+  { product: "codereviewer", name: "Free", limits: "20 reviews/mo", price_reference: "$0" },
+  {
+    product: "codereviewer",
+    name: "Pro",
+    limits: "250 reviews/mo",
+    price_reference: "From $39/mo",
+  },
 ];

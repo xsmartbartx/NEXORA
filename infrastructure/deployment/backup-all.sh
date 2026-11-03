@@ -1,9 +1,10 @@
 #!/usr/bin/env bash
 # Nightly backup of every stateful thing on this server: Vigilo's Postgres
-# and MinIO evidence volume, NEXORA's Postgres, and NeuraWall's Postgres plus its
-# data volume (holds the bundle-signing key every enrolled node trusts). Uses `docker exec`
-# directly rather than `docker compose exec`, so it doesn't depend on
-# either stack's .env being loadable.
+# and MinIO evidence volume, NEXORA's Postgres, NeuraWall's Postgres plus its
+# data volume (holds the bundle-signing key every enrolled node trusts), and
+# CodeReviewer's Postgres (its pg-boss review queue lives in the same database).
+# Uses `docker exec` directly rather than `docker compose exec`, so it doesn't
+# depend on any stack's .env being loadable.
 #
 # Each archive is kept here for 14 days and copied off-site to OCI Object
 # Storage (bucket $BUCKET), authenticated as this instance via instance
@@ -37,6 +38,7 @@ done
 docker exec vigilo-self-host-postgres-1 pg_dump -U vigilo -d vigilo -Fc > "$work/vigilo-postgres.dump"
 docker exec nexora-postgres-1 pg_dump -U postgres -d nexora -Fc > "$work/nexora-postgres.dump"
 docker exec neurawall-postgres-1 pg_dump -U neurawall -d neurawall -Fc > "$work/neurawall-postgres.dump"
+docker exec codereviewer-postgres-1 pg_dump -U codereviewer -d codereviewer -Fc > "$work/codereviewer-postgres.dump"
 docker run --rm \
   -v neurawall_cpdata:/data:ro \
   -v "$work:/backup" \

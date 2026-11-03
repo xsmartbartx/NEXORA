@@ -94,6 +94,12 @@ export const components: StatusComponent[] = [
     category: "products",
     checkUrl: "https://neurawall.onenexora.com/readyz",
   },
+  {
+    name: "CodeReviewer",
+    description: "codereviewer.onenexora.com",
+    category: "products",
+    checkUrl: "https://codereviewer.onenexora.com/api/health",
+  },
 ];
 
 export const categoryLabel: Record<ComponentCategory, string> = {

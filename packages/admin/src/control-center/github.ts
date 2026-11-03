@@ -1,6 +1,11 @@
 import { timedFetch } from "./result";
 
-export const REPOS = ["xsmartbartx/NEXORA", "xsmartbartx/Vigilo", "xsmartbartx/NeuraWall"] as const;
+export const REPOS = [
+  "xsmartbartx/NEXORA",
+  "xsmartbartx/Vigilo",
+  "xsmartbartx/NeuraWall",
+  "xsmartbartx/CodeReviewer",
+] as const;
 
 const CACHE_MS = 5 * 60_000;
 const cache = new Map<string, { at: number; value: GithubResponse }>();

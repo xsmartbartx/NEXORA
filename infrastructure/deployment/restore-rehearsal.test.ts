@@ -19,6 +19,7 @@ describe("restore-rehearsal.sh", () => {
     expect(rehearsal).toContain("restore nexora postgres:16-alpine");
     expect(rehearsal).toContain("restore vigilo postgres:16-alpine");
     expect(rehearsal).toContain("restore neurawall postgres:17-alpine");
+    expect(rehearsal).toContain("restore codereviewer postgres:17-alpine");
   });
 
   it("only ever starts throwaway containers: it never execs into a production one", () => {
@@ -46,5 +47,17 @@ describe("restore-drill.sh", () => {
   it("still fails loudly on any restore error", () => {
     expect(drill).toContain("--exit-on-error");
     expect(drill).toContain("RESTORE DRILL FAILED");
+  });
+
+  it("drills the NEXORA and the CodeReviewer database, each with its expected tables", () => {
+    expect(drill).toContain('drill nexora "${NEXORA_TABLES[@]}"');
+    expect(drill).toContain('drill codereviewer "${CODEREVIEWER_TABLES[@]}"');
+    expect(drill).toContain("CODEREVIEWER_TABLES=(accounts repositories reviews)");
+  });
+
+  it("only ever restores into throwaway containers it removes again", () => {
+    expect(drill).not.toMatch(/docker exec (nexora|codereviewer)-postgres/);
+    expect(drill).toContain('name="$1-restore-drill-$$"');
+    expect(drill).toContain("docker rm -f");
   });
 });

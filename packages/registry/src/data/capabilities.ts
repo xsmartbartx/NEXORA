@@ -119,4 +119,29 @@ export const productCapabilities: ProductCapability[] = [
     description: "Canary rollout and a tamper-evident audit trail for every enforced rule.",
     order: 4,
   },
+
+  {
+    product: "codereviewer",
+    label: "Pull request reviews",
+    description: "Reviews every pull request with Claude: a summary plus inline comments.",
+    order: 1,
+  },
+  {
+    product: "codereviewer",
+    label: "Suggested fixes",
+    description: "Inline comments carry ready-to-apply GitHub suggestions where a fix is clear.",
+    order: 2,
+  },
+  {
+    product: "codereviewer",
+    label: "Incremental re-reviews",
+    description: "Each push is reviewed again, covering only the commits since the last review.",
+    order: 3,
+  },
+  {
+    product: "codereviewer",
+    label: "Merge checks",
+    description: "A GitHub check that can fail on critical findings, to gate risky merges.",
+    order: 4,
+  },
 ];

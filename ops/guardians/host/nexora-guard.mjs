@@ -54,8 +54,12 @@ const PROJECTS = {
   ]),
   vigilo: null, // service names are Vigilo's own; checked by shape only
   neurawall: null,
+  // Deployed as a whole (one image for migrate, web and worker), like the edge.
+  codereviewer: new Set(),
   edge: new Set(),
 };
+// Projects deployed without service names.
+const WHOLE_PROJECTS = new Set(["edge", "codereviewer"]);
 // Services whose deploy changes data or exposure: approval required even for a deploy.
 const GUARDED_SERVICES = new Set(["db-migrate"]);
 const NAME = /^[a-z][a-z0-9-]{0,40}$/;
@@ -114,15 +118,16 @@ export function resolve(command) {
     const [project, ...services] = args;
     if (!Object.hasOwn(PROJECTS, project ?? "")) return refuse("unknown project");
     const known = PROJECTS[project];
-    if (project === "edge") {
-      if (services.length > 0) return refuse("edge takes no services");
+    if (WHOLE_PROJECTS.has(project)) {
+      if (services.length > 0) return refuse(`${project} takes no services`);
     } else if (services.length === 0 || services.length > 8) {
       return refuse("name 1 to 8 services");
     }
     for (const s of services) {
       if (!NAME.test(s) || (known && !known.has(s))) return refuse(`service not allowed: ${s}`);
     }
-    const guarded = project === "edge" || services.some((s) => GUARDED_SERVICES.has(s));
+    // The edge changes exposure; a CodeReviewer deploy always runs its migrations.
+    const guarded = WHOLE_PROJECTS.has(project) || services.some((s) => GUARDED_SERVICES.has(s));
     return done(["sudo", "-n", "-u", "opc", DEPLOY, project, ...services], "T2", guarded);
   }
 
