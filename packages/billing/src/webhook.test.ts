@@ -4,6 +4,9 @@ const inserted: unknown[] = [];
 const updated: { values: unknown; orgId: string; product: string }[] = [];
 let existingRows: { orgId: string; product: string }[] = [];
 const syncVigiloPlan = vi.fn(async (_input: { orgId: string; planId: string }) => "synced");
+const syncCodeReviewerPlan = vi.fn(
+  async (_input: { orgId: string; planId: string; asOf: number }) => "synced",
+);
 
 const logEvent = vi.fn(async (_event: Record<string, unknown>) => {});
 vi.mock("@nexora/telemetry", () => ({
@@ -13,6 +16,12 @@ vi.mock("@nexora/telemetry", () => ({
 vi.mock("./vigilo-sync", async (importOriginal) => ({
   ...(await importOriginal<typeof import("./vigilo-sync")>()),
   syncVigiloPlan: (input: { orgId: string; planId: string }) => syncVigiloPlan(input),
+}));
+
+vi.mock("./codereviewer-sync", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("./codereviewer-sync")>()),
+  syncCodeReviewerPlan: (input: { orgId: string; planId: string; asOf: number }) =>
+    syncCodeReviewerPlan(input),
 }));
 
 vi.mock("@nexora/database", () => ({
@@ -92,6 +101,8 @@ vi.mock("./plans", () => ({
         year: "price_neurawall_business_yearly",
       },
     },
+    { id: "pro", product: "codereviewer", stripePriceIds: { month: "price_cr_pro", year: null } },
+    { id: "team", product: "codereviewer", stripePriceIds: { month: "price_cr_team", year: null } },
   ],
 }));
 
@@ -105,6 +116,7 @@ function fakeSubscriptionEvent(
 ) {
   return {
     type,
+    created: 1_700_000_123,
     data: {
       object: {
         id: "sub_test123",
@@ -356,6 +368,86 @@ describe("applySubscriptionEvent", () => {
         ),
       ).rejects.toThrow("Vigilo down");
       expect(inserted).toHaveLength(1);
+    });
+  });
+
+  describe("CodeReviewer (Core owns the subscription, CodeReviewer is told the plan)", () => {
+    beforeEach(() => syncCodeReviewerPlan.mockClear());
+
+    it("records the subscription and syncs the tier with the event time", async () => {
+      await applySubscriptionEvent(
+        fakeSubscriptionEvent("customer.subscription.created", "org_c", [
+          { priceId: "price_cr_team" },
+        ]),
+      );
+      expect(inserted).toContainEqual(
+        expect.objectContaining({ orgId: "org_c", product: "codereviewer", planId: "team" }),
+      );
+      expect(syncCodeReviewerPlan).toHaveBeenCalledExactlyOnceWith({
+        orgId: "org_c",
+        planId: "team",
+        asOf: 1_700_000_123,
+      });
+      expect(syncVigiloPlan).not.toHaveBeenCalled();
+      expect(logEvent).toHaveBeenCalledExactlyOnceWith(
+        expect.objectContaining({
+          action: "billing.codereviewer_sync.completed",
+          outcome: "success",
+          metadata: { planId: "team" },
+        }),
+      );
+    });
+
+    it("syncs Free while a payment is past due, and on deletion", async () => {
+      existingRows = [{ orgId: "org_c", product: "codereviewer" }];
+      await applySubscriptionEvent(
+        fakeSubscriptionEvent(
+          "customer.subscription.updated",
+          "org_c",
+          [{ priceId: "price_cr_pro" }],
+          "past_due",
+        ),
+      );
+      await applySubscriptionEvent(
+        fakeSubscriptionEvent("customer.subscription.deleted", "org_c", [
+          { priceId: "price_cr_pro" },
+        ]),
+      );
+      expect(syncCodeReviewerPlan.mock.calls.map(([input]) => input.planId)).toEqual([
+        "free",
+        "free",
+      ]);
+    });
+
+    it("ignores CodeReviewer's own subscriptions (tagged accountId, never orgId)", async () => {
+      const own = fakeSubscriptionEvent("customer.subscription.created", undefined, [
+        { priceId: "price_cr_pro" },
+      ]);
+      (own.data.object as unknown as { metadata: Record<string, string> }).metadata = {
+        accountId: "6f1c1f9e-0000-4000-8000-000000000000",
+      };
+      await applySubscriptionEvent(own);
+      expect(inserted).toHaveLength(0);
+      expect(syncCodeReviewerPlan).not.toHaveBeenCalled();
+    });
+
+    it("records a failed sync and fails the webhook so Stripe redelivers", async () => {
+      syncCodeReviewerPlan.mockRejectedValueOnce(
+        new Error("CodeReviewer plan sync failed with HTTP 503"),
+      );
+      await expect(
+        applySubscriptionEvent(
+          fakeSubscriptionEvent("customer.subscription.created", "org_c", [
+            { priceId: "price_cr_pro" },
+          ]),
+        ),
+      ).rejects.toThrow(/503/);
+      expect(logEvent).toHaveBeenCalledWith(
+        expect.objectContaining({
+          action: "billing.codereviewer_sync.completed",
+          outcome: "failure",
+        }),
+      );
     });
   });
 });

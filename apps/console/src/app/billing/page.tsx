@@ -70,8 +70,8 @@ export default async function BillingPage(props: PageProps<"/billing">) {
       </span>
       <h1 className="mt-2 text-3xl font-semibold tracking-tight">Billing</h1>
       <p className="mt-2 max-w-xl text-muted-foreground">
-        Sentinel, CSPM, Gateway, Vigilo and NeuraWall are billed independently — pick the tier each
-        one needs.
+        Sentinel, CSPM, Gateway, Vigilo, NeuraWall and CodeReviewer are billed independently — pick
+        the tier each one needs.
       </p>
 
       {checkoutStatus === "success" ? (
@@ -126,10 +126,11 @@ export default async function BillingPage(props: PageProps<"/billing">) {
       <div className="mt-12 border-t border-border pt-8">
         <h2 className="text-lg font-semibold">Close account</h2>
         <p className="mt-2 text-sm text-muted-foreground">
-          Deleting your organisation cancels every paid Sentinel, CSPM, Gateway, Vigilo and
-          NeuraWall subscription bought here immediately and permanently deletes its API keys, usage
-          history and billing state. A NeuraWall installation that bills itself is not affected —
-          cancel it in its own app. Admins can do this from the organisation settings.
+          Deleting your organisation cancels every paid Sentinel, CSPM, Gateway, Vigilo, NeuraWall
+          and CodeReviewer subscription bought here immediately and permanently deletes its API
+          keys, usage history and billing state. A NeuraWall installation or CodeReviewer account
+          that bills itself is not affected — cancel it in its own app. Admins can do this from the
+          organisation settings.
         </p>
         <Link
           href="/organisation"
@@ -152,13 +153,16 @@ const productLabel: Record<ProductId, string> = {
   gateway: "Gateway",
   vigilo: "Vigilo",
   neurawall: "NeuraWall",
+  codereviewer: "CodeReviewer",
 };
 
-/** What a plan's limit counts, per product: Core meters scans and calls; NeuraWall enforces its own node limit. */
+/** What a plan's limit counts, per product: Core meters scans and calls; NeuraWall enforces its own node limit, CodeReviewer its monthly reviews. */
 function limitText(product: ProductId, limit: number | null): string {
   if (limit === null) return "Unlimited";
   const n = limit.toLocaleString("en-US");
-  return product === "neurawall" ? `${n} node${limit === 1 ? "" : "s"}` : n;
+  if (product === "neurawall") return `${n} node${limit === 1 ? "" : "s"}`;
+  if (product === "codereviewer") return `${n} reviews / month`;
+  return n;
 }
 
 function ProductBilling({ data, isOrgAdmin }: { data: ProductBillingData; isOrgAdmin: boolean }) {
@@ -180,9 +184,11 @@ function ProductBilling({ data, isOrgAdmin }: { data: ProductBillingData; isOrgA
         {plan.name} plan —{" "}
         {product === "neurawall"
           ? `${limitText(product, limit)} · enforced and shown in NeuraWall once an installation is linked`
-          : (EXTERNALLY_ENFORCED_PRODUCT_IDS as string[]).includes(product)
-            ? `${limit === null ? "unlimited scans" : `${limit} scans / month`} · usage is shown in ${productLabel[product]}`
-            : `${used}${limit === null ? "" : ` / ${limit}`} used this period`}
+          : product === "codereviewer"
+            ? `${limitText(product, limit)} · for GitHub accounts linked in CodeReviewer, which shows their usage`
+            : (EXTERNALLY_ENFORCED_PRODUCT_IDS as string[]).includes(product)
+              ? `${limit === null ? "unlimited scans" : `${limit} scans / month`} · usage is shown in ${productLabel[product]}`
+              : `${used}${limit === null ? "" : ` / ${limit}`} used this period`}
         {subscription?.currentPeriodEnd
           ? ` · renews ${subscription.currentPeriodEnd.toLocaleDateString()}`
           : ""}

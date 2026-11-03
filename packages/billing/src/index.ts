@@ -16,6 +16,15 @@ export {
 export type { BillingInterval, NativeProductId, Plan, PlanTier, ProductId } from "./plans";
 export { applySubscriptionEvent, verifyStripeSignature } from "./webhook";
 export {
+  codereviewerLinkUrl,
+  codereviewerPlanFor,
+  codereviewerUrl,
+  isCodeReviewerSyncConfigured,
+  signCodeReviewer,
+  syncCodeReviewerPlan,
+} from "./codereviewer-sync";
+export type { CodeReviewerLinkGrant, CodeReviewerPlanId } from "./codereviewer-sync";
+export {
   isVigiloSyncConfigured,
   signVigiloSync,
   syncVigiloPlan,

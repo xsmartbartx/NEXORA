@@ -27,8 +27,9 @@
  */
 export type BillingInterval = "month" | "year";
 export type NativeProductId = "sentinel" | "cspm" | "gateway";
-export type ProductId = NativeProductId | "vigilo" | "neurawall";
-export type PlanTier = "free" | "starter" | "pro" | "business" | "scale" | "enterprise";
+export type ProductId = NativeProductId | "vigilo" | "neurawall" | "codereviewer";
+/** `team` is CodeReviewer's top plan; the five-tier products never use it. */
+export type PlanTier = "free" | "starter" | "pro" | "business" | "scale" | "enterprise" | "team";
 
 export interface Plan {
   id: PlanTier;
@@ -147,13 +148,46 @@ const neurawallPlans: Plan[] = [
   ),
 ];
 
-export const PRODUCT_IDS: ProductId[] = ["sentinel", "cspm", "gateway", "vigilo", "neurawall"];
+/**
+ * CodeReviewer reviews GitHub pull requests with Claude; a plan is a monthly review
+ * quota for the GitHub accounts linked to the organisation. Three plans reusing the
+ * monthly Stripe prices CodeReviewer already sells ($39 and $149). There is no yearly
+ * price, so the plans are monthly only and Console offers no yearly checkout. Access enforcement
+ * stays inside CodeReviewer; Core owns the subscription and tells CodeReviewer the
+ * resulting plan (see `codereviewer-sync.ts`). Unlinked accounts keep billing
+ * themselves in CodeReviewer; Core's webhook ignores those subscriptions (no `orgId`).
+ */
+const codereviewerPlans: Plan[] = [
+  tier("codereviewer", "free", "Free", 0, null, { "codereviewer.review": 20 }),
+  tier("codereviewer", "pro", "Pro", 3900, "CODEREVIEWER_PRO", { "codereviewer.review": 250 }),
+  tier("codereviewer", "team", "Team", 14900, "CODEREVIEWER_TEAM", {
+    "codereviewer.review": 1000,
+  }),
+].map(monthlyOnly);
+
+/** A plan sold monthly only: no annual price, and no annual Stripe id even if one is configured. */
+function monthlyOnly(plan: Plan): Plan {
+  return {
+    ...plan,
+    priceCents: { ...plan.priceCents, year: 0 },
+    stripePriceIds: { ...plan.stripePriceIds, year: null },
+  };
+}
+
+export const PRODUCT_IDS: ProductId[] = [
+  "sentinel",
+  "cspm",
+  "gateway",
+  "vigilo",
+  "neurawall",
+  "codereviewer",
+];
 
 /** Products that can be combined in a bundle checkout (the three native, five-tier products). */
 export const BUNDLE_PRODUCT_IDS: NativeProductId[] = ["sentinel", "cspm", "gateway"];
 
 /** Products whose access Vigilo-style external services enforce themselves: Core records the subscription, but suspending one here would not block anything. */
-export const EXTERNALLY_ENFORCED_PRODUCT_IDS: ProductId[] = ["vigilo", "neurawall"];
+export const EXTERNALLY_ENFORCED_PRODUCT_IDS: ProductId[] = ["vigilo", "neurawall", "codereviewer"];
 
 export const PLAN_CATALOG: Record<ProductId, Plan[]> = {
   sentinel: sentinelPlans,
@@ -161,6 +195,7 @@ export const PLAN_CATALOG: Record<ProductId, Plan[]> = {
   gateway: gatewayPlans,
   vigilo: vigiloPlans,
   neurawall: neurawallPlans,
+  codereviewer: codereviewerPlans,
 };
 
 /** Flat view across every product's tiers — for callers that don't care which product a plan belongs to (e.g. admin's product-suspension list). */
@@ -170,6 +205,7 @@ export const PLANS: Plan[] = [
   ...gatewayPlans,
   ...vigiloPlans,
   ...neurawallPlans,
+  ...codereviewerPlans,
 ];
 
 export const DEFAULT_TIER: PlanTier = "free";

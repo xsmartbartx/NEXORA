@@ -3,6 +3,11 @@ import { and, eq } from "drizzle-orm";
 import { db, subscriptions } from "@nexora/database";
 import { logEvent } from "@nexora/telemetry";
 import { PLANS, type ProductId } from "./plans";
+import {
+  codereviewerPlanFor,
+  syncCodeReviewerPlan,
+  type CodeReviewerPlanId,
+} from "./codereviewer-sync";
 import { syncVigiloPlan, vigiloPlanFor, type VigiloPlanId } from "./vigilo-sync";
 
 /** Re-exported so consumers (the webhook route in apps/api) don't need their own `stripe` dependency just for this type. */
@@ -128,6 +133,17 @@ export async function applySubscriptionEvent(event: StripeEvent): Promise<void> 
           : vigiloPlanFor(subscription.status),
       );
     }
+    // CodeReviewer likewise; the event time lets it ignore an update that
+    // arrives after a newer one.
+    if (product === "codereviewer") {
+      await syncCodeReviewerAndRecord(
+        orgId,
+        event.type === "customer.subscription.deleted"
+          ? "free"
+          : codereviewerPlanFor(plan.id, subscription.status),
+        event.created,
+      );
+    }
   }
 }
 
@@ -152,6 +168,41 @@ async function syncVigiloAndRecord(orgId: string, planId: VigiloPlanId): Promise
     await logEvent({
       ...base,
       action: "billing.vigilo_sync.completed",
+      outcome: "failure",
+      metadata: {
+        planId,
+        error: (error instanceof Error ? error.message : "unknown").slice(0, 120),
+      },
+    }).catch(() => {});
+    throw error;
+  }
+}
+
+/** As `syncVigiloAndRecord`, for CodeReviewer (ADR-0015). */
+async function syncCodeReviewerAndRecord(
+  orgId: string,
+  planId: CodeReviewerPlanId,
+  asOf: number,
+): Promise<void> {
+  const base = {
+    orgId,
+    actorId: "stripe-webhook",
+    resourceType: "codereviewer_plan",
+    resourceId: orgId,
+  };
+  try {
+    if ((await syncCodeReviewerPlan({ orgId, planId, asOf })) === "synced") {
+      await logEvent({
+        ...base,
+        action: "billing.codereviewer_sync.completed",
+        outcome: "success",
+        metadata: { planId },
+      });
+    }
+  } catch (error) {
+    await logEvent({
+      ...base,
+      action: "billing.codereviewer_sync.completed",
       outcome: "failure",
       metadata: {
         planId,

@@ -75,8 +75,8 @@ describe("plan catalog", () => {
     }
   });
 
-  it("isProductId accepts the five billed products and nothing else", () => {
-    for (const id of ["sentinel", "cspm", "gateway", "vigilo", "neurawall"])
+  it("isProductId accepts the six billed products and nothing else", () => {
+    for (const id of ["sentinel", "cspm", "gateway", "vigilo", "neurawall", "codereviewer"])
       expect(isProductId(id)).toBe(true);
     expect(isProductId("")).toBe(false);
     expect(isProductId("neurawall-dedicated")).toBe(false);
@@ -161,6 +161,48 @@ describe("NeuraWall plans", () => {
     expect(isProductId("neurawall")).toBe(true);
     expect(isBundleProductId("neurawall")).toBe(false);
     expect(PLANS.filter((p) => p.product === "neurawall")).toHaveLength(4);
+  });
+});
+
+describe("CodeReviewer plans", () => {
+  const plans = getPlansForProduct("codereviewer");
+
+  it("are Free, Pro and Team at the prices CodeReviewer already sells, monthly only", () => {
+    expect(plans.map((p) => [p.id, p.name, p.priceCents.month])).toEqual([
+      ["free", "Free", 0],
+      ["pro", "Pro", 3900],
+      ["team", "Team", 14900],
+    ]);
+    for (const plan of plans) {
+      expect(plan.priceCents.year).toBe(0);
+      expect(plan.stripePriceIds.year).toBeNull();
+      expect(yearlySavingsPercent(plan)).toBe(0);
+    }
+  });
+
+  it("carry the monthly review quota CodeReviewer enforces itself", () => {
+    expect(plans.map((p) => p.limits)).toEqual([
+      { "codereviewer.review": 20 },
+      { "codereviewer.review": 250 },
+      { "codereviewer.review": 1000 },
+    ]);
+  });
+
+  it("read the monthly price ids from STRIPE_PRICE_ID_CODEREVIEWER_<PLAN>, null when unset", () => {
+    for (const tier of ["pro", "team"] as const) {
+      const key = `STRIPE_PRICE_ID_CODEREVIEWER_${tier.toUpperCase()}`;
+      expect(getPlan("codereviewer", tier).stripePriceIds.month ?? null).toBe(
+        process.env[key] || null,
+      );
+    }
+    expect(getPlan("codereviewer", "free").stripePriceIds).toEqual({ month: null, year: null });
+  });
+
+  it("is enforced by CodeReviewer itself and not bundle-eligible; team exists only here", () => {
+    expect(EXTERNALLY_ENFORCED_PRODUCT_IDS).toContain("codereviewer");
+    expect(isBundleProductId("codereviewer")).toBe(false);
+    expect(getPlan("sentinel", "team").id).toBe("free");
+    expect(PLANS.filter((p) => p.product === "codereviewer")).toHaveLength(3);
   });
 });
 
