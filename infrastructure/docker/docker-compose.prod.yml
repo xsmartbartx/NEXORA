@@ -64,6 +64,10 @@ x-stripe-product-prices: &stripe-product-prices
   STRIPE_PRICE_ID_NEURAWALL_BUSINESS_YEARLY: ${STRIPE_PRICE_ID_NEURAWALL_BUSINESS_YEARLY:-}
   STRIPE_PRICE_ID_NEURAWALL_ENTERPRISE: ${STRIPE_PRICE_ID_NEURAWALL_ENTERPRISE:-}
   STRIPE_PRICE_ID_NEURAWALL_ENTERPRISE_YEARLY: ${STRIPE_PRICE_ID_NEURAWALL_ENTERPRISE_YEARLY:-}
+  # CodeReviewer plans reuse the monthly prices CodeReviewer already sells (ADR-0015).
+  # Optional: unset means no Core checkout (CodeReviewer's own checkout keeps working).
+  STRIPE_PRICE_ID_CODEREVIEWER_PRO: ${STRIPE_PRICE_ID_CODEREVIEWER_PRO:-}
+  STRIPE_PRICE_ID_CODEREVIEWER_TEAM: ${STRIPE_PRICE_ID_CODEREVIEWER_TEAM:-}
 
 services:
   postgres:
@@ -278,6 +282,10 @@ services:
       STRIPE_COUPON_BUNDLE_2: ${STRIPE_COUPON_BUNDLE_2:-}
       STRIPE_COUPON_BUNDLE_3: ${STRIPE_COUPON_BUNDLE_3:-}
       NEXORA_ADMIN_EMAILS: ${NEXORA_ADMIN_EMAILS}
+      # Signs the grant that links a CodeReviewer account to the organisation
+      # (/link/codereviewer, ADR-0015). Off while CODEREVIEWER_SYNC_SECRET is unset.
+      CODEREVIEWER_SYNC_SECRET: ${CODEREVIEWER_SYNC_SECRET:-}
+      CODEREVIEWER_URL: ${CODEREVIEWER_URL:-https://codereviewer.onenexora.com}
       # Linegist usage card on /usage. Same value as CONSOLE_SHARED_SECRET in ~/linegist/deploy/oci/.env; unset hides the card.
       LINEGIST_SHARED_SECRET: ${LINEGIST_SHARED_SECRET:-}
       DATABASE_URL: postgres://postgres:${POSTGRES_PASSWORD}@postgres:5432/nexora
@@ -346,6 +354,10 @@ services:
       # (packages/billing/src/vigilo-sync.ts). Off while NEXORA_SYNC_SECRET is unset.
       NEXORA_SYNC_SECRET: ${NEXORA_SYNC_SECRET:-}
       VIGILO_API_URL: ${VIGILO_API_URL:-https://vigilo-api.onenexora.com}
+      # Likewise for CodeReviewer (packages/billing/src/codereviewer-sync.ts), with its
+      # own secret. Off while CODEREVIEWER_SYNC_SECRET is unset.
+      CODEREVIEWER_SYNC_SECRET: ${CODEREVIEWER_SYNC_SECRET:-}
+      CODEREVIEWER_URL: ${CODEREVIEWER_URL:-https://codereviewer.onenexora.com}
       DATABASE_URL: postgres://postgres:${POSTGRES_PASSWORD}@postgres:5432/nexora
       REDIS_URL: redis://redis:6379
     depends_on:
