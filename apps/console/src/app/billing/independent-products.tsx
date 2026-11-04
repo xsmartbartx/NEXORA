@@ -30,9 +30,9 @@ export function IndependentProducts() {
         <Card>
           <h3 className="font-semibold">CodeReviewer</h3>
           <p className="mt-2 text-sm text-muted-foreground">
-            Signs in with GitHub. A plan bought above applies to the GitHub accounts linked to this
-            organisation: link one from its Billing page in CodeReviewer. An unlinked account is
-            billed in CodeReviewer.
+            Sign in with your NEXORA account to see the GitHub accounts linked to this organisation,
+            or with GitHub. A plan bought above applies to those linked accounts: link one from its
+            Billing page in CodeReviewer. An unlinked account is billed in CodeReviewer.
           </p>
           <a
             href={`${codereviewerUrl}/dashboard`}

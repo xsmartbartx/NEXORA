@@ -1,6 +1,6 @@
 # ADR-0015: Bringing CodeReviewer onto Core
 
-Status: accepted, 2026-11-03 (all three phases approved; phase 1 in this PR)
+Status: accepted, 2026-11-03. Phases 1 to 3 shipped (see the update below).
 
 ## Context
 
@@ -157,10 +157,28 @@ authentication in another repository and is reviewed, tested and rolled back on 
 
 Manual steps, by phase:
 
-- **Phase 1:** merge #117 (the edge route) first.
+- **Phase 1:** none. (#117, the edge route, is live on the host as an uncommitted change; once it
+  merges, reset those two files in `/opt/nexora` to `HEAD` before the next `git pull`.)
 - **Phase 2:** generate one secret and set it as `CODEREVIEWER_SYNC_SECRET` in Core and
   `NEXORA_SYNC_SECRET` in CodeReviewer. Set the two price ids in Core. If Core uses a dedicated
   Customer Portal configuration (`STRIPE_PORTAL_CONFIGURATION_ID`), add CodeReviewer's products
   to it. The account's default portal is shared and stays unchanged.
 - **Phase 3:** add the Clerk keys to CodeReviewer. If Clerk restricts redirect origins, allow
   `codereviewer.onenexora.com` there.
+
+## Update: phases 1 to 3 shipped (2026-11-03)
+
+- **Phase 1** (#118, CodeReviewer#10) is deployed: product page, pricing, sitemap, status page,
+  uptime probe and Control Center entries are live; `deploy.sh codereviewer` is the deploy path, and
+  the nightly backup, restore rehearsal and monthly restore drill include CodeReviewer's database.
+- **Phase 2** (#119, CodeReviewer#11) is deployed and off until the secret and price ids are set
+  (`docs/codereviewer-link.md`). Two changes from the plan above: a link grant's plan only fills in
+  an organisation Core has not pushed yet (Core's pushes, ordered by event time, always win), and
+  with `NEXORA_SYNC_SECRET` set CodeReviewer enforces plans even without its own Stripe keys.
+- **Phase 3** (CodeReviewer#12) runs Clerk server-side only, in CodeReviewer's `proxy.ts`, with
+  this app's origin as the only authorized party. A GitHub session takes precedence over a NEXORA
+  one, so the GitHub sign-in that linking needs never mixes the two access models. Linking from a
+  Clerk session without the Console hop, and the install-time link through the setup URL, were
+  not built: linking always goes through phase 2's flow, which already proves both sides.
+- Not yet: the Control Center shows the Vigilo plan sync only; CodeReviewer's sync is audited
+  (`billing.codereviewer_sync.completed`) but has no tile.
