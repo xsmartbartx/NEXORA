@@ -14,20 +14,20 @@ import type { ClerkAppearanceTheme } from "@clerk/shared/types";
  */
 export const clerkAppearance: ClerkAppearanceTheme = {
   variables: {
-    colorPrimary: "hsl(245 82% 65%)",
-    colorBackground: "hsl(222 40% 7%)",
-    colorForeground: "hsl(210 20% 94%)",
-    colorMutedForeground: "hsl(217 15% 65%)",
-    colorInput: "hsl(222 25% 14%)",
-    colorInputForeground: "hsl(210 20% 94%)",
-    colorDanger: "hsl(0 72% 58%)",
-    colorSuccess: "hsl(152 60% 45%)",
-    colorWarning: "hsl(38 92% 55%)",
-    colorNeutral: "hsl(210 20% 94%)",
-    borderRadius: "0.625rem",
-    fontFamily: "var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif",
+    colorPrimary: "hsl(243 75.4% 58.6%)",
+    colorBackground: "hsl(240 5.9% 10%)",
+    colorForeground: "hsl(240 4.8% 95.9%)",
+    colorMutedForeground: "hsl(240 5% 64.9%)",
+    colorInput: "hsl(240 3.7% 15.9%)",
+    colorInputForeground: "hsl(240 4.8% 95.9%)",
+    colorDanger: "hsl(0 84.2% 60.2%)",
+    colorSuccess: "hsl(158 64.4% 51.6%)",
+    colorWarning: "hsl(43 96.4% 56.3%)",
+    colorNeutral: "hsl(240 4.8% 95.9%)",
+    borderRadius: "0.5rem",
+    fontFamily: "ui-sans-serif, system-ui, -apple-system, \"Segoe UI\", Roboto, sans-serif",
   },
   elements: {
-    card: "shadow-none border border-[hsl(222_20%_18%)]",
+    card: "shadow-none border border-[hsl(240_3.7%_15.9%)]",
   },
 };
