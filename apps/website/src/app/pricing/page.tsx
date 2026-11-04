@@ -6,18 +6,26 @@ import { buttonVariants, cn } from "@nexora/ui";
 export const metadata: Metadata = {
   title: "Pricing",
   description:
-    "Sentinel, CSPM and Gateway are each free to start, with independent Starter, Pro, Business and Scale tiers. Vigilo and CodeReviewer start at $0; NeuraWall plans run from $149 a month to dedicated enterprise deployments. Yearly billing saves up to 20%.",
+    "Sentinel, CSPM and Gateway are each free to start, with independent Starter, Pro, Business and Scale tiers. Vigilo, CodeReviewer and Prism start at $0; NeuraWall plans run from $149 a month to dedicated enterprise deployments. Yearly billing saves up to 20%.",
 };
 
 const consoleUrl = process.env.NEXT_PUBLIC_CONSOLE_URL ?? "https://console.onenexora.com";
 const vigiloUrl = "https://vigilo.onenexora.com";
 const neurawallUrl = "https://neurawall.onenexora.com";
 const codereviewerUrl = "https://codereviewer.onenexora.com";
+const prismUrl = "https://prism.onenexora.com";
 
 function neurawallSales(plan: string): Tier["cta"] {
   return {
     label: "Contact sales",
     href: `mailto:${siteConfig.contactEmail}?subject=${encodeURIComponent(`NeuraWall ${plan}`)}`,
+  };
+}
+
+function prismSales(plan: string): Tier["cta"] {
+  return {
+    label: "Contact sales",
+    href: `mailto:${siteConfig.contactEmail}?subject=${encodeURIComponent(`Prism ${plan}`)}`,
   };
 }
 
@@ -250,6 +258,53 @@ const products: ProductPricing[] = [
       },
     ],
     note: "Plans apply per GitHub account that installs CodeReviewer. Organisations can also subscribe in NEXORA Console, billed with their other NEXORA products, for the GitHub accounts they link.",
+  },
+  // Prism's plans mirror its own plan table (PLANS in server/services/licensing.py in the Prism
+  // repository). A plan is per Prism instance and unlocked with an offline license key.
+  {
+    product: "Prism",
+    summary:
+      "Excel and CSV files in; typed, versioned datasets, charts and share links out — self-hosted or at prism.onenexora.com.",
+    tiers: [
+      {
+        name: "Community",
+        monthlyCents: 0,
+        yearlyCents: 0,
+        features: [
+          "Up to 5 users",
+          "10 datasets, 5 dashboards",
+          "Charts, share links and exports",
+          "Audit log and backups",
+        ],
+        cta: { label: "Start free", href: prismUrl },
+      },
+      {
+        name: "Pro",
+        monthlyCents: 4900,
+        yearlyCents: 49000,
+        features: [
+          "Up to 25 users, 3 workspaces",
+          "Unlimited datasets and dashboards",
+          "Embedding and API keys",
+          "Your brand on shared pages",
+        ],
+        cta: prismSales("Pro"),
+        highlighted: true,
+      },
+      {
+        name: "Business",
+        monthlyCents: 19900,
+        yearlyCents: 199000,
+        features: [
+          "Unlimited users and workspaces",
+          "Client-facing dashboards",
+          "2 GB uploads",
+          "Priority support",
+        ],
+        cta: prismSales("Business"),
+      },
+    ],
+    note: "Plans apply per Prism instance and are unlocked with a license key that verifies offline, so self-hosted installations need no connection to NEXORA.",
   },
 ];
 

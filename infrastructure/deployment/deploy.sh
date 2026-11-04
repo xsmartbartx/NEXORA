@@ -9,6 +9,7 @@
 #   deploy.sh neurawall control-plane    # NeuraWall (/opt/neurawall, deploy/compose/nexora-host.yml)
 #   deploy.sh gateway api web            # standalone Gateway (/opt/gateway, deploy/compose.prod.yml)
 #   deploy.sh codereviewer               # CodeReviewer (/home/opc/codereviewer): migrate, web and worker
+#   deploy.sh prism                      # Prism (/opt/prism, deploy/nexora/compose.yml): pulls the released image
 #   deploy.sh edge                       # reload the shared Caddy config
 #
 # Waits up to 30 minutes for a running deploy to finish, then gives up.
@@ -20,7 +21,7 @@ if [[ "$(id -u)" -eq 0 ]]; then
   exec sudo -u opc -- "$0" "$@"
 fi
 
-project="${1:?usage: deploy.sh nexora|vigilo|neurawall|gateway|codereviewer|edge [service...]}"
+project="${1:?usage: deploy.sh nexora|vigilo|neurawall|gateway|codereviewer|prism|edge [service...]}"
 shift
 
 exec 9>/opt/.platform-deploy.lock
@@ -72,12 +73,23 @@ case "$project" in
     sudo docker compose build migrate
     sudo docker compose up -d
     ;;
+  prism)
+    # Runs the published image named by PRISM_VERSION in /opt/prism/.env (no build on this host),
+    # so a deploy is a pull: the checkout for the compose file, then the image. The app applies
+    # its migrations on start-up. No service names: the stack is the app and its Postgres.
+    [ "$#" -eq 0 ] || { echo "Prism deploys as a whole; it takes no service names." >&2; exit 2; }
+    checkout=/opt/prism
+    cd "$checkout" && git pull --ff-only
+    compose=(sudo docker compose --env-file .env -f deploy/nexora/compose.yml)
+    "${compose[@]}" pull app
+    "${compose[@]}" up -d
+    ;;
   edge)
     cd /opt/nexora && git pull --ff-only
     sudo docker exec edge-caddy-1 caddy reload --config /etc/caddy/Caddyfile
     ;;
   *)
-    echo "Unknown project: $project (expected nexora, vigilo, neurawall, gateway, codereviewer or edge)." >&2
+    echo "Unknown project: $project (expected nexora, vigilo, neurawall, gateway, codereviewer, prism or edge)." >&2
     exit 2
     ;;
 esac

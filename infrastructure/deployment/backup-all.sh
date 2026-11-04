@@ -1,8 +1,9 @@
 #!/usr/bin/env bash
 # Nightly backup of every stateful thing on this server: Vigilo's Postgres
 # and MinIO evidence volume, NEXORA's Postgres, NeuraWall's Postgres plus its
-# data volume (holds the bundle-signing key every enrolled node trusts), and
-# CodeReviewer's Postgres (its pg-boss review queue lives in the same database).
+# data volume (holds the bundle-signing key every enrolled node trusts),
+# CodeReviewer's Postgres (its pg-boss review queue lives in the same database),
+# and Prism's Postgres plus its data volume (the Parquet dataset versions and uploads).
 # Uses `docker exec` directly rather than `docker compose exec`, so it doesn't
 # depend on any stack's .env being loadable.
 #
@@ -28,7 +29,7 @@ find "$dest" -name 'platform-backup-*.tar.gz' -mtime +14 -delete
 
 # Docker silently creates an empty volume for a name that does not exist, and an archive of an
 # empty volume would look like a success. A missing volume must fail the backup instead.
-for volume in neurawall_cpdata vigilo-self-host_vigilo_self_host_minio_data; do
+for volume in neurawall_cpdata vigilo-self-host_vigilo_self_host_minio_data prism_data; do
   docker volume inspect "$volume" >/dev/null 2>&1 || {
     echo "$(date -u) FAILED: volume $volume does not exist, nothing was backed up" >&2
     exit 1
@@ -39,6 +40,7 @@ docker exec vigilo-self-host-postgres-1 pg_dump -U vigilo -d vigilo -Fc > "$work
 docker exec nexora-postgres-1 pg_dump -U postgres -d nexora -Fc > "$work/nexora-postgres.dump"
 docker exec neurawall-postgres-1 pg_dump -U neurawall -d neurawall -Fc > "$work/neurawall-postgres.dump"
 docker exec codereviewer-postgres-1 pg_dump -U codereviewer -d codereviewer -Fc > "$work/codereviewer-postgres.dump"
+docker exec prism-postgres-1 pg_dump -U prism -d prism -Fc > "$work/prism-postgres.dump"
 docker run --rm \
   -v neurawall_cpdata:/data:ro \
   -v "$work:/backup" \
@@ -47,6 +49,10 @@ docker run --rm \
   -v vigilo-self-host_vigilo_self_host_minio_data:/data:ro \
   -v "$work:/backup" \
   alpine tar czf /backup/vigilo-minio.tar.gz -C /data .
+docker run --rm \
+  -v prism_data:/data:ro \
+  -v "$work:/backup" \
+  alpine tar czf /backup/prism-data.tar.gz -C /data .
 
 tar czf "$archive" -C "$work" .
 echo "$(date -u) OK local $archive $(du -h "$archive" | cut -f1)"

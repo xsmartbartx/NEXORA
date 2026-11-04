@@ -38,6 +38,7 @@ describe("backup-all.sh", () => {
       ["nexora-postgres-1", "nexora"],
       ["neurawall-postgres-1", "neurawall"],
       ["codereviewer-postgres-1", "codereviewer"],
+      ["prism-postgres-1", "prism"],
     ]) {
       expect(text).toMatch(
         new RegExp(`docker exec ${container} pg_dump .* > "\\$work/${db}-postgres.dump"`),

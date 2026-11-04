@@ -144,4 +144,32 @@ export const productCapabilities: ProductCapability[] = [
     description: "A GitHub check that can fail on critical findings, to gate risky merges.",
     order: 4,
   },
+
+  {
+    product: "prism",
+    label: "Reviewed imports",
+    description:
+      "Excel and CSV files become typed datasets; ambiguous columns wait for a person to decide.",
+    order: 1,
+  },
+  {
+    product: "prism",
+    label: "Quarantine, not coercion",
+    description:
+      "Rows that do not match the column contract are set aside with the reason, never changed.",
+    order: 2,
+  },
+  {
+    product: "prism",
+    label: "Drift-checked refreshes",
+    description: "Next month's file is matched by header name; a missing column stops the load.",
+    order: 3,
+  },
+  {
+    product: "prism",
+    label: "Charts, dashboards and links",
+    description:
+      "Server-rendered charts, dashboards and expiring, revocable share and embed links.",
+    order: 4,
+  },
 ];

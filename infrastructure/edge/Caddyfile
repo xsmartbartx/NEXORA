@@ -209,3 +209,16 @@ codereviewer.onenexora.com {
 	encode zstd gzip
 	reverse_proxy codereviewer-web-1:3000
 }
+
+# Prism (ADR-0016): its own compose project in /opt/prism (deploy/nexora/compose.yml), reached over
+# prism_default. It sets its own security headers and CSP, including the frame-ancestors relaxation
+# its opt-in /embed/ pages need, so security_headers (X-Frame-Options DENY) is NOT imported. Uploads
+# are capped at PRISM_MAX_UPLOAD_MB (100 MB) by the app; the edge allows a little more for multipart.
+prism.onenexora.com {
+	import cloudflare_only
+	encode zstd gzip
+	request_body {
+		max_size 110MB
+	}
+	reverse_proxy prism-app-1:8080
+}

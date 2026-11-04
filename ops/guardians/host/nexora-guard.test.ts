@@ -47,6 +47,12 @@ describe("what the key may ask for", () => {
     expect(r.needsApproval).toBe(true);
   });
 
+  it("deploys Prism as a whole, with approval because it runs migrations", () => {
+    const r = ok("deploy prism");
+    expect(r.argv).toEqual(["sudo", "-n", "-u", "opc", DEPLOY, "prism"]);
+    expect(r.needsApproval).toBe(true);
+  });
+
   it("allows the restore drill and --dry-run", () => {
     expect(ok("restore-drill").tier).toBe("T2");
     expect(ok("--dry-run deploy nexora website").dryRun).toBe(true);
@@ -80,6 +86,7 @@ describe("what it refuses", () => {
     "deploy nexora -f",
     "deploy edge website",
     "deploy codereviewer web",
+    "deploy prism app",
     "restore-drill now",
     "deploy nexora a b c d e f g h i",
     "scp x y",

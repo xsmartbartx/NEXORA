@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Restore drill: proves the NEXORA and CodeReviewer database backups can actually be restored.
+# Restore drill: proves the NEXORA, CodeReviewer and Prism database backups can actually be restored.
 #
 # Extracts each dump from a platform backup archive, restores it into a throwaway Postgres
 # container (never a production one), and checks that the expected tables exist and hold rows.
@@ -18,6 +18,7 @@ FALLBACK_IMAGE=postgres:16-alpine
 READER_IMAGE=postgres:17-alpine # a newer client can list the header of an older dump
 NEXORA_TABLES=(api_keys audit_events subscriptions product_suspensions)
 CODEREVIEWER_TABLES=(accounts repositories reviews)
+PRISM_TABLES=(users datasets dataset_versions audit_events)
 
 archive="${1:-$(ls -1t "$ARCHIVE_DIR"/platform-backup-*.tar.gz | head -1)}"
 [[ -f "$archive" ]] || { echo "FAIL: archive not found: $archive"; exit 1; }
@@ -79,6 +80,12 @@ if tar tzf "$archive" ./codereviewer-postgres.dump >/dev/null 2>&1; then
   drill codereviewer "${CODEREVIEWER_TABLES[@]}"
 else
   echo "[codereviewer] not in this archive"
+fi
+# Likewise for archives from before Prism joined it.
+if tar tzf "$archive" ./prism-postgres.dump >/dev/null 2>&1; then
+  drill prism "${PRISM_TABLES[@]}"
+else
+  echo "[prism] not in this archive"
 fi
 
 [[ "$fail" -eq 0 ]] && echo "RESTORE DRILL PASSED" || { echo "RESTORE DRILL FAILED"; exit 1; }

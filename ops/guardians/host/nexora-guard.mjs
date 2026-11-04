@@ -56,10 +56,12 @@ const PROJECTS = {
   neurawall: null,
   // Deployed as a whole (one image for migrate, web and worker), like the edge.
   codereviewer: new Set(),
+  // Deployed as a whole too (the app runs its migrations on start-up).
+  prism: new Set(),
   edge: new Set(),
 };
 // Projects deployed without service names.
-const WHOLE_PROJECTS = new Set(["edge", "codereviewer"]);
+const WHOLE_PROJECTS = new Set(["edge", "codereviewer", "prism"]);
 // Services whose deploy changes data or exposure: approval required even for a deploy.
 const GUARDED_SERVICES = new Set(["db-migrate"]);
 const NAME = /^[a-z][a-z0-9-]{0,40}$/;
@@ -126,7 +128,7 @@ export function resolve(command) {
     for (const s of services) {
       if (!NAME.test(s) || (known && !known.has(s))) return refuse(`service not allowed: ${s}`);
     }
-    // The edge changes exposure; a CodeReviewer deploy always runs its migrations.
+    // The edge changes exposure; CodeReviewer and Prism deploys always run their migrations.
     const guarded = WHOLE_PROJECTS.has(project) || services.some((s) => GUARDED_SERVICES.has(s));
     return done(["sudo", "-n", "-u", "opc", DEPLOY, project, ...services], "T2", guarded);
   }

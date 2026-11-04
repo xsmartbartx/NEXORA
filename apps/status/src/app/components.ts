@@ -100,6 +100,12 @@ export const components: StatusComponent[] = [
     category: "products",
     checkUrl: "https://codereviewer.onenexora.com/api/health",
   },
+  {
+    name: "Prism",
+    description: "prism.onenexora.com",
+    category: "products",
+    checkUrl: "https://prism.onenexora.com/readyz",
+  },
 ];
 
 export const categoryLabel: Record<ComponentCategory, string> = {

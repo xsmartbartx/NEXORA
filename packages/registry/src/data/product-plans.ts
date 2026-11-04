@@ -14,7 +14,8 @@ import type { ProductPlan } from "../types";
  * billing (per their `products.ts` descriptions), so they have no plan
  * records here. CodeReviewer bills itself too, but its product page here is
  * a real page rather than a redirect, so its references are kept in sync by
- * hand with its own `src/lib/billing/plans.ts`.
+ * hand with its own `src/lib/billing/plans.ts`. Prism likewise bills itself
+ * (offline license keys, `PLANS` in its `server/services/licensing.py`).
  */
 export const productPlans: ProductPlan[] = [
   { product: "sentinel", name: "Free", limits: "20 scans/mo", price_reference: "$0" },
@@ -32,5 +33,13 @@ export const productPlans: ProductPlan[] = [
     name: "Pro",
     limits: "250 reviews/mo",
     price_reference: "From $39/mo",
+  },
+
+  { product: "prism", name: "Community", limits: "5 users, 10 datasets", price_reference: "$0" },
+  {
+    product: "prism",
+    name: "Pro",
+    limits: "25 users, unlimited datasets",
+    price_reference: "From $49/mo",
   },
 ];

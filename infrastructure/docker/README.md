@@ -368,7 +368,8 @@ It restores `nexora-postgres.dump` into a throwaway `postgres:16-alpine`
 container (never the production database), checks that `api_keys`,
 `audit_events`, `subscriptions` and `product_suspensions` exist, prints row
 counts and the restore time, and removes the container. It does the same for
-`codereviewer-postgres.dump` (`accounts`, `repositories`, `reviews`) on the
+`codereviewer-postgres.dump` (`accounts`, `repositories`, `reviews`) and
+`prism-postgres.dump` (`users`, `datasets`, `dataset_versions`, `audit_events`) on the
 Postgres major its dump records. Last run
 (2026-10-03, archive `platform-backup-20261003T030002Z`): passed, restore
 under 1 s on a 9.6 MB archive. Re-run it after any schema change and at least

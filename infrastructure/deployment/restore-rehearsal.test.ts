@@ -20,6 +20,14 @@ describe("restore-rehearsal.sh", () => {
     expect(rehearsal).toContain("restore vigilo postgres:16-alpine");
     expect(rehearsal).toContain("restore neurawall postgres:17-alpine");
     expect(rehearsal).toContain("restore codereviewer postgres:17-alpine");
+    expect(rehearsal).toContain("restore prism postgres:16-alpine");
+  });
+
+  it("lists each data volume archive, tolerating archives made before it was added", () => {
+    expect(rehearsal).toContain(
+      "for f in neurawall-data.tar.gz vigilo-minio.tar.gz prism-data.tar.gz",
+    );
+    expect(rehearsal).toContain('echo "$f: not in this archive"');
   });
 
   it("only ever starts throwaway containers: it never execs into a production one", () => {
@@ -53,6 +61,12 @@ describe("restore-drill.sh", () => {
     expect(drill).toContain('drill nexora "${NEXORA_TABLES[@]}"');
     expect(drill).toContain('drill codereviewer "${CODEREVIEWER_TABLES[@]}"');
     expect(drill).toContain("CODEREVIEWER_TABLES=(accounts repositories reviews)");
+  });
+
+  it("drills Prism's database too, when the archive has it", () => {
+    expect(drill).toContain('drill prism "${PRISM_TABLES[@]}"');
+    expect(drill).toContain("PRISM_TABLES=(users datasets dataset_versions audit_events)");
+    expect(drill).toContain("./prism-postgres.dump");
   });
 
   it("only ever restores into throwaway containers it removes again", () => {
