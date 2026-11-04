@@ -20,6 +20,14 @@ describe("restore-rehearsal.sh", () => {
     expect(rehearsal).toContain("restore vigilo postgres:16-alpine");
     expect(rehearsal).toContain("restore neurawall postgres:17-alpine");
     expect(rehearsal).toContain("restore codereviewer postgres:17-alpine");
+    expect(rehearsal).toContain("restore prism postgres:16-alpine");
+  });
+
+  it("lists each data volume archive, tolerating archives made before it was added", () => {
+    expect(rehearsal).toContain(
+      "for f in neurawall-data.tar.gz vigilo-minio.tar.gz prism-data.tar.gz",
+    );
+    expect(rehearsal).toContain('echo "$f: not in this archive"');
   });
 
   it("only ever starts throwaway containers: it never execs into a production one", () => {
@@ -49,14 +57,29 @@ describe("restore-drill.sh", () => {
     expect(drill).toContain("RESTORE DRILL FAILED");
   });
 
-  it("drills the NEXORA and the CodeReviewer database, each with its expected tables", () => {
-    expect(drill).toContain('drill nexora "${NEXORA_TABLES[@]}"');
-    expect(drill).toContain('drill codereviewer "${CODEREVIEWER_TABLES[@]}"');
-    expect(drill).toContain("CODEREVIEWER_TABLES=(accounts repositories reviews)");
+  it.each([
+    ["nexora", ['drill nexora "${NEXORA_TABLES[@]}"']],
+    [
+      "codereviewer",
+      [
+        'drill codereviewer "${CODEREVIEWER_TABLES[@]}"',
+        "CODEREVIEWER_TABLES=(accounts repositories reviews)",
+      ],
+    ],
+    [
+      "prism",
+      [
+        'drill prism "${PRISM_TABLES[@]}"',
+        "PRISM_TABLES=(users datasets dataset_versions audit_events)",
+        "./prism-postgres.dump",
+      ],
+    ],
+  ])("drills the %s database with its expected tables", (_db, needles) => {
+    for (const needle of needles) expect(drill).toContain(needle);
   });
 
   it("only ever restores into throwaway containers it removes again", () => {
-    expect(drill).not.toMatch(/docker exec (nexora|codereviewer)-postgres/);
+    expect(drill).not.toMatch(/docker exec (nexora|codereviewer|prism)-postgres/);
     expect(drill).toContain('name="$1-restore-drill-$$"');
     expect(drill).toContain("docker rm -f");
   });

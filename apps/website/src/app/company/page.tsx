@@ -28,9 +28,9 @@ export default function CompanyPage() {
         <p>
           NEXORA is early, and says so plainly. The platform foundation, console, billing and the
           first products — Sentinel, CSPM and Gateway — are live in beta, with deliberately narrow,
-          honestly-scoped feature sets. Vigilo, NeuraWall and CodeReviewer are independently built
-          and hosted, and further work is in Labs. There is no SLA yet, and we publish what is and
-          is not in place on the{" "}
+          honestly-scoped feature sets. Vigilo, NeuraWall, CodeReviewer and Prism are independently
+          built and hosted, and further work is in Labs. There is no SLA yet, and we publish what is
+          and is not in place on the{" "}
           <Link href="/security/architecture" className="text-link hover:underline">
             security architecture
           </Link>{" "}

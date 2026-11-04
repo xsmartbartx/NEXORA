@@ -38,11 +38,25 @@ describe("backup-all.sh", () => {
       ["nexora-postgres-1", "nexora"],
       ["neurawall-postgres-1", "neurawall"],
       ["codereviewer-postgres-1", "codereviewer"],
+      ["prism-postgres-1", "prism"],
     ]) {
       expect(text).toMatch(
         new RegExp(`docker exec ${container} pg_dump .* > "\\$work/${db}-postgres.dump"`),
       );
     }
+  });
+
+  it("still archives every other product when Prism is stopped, then fails without a heartbeat", () => {
+    const prism = text.indexOf('prism_failed=""');
+    expect(prism).toBeGreaterThan(-1);
+    expect(prism).toBeLessThan(text.indexOf('tar czf "$archive"'));
+    expect(text).toContain("docker inspect -f '{{.State.Running}}' prism-postgres-1");
+    expect(text).toMatch(/\|\| prism_failed="pg_dump of prism-postgres-1 failed"/);
+    const tail = text.slice(text.indexOf("OK off-site"));
+    expect(tail.indexOf('if [[ -n "$prism_failed" ]]')).toBeLessThan(
+      tail.indexOf("$HEARTBEAT.tmp"),
+    );
+    expect(tail).toContain("heartbeat not advanced");
   });
 
   it("uses instance principal and never refers to stored credentials", () => {

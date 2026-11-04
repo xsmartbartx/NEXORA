@@ -45,7 +45,17 @@ if [[ -f "$work/codereviewer-postgres.dump" ]]; then
 else
   echo "codereviewer: not in this archive"
 fi
-for f in neurawall-data.tar.gz vigilo-minio.tar.gz; do
-  echo "$f: $(tar tzf "$work/$f" | wc -l) entries"
+# Likewise for archives from before Prism joined it.
+if [[ -f "$work/prism-postgres.dump" ]]; then
+  restore prism postgres:16-alpine
+else
+  echo "prism: not in this archive"
+fi
+for f in neurawall-data.tar.gz vigilo-minio.tar.gz prism-data.tar.gz; do
+  if [[ -f "$work/$f" ]]; then
+    echo "$f: $(tar tzf "$work/$f" | wc -l) entries"
+  else
+    echo "$f: not in this archive"
+  fi
 done
 echo "TOTAL: $(( $(date +%s) - t0 ))s"
