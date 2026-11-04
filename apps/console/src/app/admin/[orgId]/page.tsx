@@ -19,15 +19,13 @@ export default async function AdminCustomerPage({ params }: PageProps<"/admin/[o
 
   return (
     <div className="mx-auto max-w-4xl px-6 py-12">
-      <Link href="/admin" className="text-sm text-primary hover:underline">
+      <Link href="/admin" className="text-sm text-link hover:underline">
         ← All customers
       </Link>
 
       <div className="mt-4 flex flex-wrap items-start justify-between gap-4">
         <div>
-          <span className="font-mono text-xs uppercase tracking-widest text-warning">
-            NEXORA Staff
-          </span>
+          <span className="text-sm font-medium text-warning">NEXORA Staff</span>
           <h1 className="mt-2 text-3xl font-semibold tracking-tight">{customer.name}</h1>
           <p className="mt-1 font-mono text-sm text-muted-foreground">
             {customer.orgId} · {customer.slug}
@@ -51,7 +49,7 @@ export default async function AdminCustomerPage({ params }: PageProps<"/admin/[o
             href={`https://dashboard.stripe.com/customers/${stripeCustomerId}`}
             target="_blank"
             rel="noreferrer"
-            className="mt-3 inline-block text-sm text-primary hover:underline"
+            className="mt-3 inline-block text-sm text-link hover:underline"
           >
             View in Stripe →
           </a>

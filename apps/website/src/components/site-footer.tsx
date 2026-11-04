@@ -62,9 +62,7 @@ export function SiteFooter() {
           <div className="col-span-2 sm:col-span-1">
             <Link href="/" className="flex items-center gap-2">
               <LogoMark className="h-6 w-6" />
-              <span className="font-mono text-sm font-semibold tracking-widest uppercase">
-                NEXORA
-              </span>
+              <span className="text-base font-semibold tracking-tight">NEXORA</span>
             </Link>
             <p className="mt-3 max-w-[22ch] text-sm text-muted-foreground">
               Build. Secure. Operate.
@@ -73,9 +71,7 @@ export function SiteFooter() {
 
           {columns.map((col) => (
             <div key={col.title}>
-              <h3 className="font-mono text-xs uppercase tracking-widest text-muted-foreground">
-                {col.title}
-              </h3>
+              <h3 className="text-sm font-semibold text-foreground">{col.title}</h3>
               <ul className="mt-3 flex flex-col gap-2">
                 {col.links.map((link) =>
                   link.external ? (

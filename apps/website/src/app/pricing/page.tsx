@@ -265,9 +265,7 @@ function yearlyDiscountPct(monthlyCents: number, yearlyCents: number): number {
 export default function PricingPage() {
   return (
     <div className="mx-auto max-w-5xl px-6 py-20">
-      <span className="font-mono text-xs uppercase tracking-widest text-muted-foreground">
-        Pricing
-      </span>
+      <span className="text-sm font-medium text-link">Pricing</span>
       <h1 className="mt-3 text-4xl font-semibold tracking-tight">Pricing</h1>
       <p className="mt-4 max-w-2xl text-lg text-pretty text-muted-foreground">
         Start free. Upgrade when you need more — monthly, or yearly for a discount. Prices in US
@@ -318,7 +316,7 @@ export default function PricingPage() {
                   <ul className="mt-6 flex flex-1 flex-col gap-2 text-sm">
                     {tier.features.map((feature) => (
                       <li key={feature} className="flex gap-2">
-                        <span aria-hidden className="text-primary">
+                        <span aria-hidden className="text-link">
                           ✓
                         </span>
                         {feature}

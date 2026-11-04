@@ -39,11 +39,11 @@ export default function Home() {
     <>
       <section className="flex flex-col items-center px-6 py-28 text-center sm:py-36">
         <div className="flex max-w-2xl flex-col items-center gap-8">
-          <span className="rounded-full border border-border px-3 py-1 font-mono text-xs uppercase tracking-widest text-muted-foreground">
+          <span className="rounded-full border border-primary/30 bg-primary/10 px-3 py-1 text-xs font-medium text-link">
             AI · Security · Cloud
           </span>
 
-          <h1 className="text-4xl font-semibold tracking-tight text-balance sm:text-6xl">
+          <h1 className="text-4xl font-bold tracking-tight text-balance sm:text-6xl">
             Build. Secure. Operate.
           </h1>
 
@@ -135,11 +135,9 @@ export default function Home() {
                 href={`/platform/${pillar}`}
                 className="group flex flex-col gap-2 rounded-xl border border-border bg-card p-6 transition-colors hover:border-primary/50"
               >
-                <span className="font-mono text-xs uppercase tracking-widest text-muted-foreground">
-                  {pillarLabels[pillar]}
-                </span>
+                <span className="text-xs font-medium text-link">{pillarLabels[pillar]}</span>
                 <p className="text-sm text-muted-foreground">{pillarTaglines[pillar]}</p>
-                <span className="mt-2 text-sm font-medium text-foreground group-hover:text-primary">
+                <span className="mt-2 text-sm font-medium text-foreground group-hover:text-link">
                   Explore &rarr;
                 </span>
               </Link>

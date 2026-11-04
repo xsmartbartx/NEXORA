@@ -23,10 +23,10 @@ export default function DevelopersHome() {
   return (
     <>
       <section className="flex flex-col items-center px-6 py-24 text-center">
-        <span className="rounded-full border border-border px-3 py-1 font-mono text-xs uppercase tracking-widest text-muted-foreground">
+        <span className="rounded-full border border-primary/30 bg-primary/10 px-3 py-1 text-xs font-medium text-link">
           Build on NEXORA
         </span>
-        <h1 className="mt-6 max-w-2xl text-4xl font-semibold tracking-tight text-balance sm:text-5xl">
+        <h1 className="mt-6 max-w-2xl text-4xl font-bold tracking-tight text-balance sm:text-5xl">
           One API. One key. Every NEXORA product.
         </h1>
         <p className="mt-4 max-w-xl text-lg text-muted-foreground">
@@ -60,7 +60,7 @@ export default function DevelopersHome() {
           <div className="mt-10 grid gap-6 sm:grid-cols-3">
             {steps.map((step, i) => (
               <div key={step.title} className="rounded-xl border border-border bg-card p-6">
-                <span className="font-mono text-xs text-primary">0{i + 1}</span>
+                <span className="font-mono text-xs text-link">0{i + 1}</span>
                 <h3 className="mt-2 font-medium">{step.title}</h3>
                 <p className="mt-1 text-sm text-muted-foreground">{step.body}</p>
               </div>
@@ -72,16 +72,16 @@ export default function DevelopersHome() {
       <section className="border-t border-border px-6 py-20 text-center">
         <h2 className="text-2xl font-semibold tracking-tight">Where to go next</h2>
         <div className="mt-6 flex flex-wrap items-center justify-center gap-4">
-          <a href={`${docsUrl}/quickstart`} className="text-primary hover:underline">
+          <a href={`${docsUrl}/quickstart`} className="text-link hover:underline">
             Quickstart →
           </a>
-          <a href={`${docsUrl}/api-reference`} className="text-primary hover:underline">
+          <a href={`${docsUrl}/api-reference`} className="text-link hover:underline">
             API Reference →
           </a>
-          <a href={`${docsUrl}/concepts`} className="text-primary hover:underline">
+          <a href={`${docsUrl}/concepts`} className="text-link hover:underline">
             Concepts →
           </a>
-          <a href={`${docsUrl}/sdks`} className="text-primary hover:underline">
+          <a href={`${docsUrl}/sdks`} className="text-link hover:underline">
             SDKs &amp; CLI →
           </a>
         </div>

@@ -20,9 +20,7 @@ export default function ChangelogPage() {
 
   return (
     <div className="mx-auto max-w-3xl px-6 py-20">
-      <span className="font-mono text-xs uppercase tracking-widest text-muted-foreground">
-        NEXORA
-      </span>
+      <span className="text-sm font-medium text-link">NEXORA</span>
       <h1 className="mt-3 text-4xl font-semibold tracking-tight">Changelog</h1>
       <p className="mt-4 text-sm leading-relaxed text-muted-foreground">
         What actually shipped, dated. Not a roadmap and not marketing copy — every entry here is

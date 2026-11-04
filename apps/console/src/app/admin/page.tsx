@@ -21,7 +21,7 @@ export default async function AdminCustomersPage() {
 
   return (
     <div className="mx-auto max-w-6xl px-6 py-12">
-      <span className="font-mono text-xs uppercase tracking-widest text-warning">NEXORA Staff</span>
+      <span className="text-sm font-medium text-warning">NEXORA Staff</span>
       <h1 className="mt-2 text-3xl font-semibold tracking-tight">Customers</h1>
       <AdminNav current="/admin" />
       <p className="mt-2 max-w-2xl text-muted-foreground">

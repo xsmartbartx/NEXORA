@@ -35,15 +35,13 @@ export function AppShell({ appName, navItems, children }: AppShellProps) {
     <div className="flex min-h-screen flex-col bg-background text-foreground">
       <ClerkNotConfiguredNotice />
       <CommandPalette navItems={navItems} />
-      <header className="border-b border-border">
+      <header className="sticky top-0 z-40 border-b border-border bg-background/80 backdrop-blur">
         <div className="flex h-16 items-center gap-4 px-6">
           <ProductSwitcher />
 
           <a href={links.website} className="flex items-center gap-2">
             <LogoMark className="h-6 w-6" />
-            <span className="hidden font-mono text-sm font-semibold tracking-widest uppercase sm:inline">
-              NEXORA
-            </span>
+            <span className="hidden text-base font-semibold tracking-tight sm:inline">NEXORA</span>
           </a>
           <span className="text-sm text-muted-foreground">{appName}</span>
 

@@ -78,9 +78,7 @@ const gaps = [
 export default function SecurityArchitecturePage() {
   return (
     <div className="mx-auto max-w-3xl px-6 py-20">
-      <span className="font-mono text-xs uppercase tracking-widest text-muted-foreground">
-        Security
-      </span>
+      <span className="text-sm font-medium text-link">Security</span>
       <h1 className="mt-3 text-4xl font-semibold tracking-tight">Security architecture</h1>
       <p className="mt-4 max-w-2xl text-muted-foreground">
         A high-level view of how NEXORA is built and hosted today. It describes what is actually in

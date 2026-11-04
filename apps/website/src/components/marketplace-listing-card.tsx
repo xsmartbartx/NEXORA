@@ -9,7 +9,7 @@ export function MarketplaceListingCard({ listing }: { listing: MarketplaceListin
       className={cardVariants({ interactive: true, className: "group flex flex-col gap-3" })}
     >
       <div className="flex items-start justify-between gap-3">
-        <h3 className="text-lg font-semibold text-foreground group-hover:text-primary">
+        <h3 className="text-lg font-semibold text-foreground group-hover:text-link">
           {listing.name}
         </h3>
         {listing.provider === "partner" ? <Badge variant="neutral">Partner</Badge> : null}

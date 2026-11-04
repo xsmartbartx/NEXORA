@@ -14,9 +14,7 @@ export default function LogAnomalyBaselinePage() {
         &larr; Labs
       </Link>
 
-      <span className="mt-4 block font-mono text-xs uppercase tracking-widest text-muted-foreground">
-        Research
-      </span>
+      <span className="mt-4 block text-sm font-medium text-link">Research</span>
       <h1 className="mt-2 text-3xl font-semibold tracking-tight sm:text-4xl">
         Log anomaly detection: a statistical baseline
       </h1>

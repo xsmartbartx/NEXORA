@@ -25,9 +25,7 @@ const coreServices = [
 export default function PlatformPage() {
   return (
     <div className="mx-auto max-w-4xl px-6 py-20">
-      <span className="font-mono text-xs uppercase tracking-widest text-muted-foreground">
-        The NEXORA Platform
-      </span>
+      <span className="text-sm font-medium text-link">The NEXORA Platform</span>
       <h1 className="mt-3 text-4xl font-semibold tracking-tight text-balance">
         One account, one console, one API surface.
       </h1>
@@ -46,11 +44,9 @@ export default function PlatformPage() {
               href={`/platform/${pillar}`}
               className="group flex flex-col gap-2 rounded-xl border border-border bg-card p-6 transition-colors hover:border-primary/50"
             >
-              <span className="font-mono text-xs uppercase tracking-widest text-muted-foreground">
-                {pillarLabels[pillar]}
-              </span>
+              <span className="text-xs font-medium text-link">{pillarLabels[pillar]}</span>
               <p className="text-sm text-muted-foreground">{pillarTaglines[pillar]}</p>
-              <span className="mt-2 text-sm font-medium text-foreground group-hover:text-primary">
+              <span className="mt-2 text-sm font-medium text-foreground group-hover:text-link">
                 Explore &rarr;
               </span>
             </Link>

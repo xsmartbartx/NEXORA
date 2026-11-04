@@ -16,17 +16,15 @@ export default async function ConsoleProductsPage() {
 
   return (
     <div className="mx-auto max-w-5xl px-6 py-12">
-      <span className="font-mono text-xs uppercase tracking-widest text-muted-foreground">
-        Console
-      </span>
+      <span className="text-sm font-medium text-link">Console</span>
       <h1 className="mt-2 text-3xl font-semibold tracking-tight">Products</h1>
       <p className="mt-2 max-w-2xl text-muted-foreground">
         Every NEXORA product tile, driven by the same registry as the public catalogue. See{" "}
-        <Link href="/billing" className="text-primary hover:underline">
+        <Link href="/billing" className="text-link hover:underline">
           Billing
         </Link>{" "}
         for your plan&rsquo;s limits and{" "}
-        <Link href="/analytics" className="text-primary hover:underline">
+        <Link href="/analytics" className="text-link hover:underline">
           Analytics
         </Link>{" "}
         for usage per product.
@@ -41,9 +39,7 @@ export default async function ConsoleProductsPage() {
           >
             <div className="flex items-start justify-between gap-3">
               <div>
-                <p className="font-mono text-xs uppercase tracking-widest text-muted-foreground">
-                  {categoryLabels[product.category]}
-                </p>
+                <p className="text-xs font-medium text-link">{categoryLabels[product.category]}</p>
                 <h2 className="mt-1 text-lg font-semibold">{product.short_name}</h2>
               </div>
               <LifecycleBadge lifecycle={product.lifecycle} />

@@ -16,9 +16,7 @@ export default function LabsPage() {
 
   return (
     <div className="mx-auto max-w-6xl px-6 py-20">
-      <span className="font-mono text-xs uppercase tracking-widest text-muted-foreground">
-        Labs
-      </span>
+      <span className="text-sm font-medium text-link">Labs</span>
       <h1 className="mt-3 text-4xl font-semibold tracking-tight">
         Building in the open, no SLA attached.
       </h1>
@@ -49,9 +47,7 @@ export default function LabsPage() {
                 href={experiment.link}
                 className="flex flex-col gap-3 rounded-xl border border-border bg-card p-6 transition-colors hover:border-primary/50"
               >
-                <span className="font-mono text-xs uppercase tracking-widest text-muted-foreground">
-                  {kindLabel[experiment.kind]}
-                </span>
+                <span className="text-xs font-medium text-link">{kindLabel[experiment.kind]}</span>
                 <h3 className="text-lg font-semibold text-foreground">{experiment.title}</h3>
                 <p className="text-sm text-muted-foreground">{experiment.summary}</p>
               </Link>

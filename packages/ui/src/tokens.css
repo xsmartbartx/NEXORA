@@ -2,98 +2,121 @@
  * NEXORA design tokens.
  * HSL triplets (no hsl() wrapper) so Tailwind can compose them as
  * `hsl(var(--background))` and apply opacity modifiers.
+ *
+ * The palette matches CodeReviewer (codereviewer.onenexora.com): Tailwind's
+ * zinc neutrals with an indigo brand (indigo-600, #4f46e5). Dark is the
+ * default; the light palette below applies when the visitor's system prefers
+ * light, the same way CodeReviewer's `dark:` variants follow the system.
+ * Every component reads these variables only, so both themes need no
+ * component changes. Hex equivalents are noted for checking contrast.
  */
 
 :root {
-  /* Brand: cold, precise, technical. Deep space neutral + electric indigo accent. */
-  --background: 222 47% 5%;
-  --foreground: 210 20% 94%;
+  color-scheme: dark;
 
-  --card: 222 40% 7%;
-  --card-foreground: 210 20% 94%;
+  --background: 240 10% 3.9%; /* zinc-950 #09090b */
+  --foreground: 240 4.8% 95.9%; /* zinc-100 #f4f4f5 */
 
-  --popover: 222 40% 7%;
-  --popover-foreground: 210 20% 94%;
+  --card: 240 5.9% 10%; /* zinc-900 #18181b */
+  --card-foreground: 240 4.8% 95.9%;
 
-  --primary: 245 82% 65%;
-  --primary-foreground: 210 20% 98%;
+  --popover: 240 5.9% 10%;
+  --popover-foreground: 240 4.8% 95.9%;
+
+  --primary: 243 75.4% 58.6%; /* indigo-600 #4f46e5; white text on it is 6.3:1 */
+  --primary-foreground: 0 0% 100%;
 
   /*
-   * Same hue as --primary, lightened for when it's the TEXT color sitting
-   * directly on --background/--card (links, the "beta" badge) rather than
-   * a solid button/border surface. --primary's 65% lightness was tuned for
-   * white text on top of it (4.5:1 against --primary-foreground, the
-   * minimum to pass) — reusing it as foreground text against our near-black
-   * surfaces computes to ~4.0:1, under WCAG AA. Flagged by PageSpeed
-   * Insights' contrast audit.
+   * Brand colour used as TEXT on the dark surfaces (links, brand badges).
+   * indigo-600 itself is too dark to read on zinc-950, so text uses
+   * indigo-400 (#818cf8), as CodeReviewer does with `dark:text-brand-400`.
    */
-  --link: 245 82% 74%;
+  --link: 234 89.5% 73.9%;
 
-  --secondary: 199 89% 58%;
-  --secondary-foreground: 222 47% 5%;
+  --secondary: 240 3.7% 15.9%; /* zinc-800 #27272a */
+  --secondary-foreground: 240 4.8% 95.9%;
 
-  --muted: 222 25% 14%;
-  --muted-foreground: 217 15% 65%;
+  --muted: 240 3.7% 15.9%; /* zinc-800 */
+  --muted-foreground: 240 5% 64.9%; /* zinc-400 #a1a1aa */
 
-  --accent: 222 25% 16%;
-  --accent-foreground: 210 20% 94%;
+  --accent: 240 3.7% 15.9%; /* hover surface, zinc-800 */
+  --accent-foreground: 240 4.8% 95.9%;
 
-  --destructive: 0 72% 58%;
-  /* Dark text: white on this red is 3.87:1, under AA; this is 4.89:1. */
-  --destructive-foreground: 222 47% 5%;
+  --destructive: 0 84.2% 60.2%; /* red-500 #ef4444 */
+  /* Dark text: white on red-500 is under 4.5:1; zinc-950 on it passes. */
+  --destructive-foreground: 240 10% 3.9%;
 
-  --success: 152 60% 45%;
-  --warning: 38 92% 55%;
+  --success: 158 64.4% 51.6%; /* emerald-400 #34d399 */
+  --warning: 43 96.4% 56.3%; /* amber-400 #fbbf24 */
 
-  --border: 222 20% 18%;
-  --input: 222 20% 18%;
-  --ring: 245 82% 65%;
+  --border: 240 3.7% 15.9%; /* zinc-800 */
+  --input: 240 5.3% 26.1%; /* zinc-700 #3f3f46, so form fields stand out from cards */
+  --ring: 243 75.4% 58.6%;
 
-  --radius: 0.625rem;
+  /* 8px: buttons use rounded-lg (var(--radius)), cards rounded-xl (+4px = 12px). */
+  --radius: 0.5rem;
 
   --font-sans:
-    ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-  --font-mono: ui-monospace, "JetBrains Mono", "SF Mono", Menlo, Consolas, monospace;
+    ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+}
+
+@media (prefers-color-scheme: light) {
+  :root {
+    color-scheme: light;
+
+    --background: 0 0% 100%; /* white */
+    --foreground: 240 5.9% 10%; /* zinc-900 #18181b */
+
+    --card: 0 0% 100%;
+    --card-foreground: 240 5.9% 10%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 240 5.9% 10%;
+
+    --primary: 243 75.4% 58.6%; /* indigo-600 */
+    --primary-foreground: 0 0% 100%;
+
+    --link: 243 75.4% 58.6%; /* indigo-600 on white is 6.3:1 */
+
+    --secondary: 240 4.8% 95.9%; /* zinc-100 */
+    --secondary-foreground: 240 5.9% 10%;
+
+    --muted: 240 4.8% 95.9%; /* zinc-100 */
+    --muted-foreground: 240 5.2% 33.9%; /* zinc-600 #52525b */
+
+    --accent: 240 4.8% 95.9%; /* hover surface, zinc-100 */
+    --accent-foreground: 240 5.9% 10%;
+
+    --destructive: 0 72.2% 50.6%; /* red-600 #dc2626; white text on it passes */
+    --destructive-foreground: 0 0% 100%;
+
+    --success: 163 93.5% 24.3%; /* emerald-700 #047857 */
+    --warning: 22.7 82.5% 31.4%; /* amber-800 #92400e: amber-700 fails 4.5:1 on its own badge tint */
+
+    --border: 240 5.9% 90%; /* zinc-200 #e4e4e7 */
+    --input: 240 4.9% 83.9%; /* zinc-300 #d4d4d8 */
+    --ring: 243 75.4% 58.6%;
+  }
 }
 
 /*
- * NEXORA ships dark-first (the platform surfaces — console, docs, product apps
- * — default to dark). A future light theme can be added under `.light` without
- * touching component code, since every component reads these variables only.
+ * Clerk's native CSS variables (see packages/auth/src/appearance.ts). They
+ * reference the tokens above, so they follow the light palette too.
  */
-.light {
-  --background: 0 0% 100%;
-  --foreground: 222 47% 8%;
-
-  --card: 0 0% 100%;
-  --card-foreground: 222 47% 8%;
-
-  --popover: 0 0% 100%;
-  --popover-foreground: 222 47% 8%;
-
-  --primary: 245 75% 55%;
-  --primary-foreground: 210 20% 98%;
-
-  /* Dark text on a light surface already clears 7:1 at --primary's own
-     lightness, unlike the dark theme — see the --link comment above .root's --primary. */
-  --link: 245 75% 55%;
-
-  --secondary: 199 89% 45%;
-  --secondary-foreground: 210 20% 98%;
-
-  --muted: 220 20% 96%;
-  --muted-foreground: 220 10% 40%;
-
-  --accent: 220 20% 94%;
-  --accent-foreground: 222 47% 8%;
-
-  --destructive: 0 72% 51%;
-  --destructive-foreground: 210 20% 98%;
-
-  --success: 152 60% 36%;
-  --warning: 38 92% 45%;
-
-  --border: 220 15% 88%;
-  --input: 220 15% 88%;
-  --ring: 245 75% 55%;
+:root {
+  --clerk-color-primary: hsl(var(--primary));
+  --clerk-color-primary-foreground: hsl(var(--primary-foreground));
+  --clerk-color-background: hsl(var(--card));
+  --clerk-color-foreground: hsl(var(--foreground));
+  --clerk-color-muted: hsl(var(--muted));
+  --clerk-color-muted-foreground: hsl(var(--muted-foreground));
+  --clerk-color-neutral: hsl(var(--foreground));
+  --clerk-color-border: hsl(var(--border));
+  --clerk-color-input: hsl(var(--background));
+  --clerk-color-input-foreground: hsl(var(--foreground));
+  --clerk-color-ring: hsl(var(--ring));
+  --clerk-color-danger: hsl(var(--destructive));
+  --clerk-color-success: hsl(var(--success));
+  --clerk-color-warning: hsl(var(--warning));
 }

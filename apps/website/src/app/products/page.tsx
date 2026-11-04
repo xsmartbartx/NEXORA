@@ -27,9 +27,7 @@ export default async function ProductsPage(props: PageProps<"/products">) {
 
   return (
     <div className="mx-auto max-w-6xl px-6 py-20">
-      <span className="font-mono text-xs uppercase tracking-widest text-muted-foreground">
-        Catalogue
-      </span>
+      <span className="text-sm font-medium text-link">Catalogue</span>
       <h1 className="mt-3 text-4xl font-semibold tracking-tight">Products</h1>
       <p className="mt-4 max-w-2xl text-lg text-muted-foreground">
         Every product listed here shares NEXORA&rsquo;s identity, billing and API surface. This page
@@ -42,7 +40,7 @@ export default async function ProductsPage(props: PageProps<"/products">) {
           className={cn(
             "rounded-full border px-3 py-1 text-sm transition-colors",
             !activeCategory
-              ? "border-primary bg-primary/10 text-primary"
+              ? "border-primary bg-primary/10 text-link"
               : "border-border text-muted-foreground hover:text-foreground",
           )}
         >
@@ -55,7 +53,7 @@ export default async function ProductsPage(props: PageProps<"/products">) {
             className={cn(
               "rounded-full border px-3 py-1 text-sm transition-colors",
               activeCategory === category
-                ? "border-primary bg-primary/10 text-primary"
+                ? "border-primary bg-primary/10 text-link"
                 : "border-border text-muted-foreground hover:text-foreground",
             )}
           >

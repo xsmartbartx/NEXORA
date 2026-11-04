@@ -40,9 +40,7 @@ export default async function PillarPage(props: PageProps<"/platform/[pillar]">)
         &larr; Platform
       </Link>
 
-      <span className="mt-4 block font-mono text-xs uppercase tracking-widest text-muted-foreground">
-        Pillar
-      </span>
+      <span className="mt-4 block text-sm font-medium text-link">Pillar</span>
       <h1 className="mt-2 text-4xl font-semibold tracking-tight">{pillarLabels[pillar]}</h1>
       <p className="mt-4 max-w-2xl text-lg text-muted-foreground">{pillarTaglines[pillar]}</p>
 
@@ -84,7 +82,7 @@ export default async function PillarPage(props: PageProps<"/platform/[pillar]">)
                 href={`/solutions/${solution.slug}`}
                 className="group flex flex-col gap-2 rounded-xl border border-border bg-card p-6 transition-colors hover:border-primary/50"
               >
-                <span className="font-medium text-foreground group-hover:text-primary">
+                <span className="font-medium text-foreground group-hover:text-link">
                   {solution.title}
                 </span>
                 <span className="text-sm text-muted-foreground">{solution.description}</span>

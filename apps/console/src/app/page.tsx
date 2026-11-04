@@ -37,9 +37,7 @@ export default async function ConsoleOverview() {
 
   return (
     <div className="mx-auto max-w-5xl px-6 py-12">
-      <span className="font-mono text-xs uppercase tracking-widest text-muted-foreground">
-        Overview
-      </span>
+      <span className="text-sm font-medium text-link">Overview</span>
       <h1 className="mt-2 text-3xl font-semibold tracking-tight">{orgSlug}</h1>
 
       <div className="mt-10 grid gap-4 sm:grid-cols-3">
@@ -48,14 +46,14 @@ export default async function ConsoleOverview() {
           <p className="mt-2 text-sm">
             {overview ? overview.plans.map((p) => `${p.product}: ${p.planName}`).join(" · ") : "—"}
           </p>
-          <Link href="/billing" className="mt-1 inline-block text-xs text-primary hover:underline">
+          <Link href="/billing" className="mt-1 inline-block text-xs text-link hover:underline">
             Manage billing →
           </Link>
         </div>
         <div className="rounded-xl border border-border bg-card p-6">
           <p className="text-sm text-muted-foreground">API keys</p>
           <p className="mt-2 text-2xl font-semibold">{overview ? overview.activeKeyCount : "—"}</p>
-          <Link href="/api-keys" className="mt-1 inline-block text-xs text-primary hover:underline">
+          <Link href="/api-keys" className="mt-1 inline-block text-xs text-link hover:underline">
             Manage keys →
           </Link>
         </div>
@@ -74,7 +72,7 @@ export default async function ConsoleOverview() {
       <div className="mt-12">
         <div className="flex items-end justify-between">
           <h2 className="text-lg font-semibold">Products</h2>
-          <Link href="/products" className="text-sm text-primary hover:underline">
+          <Link href="/products" className="text-sm text-link hover:underline">
             View all →
           </Link>
         </div>

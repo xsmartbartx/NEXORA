@@ -49,9 +49,7 @@ export function Playground() {
 
       {response ? (
         <div className="rounded-xl border border-border bg-card p-4">
-          <p className="font-mono text-xs uppercase tracking-widest text-muted-foreground">
-            Response
-          </p>
+          <p className="text-sm font-medium text-muted-foreground">Response</p>
           <p className="mt-2 whitespace-pre-wrap text-sm">{response}</p>
         </div>
       ) : null}

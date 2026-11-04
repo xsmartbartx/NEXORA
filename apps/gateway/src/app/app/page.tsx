@@ -9,9 +9,7 @@ export default async function GatewayAppPage() {
 
   return (
     <div className="mx-auto max-w-3xl px-6 py-12">
-      <span className="font-mono text-xs uppercase tracking-widest text-muted-foreground">
-        Gateway
-      </span>
+      <span className="text-sm font-medium text-link">Gateway</span>
       <h1 className="mt-2 text-3xl font-semibold tracking-tight">Playground</h1>
       <p className="mt-2 max-w-xl text-muted-foreground">
         Try a call through Gateway using your organisation&rsquo;s own session — no API key needed

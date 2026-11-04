@@ -40,7 +40,7 @@ export default async function ControlCenterPage() {
     <div className="mx-auto max-w-6xl px-6 py-12">
       <AutoRefresh seconds={REFRESH_SECONDS} />
 
-      <span className="font-mono text-xs uppercase tracking-widest text-warning">NEXORA Staff</span>
+      <span className="text-sm font-medium text-warning">NEXORA Staff</span>
       <h1 className="mt-2 text-3xl font-semibold tracking-tight">Control Center</h1>
       <p className="mt-2 text-sm text-muted-foreground">
         Updated {snapshot.collectedAt.toLocaleTimeString("en-GB", { timeZone: "UTC" })} UTC ·
@@ -439,9 +439,7 @@ export default async function ControlCenterPage() {
             <div className="grid gap-4 lg:grid-cols-3">
               {cadenceOrder.map((cadence) => (
                 <div key={cadence} className="rounded-xl border border-border bg-card p-4">
-                  <div className="text-xs uppercase tracking-widest text-muted-foreground">
-                    {cadence}
-                  </div>
+                  <div className="text-sm font-medium text-muted-foreground">{cadence}</div>
                   <ul className="mt-2 space-y-3">
                     {items
                       .filter((item) => item.cadence === cadence)
@@ -490,9 +488,7 @@ export default async function ControlCenterPage() {
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {TOOLBOX.map((group) => (
             <div key={group.name} className="rounded-xl border border-border bg-card p-4">
-              <div className="text-xs uppercase tracking-widest text-muted-foreground">
-                {group.name}
-              </div>
+              <div className="text-sm font-medium text-muted-foreground">{group.name}</div>
               <ul className="mt-2 space-y-1 text-sm">
                 {group.links.map((link) => (
                   <li key={link.href}>

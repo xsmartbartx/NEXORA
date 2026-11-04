@@ -23,9 +23,7 @@ export default async function ApiKeysPage() {
 
   return (
     <div className="mx-auto max-w-3xl px-6 py-12">
-      <span className="font-mono text-xs uppercase tracking-widest text-muted-foreground">
-        Console
-      </span>
+      <span className="text-sm font-medium text-link">Console</span>
       <h1 className="mt-2 text-3xl font-semibold tracking-tight">API Keys</h1>
       <p className="mt-2 max-w-xl text-muted-foreground">
         Machine identity for your organisation (§6.4). Keys are hashed at rest and shown in full

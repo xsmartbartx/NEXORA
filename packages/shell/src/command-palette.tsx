@@ -147,9 +147,7 @@ export function CommandPalette({ navItems }: { navItems: ShellNavItem[] }) {
           ) : (
             [...grouped.entries()].map(([group, groupItems]) => (
               <div key={group}>
-                <p className="px-2 pt-2 pb-1 font-mono text-xs uppercase tracking-widest text-muted-foreground">
-                  {group}
-                </p>
+                <p className="px-2 pt-2 pb-1 text-xs font-medium text-muted-foreground">{group}</p>
                 {groupItems.map(({ item, index }) => (
                   <button
                     key={`${item.group}-${item.label}`}
@@ -163,9 +161,7 @@ export function CommandPalette({ navItems }: { navItems: ShellNavItem[] }) {
                   >
                     {item.label}
                     {item.hint ? (
-                      <span className="font-mono text-[10px] uppercase tracking-wide text-muted-foreground">
-                        {item.hint}
-                      </span>
+                      <span className="text-xs text-muted-foreground">{item.hint}</span>
                     ) : null}
                   </button>
                 ))}

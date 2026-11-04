@@ -4,10 +4,10 @@ import { cn } from "./cn";
 export type BadgeVariant = "neutral" | "brand" | "warning" | "success";
 
 const variantClasses: Record<BadgeVariant, string> = {
-  neutral: "border-border text-muted-foreground",
-  brand: "border-primary/40 text-link",
-  warning: "border-warning/40 text-warning",
-  success: "border-success/40 text-success",
+  neutral: "bg-muted text-muted-foreground",
+  brand: "bg-primary/10 text-link",
+  warning: "bg-warning/10 text-warning",
+  success: "bg-success/10 text-success",
 };
 
 export interface BadgeProps extends React.HTMLAttributes<HTMLSpanElement> {
@@ -20,7 +20,7 @@ export const Badge = React.forwardRef<HTMLSpanElement, BadgeProps>(
       <span
         ref={ref}
         className={cn(
-          "inline-flex items-center rounded-full border px-2.5 py-0.5 font-mono text-xs uppercase tracking-wide",
+          "inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium",
           variantClasses[variant],
           className,
         )}
