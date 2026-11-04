@@ -355,7 +355,18 @@ dumps each Postgres (`pg_dump -Fc`) and the stateful volumes into one
 archive to the OCI Object Storage bucket `nexora-backups` using instance
 principal auth (create-only; expiry is a bucket lifecycle rule). Only a fully
 successful run advances the heartbeat that `status.onenexora.com/api/backup`
-serves to the uptime workflow.
+serves to the uptime workflow. A stopped Prism stack does not cost the other
+products their backup: the archive is written without it and the run then
+fails without advancing the heartbeat.
+
+The cron entry runs a **copy** of `infrastructure/deployment/backup-all.sh`, so
+a `git pull` alone does not change what runs at night. After merging a change
+to the script, install it:
+
+```bash
+install -m 755 /opt/nexora/infrastructure/deployment/backup-all.sh /opt/backups/backup-all.sh
+diff /opt/backups/backup-all.sh /opt/nexora/infrastructure/deployment/backup-all.sh && echo installed
+```
 
 A backup you have never restored is a hypothesis. Run the drill on the VM:
 

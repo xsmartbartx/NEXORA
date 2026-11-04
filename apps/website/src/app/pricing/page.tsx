@@ -13,7 +13,7 @@ const consoleUrl = process.env.NEXT_PUBLIC_CONSOLE_URL ?? "https://console.onene
 const vigiloUrl = "https://vigilo.onenexora.com";
 const neurawallUrl = "https://neurawall.onenexora.com";
 const codereviewerUrl = "https://codereviewer.onenexora.com";
-const prismUrl = "https://prism.onenexora.com";
+const prismInstallUrl = "https://github.com/xsmartbartx/Prism/blob/main/docs/install.md";
 
 function salesCta(product: string, plan: string): Tier["cta"] {
   const subject = encodeURIComponent(product + " " + plan);
@@ -270,7 +270,9 @@ const products: ProductPricing[] = [
           "Charts, share links and exports",
           "Audit log and backups",
         ],
-        cta: { label: "Start free", href: prismUrl },
+        // The hosted instance is invite-only (Prism has no public sign-up), so the free plan
+        // starts with the self-hosted install guide.
+        cta: { label: "Install free", href: prismInstallUrl },
       },
       {
         name: "Pro",

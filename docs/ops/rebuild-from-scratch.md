@@ -45,7 +45,9 @@ secrets, the NeuraWall signing key inside its data volume backup).
    databases into throwaway containers and `restore-rehearsal.sh` does all four with timings (NeuraWall
    and CodeReviewer need a PostgreSQL 17 server, the others 16: a dump cannot be restored by an older major version); for production, start the stack's Postgres, then `pg_restore` each dump into
    its database (`nexora`, `vigilo`, `neurawall`, `codereviewer`, `prism`), and untar the NeuraWall data, Prism data and Vigilo MinIO
-   volumes into their Docker volumes.
+   volumes into their Docker volumes. Archives made before a product joined the nightly backup have no
+   dump for it (CodeReviewer, Prism): restore the others, then start that product empty and restore it
+   from its own backup if it has one (`prism restore <archive>` for a Prism backup).
 
 5. **Start.** `infrastructure/deployment/deploy.sh nexora db-migrate website account console api gateway docs developers status sentinel cspm`,
    then the Vigilo and NeuraWall stacks, `deploy.sh codereviewer`, `deploy.sh prism` (after cloning `/opt/prism` and restoring

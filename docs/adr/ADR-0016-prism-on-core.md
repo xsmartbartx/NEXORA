@@ -33,7 +33,9 @@ No data, authentication or billing changes in Core.
   plan references. It gets a real product page and sitemap entry on onenexora.com.
 - **Website:** a Prism section on `/pricing` (Community free; Pro $49 and Business $199 a month,
   yearly ten months, per instance), and the company page names it among the independently built
-  products. Paid plans go to sales, because they are license keys, not a Core checkout.
+  products. Paid plans go to sales, because they are license keys, not a Core checkout. The hosted
+  instance is invite-only (Prism has no public sign-up), so the free plan links to the install
+  guide.
 - **Hosting:** compose project `prism` in `/opt/prism` (`deploy/nexora/compose.yml` in the Prism
   repository): the released image and PostgreSQL 16, no host ports, read-only root filesystem.
   The edge Caddy joins `prism_default` and serves `prism.onenexora.com` behind the Cloudflare
@@ -46,7 +48,9 @@ No data, authentication or billing changes in Core.
   `PRISM_VERSION` and runs `up -d`; the app migrates on start-up. Nothing is built on the host.
   The host guard allows it, with approval because it runs migrations.
 - **Backups:** `backup-all.sh` adds `prism-postgres.dump` and `prism-data.tar.gz` (the dataset
-  versions are files, not rows). `restore-rehearsal.sh` restores the dump on `postgres:16-alpine`
+  versions are files, not rows). Prism is optional in the script: if its stack is stopped, every
+  other product is still archived and uploaded, and the run then fails without advancing the
+  heartbeat. `restore-rehearsal.sh` restores the dump on `postgres:16-alpine`
   and lists the data archive; the monthly `restore-drill.sh` restores it and checks `users`,
   `datasets`, `dataset_versions` and `audit_events`. Archives from before this change are tolerated.
 - **First start:** the instance is claimed before its DNS record exists
@@ -82,10 +86,14 @@ Prism becomes a listed, monitored and backed-up NEXORA product hosted at `prism.
 with no change to Core's data, sign-in or billing (phase 1). Self-hosted customers keep offline
 license keys; phase 2 adds Core billing for organisations without forcing it on anyone.
 
-Manual steps, phase 1:
+Manual steps, phase 1 (in this order):
 
 - Clone `/opt/prism`, create `/opt/prism/.env` (mode 600) from `deploy/nexora/env.example`, start
   the stack once, claim the instance, and `docker network connect prism_default edge-caddy-1`
   (the edge stack's compose file names the network for its next recreation).
+- Install the updated nightly script, which the cron runs from a copy (see `infrastructure/docker/README.md`):
+  `install -m 755 /opt/nexora/infrastructure/deployment/backup-all.sh /opt/backups/backup-all.sh`.
+  When this ADR was written the copy predated ADR-0015, so CodeReviewer's database was not in the
+  nightly archive either; installing the current script adds both.
 - Add a proxied `A` record `prism` → the VM's public IP in Cloudflare, then `deploy.sh edge`.
 - Keep `/opt/prism/.env` in the password manager with the other environment files.
