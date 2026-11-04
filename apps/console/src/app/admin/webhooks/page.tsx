@@ -29,7 +29,7 @@ export default async function WebhooksPage() {
 
   return (
     <div className="mx-auto max-w-6xl px-6 py-12">
-      <span className="font-mono text-xs uppercase tracking-widest text-warning">NEXORA Staff</span>
+      <span className="text-sm font-medium text-warning">NEXORA Staff</span>
       <h1 className="mt-2 text-3xl font-semibold tracking-tight">Webhooks</h1>
       <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
         Billing depends on Stripe reaching NEXORA, and on NEXORA telling Vigilo about plan changes.

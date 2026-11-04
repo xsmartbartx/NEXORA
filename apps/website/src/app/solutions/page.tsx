@@ -11,9 +11,7 @@ export const metadata: Metadata = {
 export default function SolutionsPage() {
   return (
     <div className="mx-auto max-w-4xl px-6 py-20">
-      <span className="font-mono text-xs uppercase tracking-widest text-muted-foreground">
-        Solutions
-      </span>
+      <span className="text-sm font-medium text-link">Solutions</span>
       <h1 className="mt-3 text-4xl font-semibold tracking-tight">
         Map a problem to a NEXORA product.
       </h1>
@@ -28,7 +26,7 @@ export default function SolutionsPage() {
             href={`/solutions/${solution.slug}`}
             className="group flex flex-col gap-3 rounded-xl border border-border bg-card p-6 transition-colors hover:border-primary/50"
           >
-            <h2 className="text-lg font-semibold text-foreground group-hover:text-primary">
+            <h2 className="text-lg font-semibold text-foreground group-hover:text-link">
               {solution.title}
             </h2>
             <p className="text-sm text-muted-foreground">{solution.description}</p>
@@ -36,7 +34,7 @@ export default function SolutionsPage() {
               {solution.pillars.map((pillar) => (
                 <span
                   key={pillar}
-                  className="rounded-full border border-border px-2 py-0.5 font-mono text-xs uppercase tracking-widest text-muted-foreground"
+                  className="rounded-full bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground"
                 >
                   {pillarLabels[pillar]}
                 </span>

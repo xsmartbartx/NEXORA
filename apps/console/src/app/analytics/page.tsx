@@ -67,9 +67,7 @@ export default async function AnalyticsPage() {
 
   return (
     <div className="mx-auto max-w-3xl px-6 py-12">
-      <span className="font-mono text-xs uppercase tracking-widest text-muted-foreground">
-        Console
-      </span>
+      <span className="text-sm font-medium text-link">Console</span>
       <h1 className="mt-2 text-3xl font-semibold tracking-tight">Analytics</h1>
       <p className="mt-2 max-w-xl text-muted-foreground">
         Usage per product, over the last {SERIES_DAYS} days and the current billing period — the

@@ -25,9 +25,7 @@ export default async function UsagePage() {
 
   return (
     <div className="mx-auto max-w-3xl px-6 py-12">
-      <span className="font-mono text-xs uppercase tracking-widest text-muted-foreground">
-        Usage
-      </span>
+      <span className="text-sm font-medium text-link">Usage</span>
       <h1 className="mt-2 text-3xl font-semibold tracking-tight">Usage</h1>
       <p className="mt-2 max-w-xl text-muted-foreground">
         Every event your organisation&rsquo;s products and API keys have emitted (C-EVENT, §4.2) —

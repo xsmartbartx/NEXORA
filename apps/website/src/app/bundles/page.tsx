@@ -32,9 +32,7 @@ export default function BundlesPage() {
 
   return (
     <div className="mx-auto max-w-4xl px-6 py-20">
-      <span className="font-mono text-xs uppercase tracking-widest text-muted-foreground">
-        Bundle Builder
-      </span>
+      <span className="text-sm font-medium text-link">Bundle Builder</span>
       <h1 className="mt-3 text-4xl font-semibold tracking-tight">Build your NEXORA stack</h1>
       <p className="mt-4 max-w-2xl text-lg text-pretty text-muted-foreground">
         Pick two or three products and check out together — one subscription, one combined price, a

@@ -11,10 +11,8 @@ export function ProductCard({ product }: { product: Product }) {
     >
       <div className="flex items-start justify-between gap-3">
         <div>
-          <p className="font-mono text-xs uppercase tracking-widest text-muted-foreground">
-            {categoryLabels[product.category]}
-          </p>
-          <h3 className="mt-1 text-lg font-semibold text-foreground group-hover:text-primary">
+          <p className="text-xs font-medium text-link">{categoryLabels[product.category]}</p>
+          <h3 className="mt-1 text-lg font-semibold text-foreground group-hover:text-link">
             {product.short_name}
           </h3>
         </div>

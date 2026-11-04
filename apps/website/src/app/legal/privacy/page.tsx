@@ -14,9 +14,7 @@ const ul = "mt-3 list-disc space-y-2 pl-5 text-sm leading-relaxed text-foregroun
 export default function PrivacyPage() {
   return (
     <div className="mx-auto max-w-3xl px-6 py-20">
-      <span className="font-mono text-xs uppercase tracking-widest text-muted-foreground">
-        Legal
-      </span>
+      <span className="text-sm font-medium text-link">Legal</span>
       <h1 className="mt-3 text-4xl font-semibold tracking-tight">Privacy Policy</h1>
       <p className="mt-2 text-sm text-muted-foreground">
         Draft — Effective date: [NOT YET PUBLISHED] · Version 0.1

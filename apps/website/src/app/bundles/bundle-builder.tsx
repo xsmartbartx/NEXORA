@@ -107,7 +107,7 @@ export function BundleBuilder({ products }: { products: BundleProductPlans[] }) 
                           className={cn(
                             "rounded-md border px-3 py-1.5 text-sm",
                             tierId === tier.id
-                              ? "border-primary bg-primary/10 text-primary"
+                              ? "border-primary bg-primary/10 text-link"
                               : "border-border text-muted-foreground hover:text-foreground",
                           )}
                         >

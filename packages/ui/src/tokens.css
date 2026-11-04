@@ -57,10 +57,8 @@
   --radius: 0.5rem;
 
   --font-sans:
-    ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial,
-    sans-serif;
-  --font-mono:
-    ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+    ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
 }
 
 @media (prefers-color-scheme: light) {
@@ -94,10 +92,31 @@
     --destructive-foreground: 0 0% 100%;
 
     --success: 163 93.5% 24.3%; /* emerald-700 #047857 */
-    --warning: 26 90.5% 37.1%; /* amber-700 #b45309 */
+    --warning: 22.7 82.5% 31.4%; /* amber-800 #92400e: amber-700 fails 4.5:1 on its own badge tint */
 
     --border: 240 5.9% 90%; /* zinc-200 #e4e4e7 */
     --input: 240 4.9% 83.9%; /* zinc-300 #d4d4d8 */
     --ring: 243 75.4% 58.6%;
   }
+}
+
+/*
+ * Clerk's native CSS variables (see packages/auth/src/appearance.ts). They
+ * reference the tokens above, so they follow the light palette too.
+ */
+:root {
+  --clerk-color-primary: hsl(var(--primary));
+  --clerk-color-primary-foreground: hsl(var(--primary-foreground));
+  --clerk-color-background: hsl(var(--card));
+  --clerk-color-foreground: hsl(var(--foreground));
+  --clerk-color-muted: hsl(var(--muted));
+  --clerk-color-muted-foreground: hsl(var(--muted-foreground));
+  --clerk-color-neutral: hsl(var(--foreground));
+  --clerk-color-border: hsl(var(--border));
+  --clerk-color-input: hsl(var(--background));
+  --clerk-color-input-foreground: hsl(var(--foreground));
+  --clerk-color-ring: hsl(var(--ring));
+  --clerk-color-danger: hsl(var(--destructive));
+  --clerk-color-success: hsl(var(--success));
+  --clerk-color-warning: hsl(var(--warning));
 }

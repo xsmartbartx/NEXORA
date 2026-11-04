@@ -6,9 +6,7 @@ export default async function AccountHome() {
 
   return (
     <div className="mx-auto max-w-2xl px-6 py-20">
-      <span className="font-mono text-xs uppercase tracking-widest text-muted-foreground">
-        Account
-      </span>
+      <span className="text-sm font-medium text-link">Account</span>
       <h1 className="mt-3 text-3xl font-semibold tracking-tight">Welcome back.</h1>
       <p className="mt-2 text-sm text-muted-foreground">Signed in as {userId}</p>
 

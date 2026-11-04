@@ -60,7 +60,7 @@ export default async function ProductDetailPage(props: PageProps<"/products/[slu
       </Link>
 
       <div className="mt-4 flex flex-wrap items-center gap-3">
-        <span className="font-mono text-xs uppercase tracking-widest text-muted-foreground">
+        <span className="text-sm font-medium text-link">
           {categoryLabels[product.category]} · {pillarLabels[product.platform_pillar]} pillar
         </span>
         <LifecycleBadge lifecycle={product.lifecycle} />
@@ -75,9 +75,7 @@ export default async function ProductDetailPage(props: PageProps<"/products/[slu
 
       {capabilities.length > 0 ? (
         <div className="mt-8">
-          <h2 className="font-mono text-xs uppercase tracking-widest text-muted-foreground">
-            Capabilities
-          </h2>
+          <h2 className="text-lg font-semibold tracking-tight">Capabilities</h2>
           <ul className="mt-3 flex flex-col gap-3">
             {capabilities.map((capability) => (
               <li key={capability.label}>
@@ -91,9 +89,7 @@ export default async function ProductDetailPage(props: PageProps<"/products/[slu
 
       {plans.length > 0 ? (
         <div className="mt-8">
-          <h2 className="font-mono text-xs uppercase tracking-widest text-muted-foreground">
-            Plans
-          </h2>
+          <h2 className="text-lg font-semibold tracking-tight">Plans</h2>
           <ul className="mt-3 flex flex-wrap gap-2">
             {plans.map((plan) => (
               <li
@@ -109,9 +105,7 @@ export default async function ProductDetailPage(props: PageProps<"/products/[slu
 
       {docSections.length > 0 ? (
         <div className="mt-8">
-          <h2 className="font-mono text-xs uppercase tracking-widest text-muted-foreground">
-            Documentation
-          </h2>
+          <h2 className="text-lg font-semibold tracking-tight">Documentation</h2>
           <ul className="mt-3 flex flex-col gap-2">
             {docSections.map((section) => (
               <li key={section.path}>
@@ -126,9 +120,7 @@ export default async function ProductDetailPage(props: PageProps<"/products/[slu
 
       {integrations.length > 0 ? (
         <div className="mt-8">
-          <h2 className="font-mono text-xs uppercase tracking-widest text-muted-foreground">
-            Integrates with
-          </h2>
+          <h2 className="text-lg font-semibold tracking-tight">Integrates with</h2>
           <ul className="mt-3 flex flex-wrap gap-2">
             {integrations.map((integration) => {
               const otherSlug =

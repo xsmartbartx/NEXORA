@@ -5,9 +5,9 @@ export type BadgeVariant = "neutral" | "brand" | "warning" | "success";
 
 const variantClasses: Record<BadgeVariant, string> = {
   neutral: "bg-muted text-muted-foreground",
-  brand: "bg-primary/15 text-link",
-  warning: "bg-warning/15 text-warning",
-  success: "bg-success/15 text-success",
+  brand: "bg-primary/10 text-link",
+  warning: "bg-warning/10 text-warning",
+  success: "bg-success/10 text-success",
 };
 
 export interface BadgeProps extends React.HTMLAttributes<HTMLSpanElement> {

@@ -16,9 +16,7 @@ export function DocsShell({ children }: { children: React.ReactNode }) {
         <div className="mx-auto flex h-16 max-w-6xl items-center gap-2 px-6">
           <a href={websiteUrl} className="flex items-center gap-2">
             <LogoMark className="h-6 w-6" />
-            <span className="font-mono text-sm font-semibold tracking-widest uppercase">
-              NEXORA
-            </span>
+            <span className="text-base font-semibold tracking-tight">NEXORA</span>
           </a>
           <span className="text-sm text-muted-foreground">Docs</span>
         </div>

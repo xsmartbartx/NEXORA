@@ -8,9 +8,7 @@ export default async function SentinelAppPage() {
 
   return (
     <div className="mx-auto max-w-3xl px-6 py-12">
-      <span className="font-mono text-xs uppercase tracking-widest text-muted-foreground">
-        Sentinel
-      </span>
+      <span className="text-sm font-medium text-link">Sentinel</span>
       <h1 className="mt-2 text-3xl font-semibold tracking-tight">Analyze a log sample</h1>
       <p className="mt-2 max-w-xl text-muted-foreground">
         Paste log lines below. Nothing is stored — analysis is stateless.

@@ -28,9 +28,7 @@ const documents = [
 export default function LegalPage() {
   return (
     <div className="mx-auto max-w-3xl px-6 py-20">
-      <span className="font-mono text-xs uppercase tracking-widest text-muted-foreground">
-        Legal
-      </span>
+      <span className="text-sm font-medium text-link">Legal</span>
       <h1 className="mt-3 text-4xl font-semibold tracking-tight">Legal</h1>
       <p className="mt-4 max-w-2xl text-lg text-pretty text-muted-foreground">
         The documents governing use of NEXORA&rsquo;s products and platform.
@@ -47,7 +45,7 @@ export default function LegalPage() {
             href={doc.href}
             className="group flex flex-col gap-1 rounded-xl border border-border bg-card p-6 transition-colors hover:border-primary/50"
           >
-            <h2 className="text-lg font-semibold text-foreground group-hover:text-primary">
+            <h2 className="text-lg font-semibold text-foreground group-hover:text-link">
               {doc.title}
             </h2>
             <p className="text-sm text-muted-foreground">{doc.description}</p>

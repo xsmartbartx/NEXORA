@@ -38,7 +38,7 @@ export function EventFilter({ events }: { events: AuditEvent[] }) {
             className={cn(
               "rounded-full border px-3 py-1 text-xs",
               active === null
-                ? "border-primary bg-primary/10 text-primary"
+                ? "border-primary bg-primary/10 text-link"
                 : "border-border text-muted-foreground hover:text-foreground",
             )}
           >
@@ -52,7 +52,7 @@ export function EventFilter({ events }: { events: AuditEvent[] }) {
               className={cn(
                 "rounded-full border px-3 py-1 text-xs",
                 active === category
-                  ? "border-primary bg-primary/10 text-primary"
+                  ? "border-primary bg-primary/10 text-link"
                   : "border-border text-muted-foreground hover:text-foreground",
               )}
             >

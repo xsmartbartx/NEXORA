@@ -9,9 +9,7 @@ export default function MarketingLayout({ children }: { children: React.ReactNod
         <div className="mx-auto flex h-16 max-w-5xl items-center px-6">
           <a href={websiteUrl} className="flex items-center gap-2">
             <LogoMark className="h-6 w-6" />
-            <span className="font-mono text-sm font-semibold tracking-widest uppercase">
-              NEXORA
-            </span>
+            <span className="text-base font-semibold tracking-tight">NEXORA</span>
           </a>
           <span className="ml-3 text-sm text-muted-foreground">Gateway</span>
         </div>

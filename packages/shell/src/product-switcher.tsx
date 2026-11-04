@@ -37,9 +37,7 @@ export function ProductSwitcher() {
             onClick={() => setOpen(false)}
           />
           <div className="absolute left-0 z-50 mt-2 w-72 rounded-lg border border-border bg-popover p-2 shadow-lg">
-            <p className="px-2 py-1 font-mono text-xs uppercase tracking-widest text-muted-foreground">
-              Platform
-            </p>
+            <p className="px-2 py-1 text-xs font-medium text-muted-foreground">Platform</p>
             {[
               { label: "Website", href: links.website },
               { label: "Console", href: links.console },
@@ -57,7 +55,7 @@ export function ProductSwitcher() {
               </a>
             ))}
 
-            <p className="mt-2 border-t border-border px-2 pt-2 font-mono text-xs uppercase tracking-widest text-muted-foreground">
+            <p className="mt-2 border-t border-border px-2 pt-2 text-xs font-medium text-muted-foreground">
               Products
             </p>
             {products.map((product) => {
@@ -76,7 +74,7 @@ export function ProductSwitcher() {
                   )}
                 >
                   {product.short_name}
-                  <span className="font-mono text-[10px] uppercase tracking-wide text-muted-foreground">
+                  <span className="text-xs text-muted-foreground">
                     {lifecycleLabels[product.lifecycle]}
                   </span>
                 </a>

@@ -29,7 +29,7 @@ export function Section({
 }) {
   return (
     <section className="mt-10">
-      <h2 className="font-mono text-xs uppercase tracking-widest text-muted-foreground">{title}</h2>
+      <h2 className="text-sm font-semibold text-foreground">{title}</h2>
       {description ? (
         <p className="mt-1 max-w-2xl text-sm text-muted-foreground">{description}</p>
       ) : null}

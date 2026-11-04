@@ -8,9 +8,7 @@ export default async function CspmAppPage() {
 
   return (
     <div className="mx-auto max-w-3xl px-6 py-12">
-      <span className="font-mono text-xs uppercase tracking-widest text-muted-foreground">
-        CSPM
-      </span>
+      <span className="text-sm font-medium text-link">CSPM</span>
       <h1 className="mt-2 text-3xl font-semibold tracking-tight">Scan a resource description</h1>
       <p className="mt-2 max-w-xl text-muted-foreground">
         Paste a JSON description of your resources below. Nothing is stored.

@@ -68,9 +68,7 @@ export default async function StatusPage() {
 
       {groupByCategory(snapshot.components).map(([category, items]) => (
         <div key={category} className="mt-8">
-          <h2 className="mb-3 text-xs font-semibold uppercase tracking-widest text-muted-foreground">
-            {categoryLabel[category]}
-          </h2>
+          <h2 className="mb-3 text-sm font-semibold text-foreground">{categoryLabel[category]}</h2>
           <div className="flex flex-col divide-y divide-border rounded-xl border border-border">
             {items.map((component) => (
               <div key={component.name} className="flex items-center justify-between gap-4 p-4">
@@ -95,9 +93,7 @@ export default async function StatusPage() {
       ))}
 
       <div className="mt-10">
-        <h2 className="mb-3 text-xs font-semibold uppercase tracking-widest text-muted-foreground">
-          Planned maintenance
-        </h2>
+        <h2 className="mb-3 text-sm font-semibold text-foreground">Planned maintenance</h2>
         {upcomingMaintenance.length === 0 ? (
           <p className="text-sm text-muted-foreground">None scheduled.</p>
         ) : (
@@ -115,9 +111,7 @@ export default async function StatusPage() {
       </div>
 
       <div className="mt-10">
-        <h2 className="mb-3 text-xs font-semibold uppercase tracking-widest text-muted-foreground">
-          Incident history
-        </h2>
+        <h2 className="mb-3 text-sm font-semibold text-foreground">Incident history</h2>
         {incidents.length === 0 ? (
           <p className="text-sm text-muted-foreground">
             No incidents have been published. Incidents are listed here as they happen.
@@ -130,7 +124,7 @@ export default async function StatusPage() {
                 <ul className="mt-3 flex flex-col gap-2 text-sm text-muted-foreground">
                   {incident.updates.map((update) => (
                     <li key={update.at}>
-                      <span className="uppercase tracking-wide">{update.status}</span> ·{" "}
+                      <span className="font-medium capitalize">{update.status}</span> ·{" "}
                       <time dateTime={update.at}>{update.at}</time> — {update.message}
                     </li>
                   ))}

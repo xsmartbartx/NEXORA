@@ -60,7 +60,7 @@ export default async function LogsPage(props: PageProps<"/admin/logs">) {
 
   return (
     <div className="mx-auto max-w-6xl px-6 py-12">
-      <span className="font-mono text-xs uppercase tracking-widest text-warning">NEXORA Staff</span>
+      <span className="text-sm font-medium text-warning">NEXORA Staff</span>
       <h1 className="mt-2 text-3xl font-semibold tracking-tight">Logs</h1>
       <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
         The platform-wide audit log across every organisation: API key changes, product usage, staff
@@ -139,7 +139,7 @@ export default async function LogsPage(props: PageProps<"/admin/logs">) {
                   className={cn(
                     "rounded-full border px-3 py-1 text-xs",
                     !filters.namespace
-                      ? "border-primary bg-primary/10 text-primary"
+                      ? "border-primary bg-primary/10 text-link"
                       : "border-border text-muted-foreground hover:text-foreground",
                   )}
                 >
@@ -152,7 +152,7 @@ export default async function LogsPage(props: PageProps<"/admin/logs">) {
                     className={cn(
                       "rounded-full border px-3 py-1 text-xs",
                       filters.namespace === n.namespace
-                        ? "border-primary bg-primary/10 text-primary"
+                        ? "border-primary bg-primary/10 text-link"
                         : "border-border text-muted-foreground hover:text-foreground",
                     )}
                   >

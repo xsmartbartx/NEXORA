@@ -11,7 +11,7 @@ export default function ApiRoot() {
         This host serves JSON, not pages. Start at{" "}
         <code className="rounded bg-muted px-1.5 py-0.5 font-mono text-sm">GET /v1/health</code> or
         read the{" "}
-        <a href={`${docsUrl}/quickstart`} className="text-primary hover:underline">
+        <a href={`${docsUrl}/quickstart`} className="text-link hover:underline">
           quickstart
         </a>
         .

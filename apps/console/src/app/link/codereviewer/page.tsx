@@ -69,9 +69,7 @@ export default async function LinkCodeReviewerPage(props: PageProps<"/link/coder
 
   return (
     <div className="mx-auto max-w-2xl px-6 py-12">
-      <span className="font-mono text-xs uppercase tracking-widest text-muted-foreground">
-        CodeReviewer
-      </span>
+      <span className="text-sm font-medium text-link">CodeReviewer</span>
       <h1 className="mt-2 text-3xl font-semibold tracking-tight">Link a GitHub account</h1>
       <div className="mt-4 text-muted-foreground">{body}</div>
     </div>

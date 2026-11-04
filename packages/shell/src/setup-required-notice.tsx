@@ -7,9 +7,7 @@
 export function SetupRequiredNotice({ appName }: { appName: string }) {
   return (
     <div className="flex flex-1 flex-col items-center justify-center px-6 py-28 text-center">
-      <span className="font-mono text-xs uppercase tracking-widest text-warning">
-        Setup required
-      </span>
+      <span className="text-sm font-medium text-warning">Setup required</span>
       <h1 className="mt-3 text-3xl font-semibold tracking-tight sm:text-4xl">
         {appName} needs an identity provider.
       </h1>

@@ -21,9 +21,7 @@ export default function MarketplacePage() {
 
   return (
     <div className="mx-auto max-w-6xl px-6 py-20">
-      <span className="font-mono text-xs uppercase tracking-widest text-muted-foreground">
-        Ecosystem
-      </span>
+      <span className="text-sm font-medium text-link">Ecosystem</span>
       <h1 className="mt-3 text-4xl font-semibold tracking-tight">Marketplace</h1>
       <p className="mt-4 max-w-2xl text-lg text-pretty text-muted-foreground">
         Everything that plugs into NEXORA, grouped by what it is — not just apps. A category with

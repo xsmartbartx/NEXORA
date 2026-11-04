@@ -67,15 +67,13 @@ export default async function BundleCheckoutPage(props: PageProps<"/billing/bund
 
   return (
     <div className="mx-auto max-w-lg px-6 py-12">
-      <span className="font-mono text-xs uppercase tracking-widest text-muted-foreground">
-        Billing
-      </span>
+      <span className="text-sm font-medium text-link">Billing</span>
       <h1 className="mt-2 text-3xl font-semibold tracking-tight">Confirm your bundle</h1>
 
       {invalid ? (
         <div className="mt-8 rounded-xl border border-dashed border-border p-6 text-sm text-muted-foreground">
           This bundle link looks incomplete or invalid.{" "}
-          <Link href="/billing" className="text-primary hover:underline">
+          <Link href="/billing" className="text-link hover:underline">
             Go to Billing
           </Link>{" "}
           to set up each product individually, or build a fresh bundle from the pricing page.

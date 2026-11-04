@@ -35,7 +35,7 @@ export default async function SolutionPage(props: PageProps<"/solutions/[slug]">
         {solution.pillars.map((pillar) => (
           <span
             key={pillar}
-            className="rounded-full border border-border px-2 py-0.5 font-mono text-xs uppercase tracking-widest text-muted-foreground"
+            className="rounded-full bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground"
           >
             {pillarLabels[pillar]}
           </span>

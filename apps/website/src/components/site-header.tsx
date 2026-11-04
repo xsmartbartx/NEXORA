@@ -15,7 +15,7 @@ export function SiteHeader() {
       <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-6">
         <Link href="/" className="flex items-center gap-2" onClick={() => setOpen(false)}>
           <LogoMark className="h-7 w-7" />
-          <span className="font-mono text-sm font-semibold tracking-widest uppercase">NEXORA</span>
+          <span className="text-base font-semibold tracking-tight">NEXORA</span>
         </Link>
 
         <nav className="hidden items-center gap-1 md:flex">

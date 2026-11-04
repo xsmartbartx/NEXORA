@@ -65,9 +65,7 @@ export default async function SecurityPage() {
 
   return (
     <div className="mx-auto max-w-3xl px-6 py-12">
-      <span className="font-mono text-xs uppercase tracking-widest text-muted-foreground">
-        Console
-      </span>
+      <span className="text-sm font-medium text-link">Console</span>
       <h1 className="mt-2 text-3xl font-semibold tracking-tight">Security</h1>
       <p className="mt-2 max-w-xl text-muted-foreground">
         A snapshot of your account and organisation&rsquo;s security posture.
@@ -115,7 +113,7 @@ export default async function SecurityPage() {
       {!mfaEnabled ? (
         <Alert className="mt-8">
           Multi-factor authentication isn&rsquo;t enabled on your account. Turn it on from{" "}
-          <Link href="/organisation" className="text-primary hover:underline">
+          <Link href="/organisation" className="text-link hover:underline">
             account settings
           </Link>
           .
