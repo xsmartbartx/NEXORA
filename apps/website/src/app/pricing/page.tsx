@@ -15,19 +15,13 @@ const neurawallUrl = "https://neurawall.onenexora.com";
 const codereviewerUrl = "https://codereviewer.onenexora.com";
 const prismUrl = "https://prism.onenexora.com";
 
-function neurawallSales(plan: string): Tier["cta"] {
-  return {
-    label: "Contact sales",
-    href: `mailto:${siteConfig.contactEmail}?subject=${encodeURIComponent(`NeuraWall ${plan}`)}`,
-  };
+function salesCta(product: string, plan: string): Tier["cta"] {
+  const subject = encodeURIComponent(product + " " + plan);
+  return { label: "Contact sales", href: `mailto:${siteConfig.contactEmail}?subject=${subject}` };
 }
 
-function prismSales(plan: string): Tier["cta"] {
-  return {
-    label: "Contact sales",
-    href: `mailto:${siteConfig.contactEmail}?subject=${encodeURIComponent(`Prism ${plan}`)}`,
-  };
-}
+const neurawallSales = (plan: string) => salesCta("NeuraWall", plan);
+const prismSales = (plan: string) => salesCta("Prism", plan);
 
 interface Tier {
   name: string;

@@ -77,7 +77,7 @@ case "$project" in
     # Runs the published image named by PRISM_VERSION in /opt/prism/.env (no build on this host),
     # so a deploy is a pull: the checkout for the compose file, then the image. The app applies
     # its migrations on start-up. No service names: the stack is the app and its Postgres.
-    [ "$#" -eq 0 ] || { echo "Prism deploys as a whole; it takes no service names." >&2; exit 2; }
+    [[ "$#" -eq 0 ]] || { echo "Prism deploys as a whole; it takes no service names." >&2; exit 2; }
     checkout=/opt/prism
     cd "$checkout" && git pull --ff-only
     compose=(sudo docker compose --env-file .env -f deploy/nexora/compose.yml)
