@@ -199,3 +199,13 @@ neurawall-demo.onenexora.com {
 monitoring.onenexora.com {
 	reverse_proxy nexora-grafana-1:3000
 }
+# CodeReviewer (AI pull request reviews, github.com/xsmartbartx/CodeReviewer): its own Compose
+# project in ~/codereviewer, reached over codereviewer_default like the other products. It uses
+# Server Actions, so it gets security_headers but NOT no_server_actions. GitHub and Stripe
+# webhooks arrive through Cloudflare, so the origin lock does not block them.
+codereviewer.onenexora.com {
+	import security_headers
+	import cloudflare_only
+	encode zstd gzip
+	reverse_proxy codereviewer-web-1:3000
+}
