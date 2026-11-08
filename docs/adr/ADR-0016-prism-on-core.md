@@ -38,6 +38,7 @@ No data, authentication or billing changes in Core.
   guide.
 - **Hosting:** compose project `prism` in `/opt/prism` (`deploy/nexora/compose.yml` in the Prism
   repository): the released image and PostgreSQL 16, no host ports, read-only root filesystem.
+  It generates its own secrets in a Docker volume on first start, so the host needs no secrets file.
   The edge Caddy joins `prism_default` and serves `prism.onenexora.com` behind the Cloudflare
   origin lock. It does not import `security_headers`: Prism sets its own headers and CSP, and its
   opt-in `/embed/` pages must be frameable.
@@ -88,12 +89,13 @@ license keys; phase 2 adds Core billing for organisations without forcing it on 
 
 Manual steps, phase 1 (in this order):
 
-- Clone `/opt/prism`, create `/opt/prism/.env` (mode 600) from `deploy/nexora/env.example`, start
-  the stack once, claim the instance, and `docker network connect prism_default edge-caddy-1`
-  (the edge stack's compose file names the network for its next recreation).
+- Clone `/opt/prism`, start the stack once, claim the instance, and
+  `docker network connect prism_default edge-caddy-1` (the edge stack's compose file names the
+  network for its next recreation). No secrets file is needed: the stack writes a random database
+  password into its private `prism_secrets` volume on first start and Prism generates its secret
+  key in `prism_data`, so both live in the nightly backup's volumes, not on a person's disk.
 - Install the updated nightly script, which the cron runs from a copy (see `infrastructure/docker/README.md`):
   `install -m 755 /opt/nexora/infrastructure/deployment/backup-all.sh /opt/backups/backup-all.sh`.
   When this ADR was written the copy predated ADR-0015, so CodeReviewer's database was not in the
   nightly archive either; installing the current script adds both.
 - Add a proxied `A` record `prism` → the VM's public IP in Cloudflare, then `deploy.sh edge`.
-- Keep `/opt/prism/.env` in the password manager with the other environment files.

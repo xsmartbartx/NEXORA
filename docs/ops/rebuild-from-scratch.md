@@ -50,8 +50,8 @@ secrets, the NeuraWall signing key inside its data volume backup).
    from its own backup if it has one (`prism restore <archive>` for a Prism backup).
 
 5. **Start.** `infrastructure/deployment/deploy.sh nexora db-migrate website account console api gateway docs developers status sentinel cspm`,
-   then the Vigilo and NeuraWall stacks, `deploy.sh codereviewer`, `deploy.sh prism` (after cloning `/opt/prism` and restoring
-   `/opt/prism/.env`; see `docs/nexora.md` in the Prism repository), then `deploy.sh edge`.
+   then the Vigilo and NeuraWall stacks, `deploy.sh codereviewer`, `deploy.sh prism` (after cloning `/opt/prism`; it
+   needs no secrets file, see `docs/nexora.md` in the Prism repository), then `deploy.sh edge`.
 6. **DNS.** Point the `A` records at the new public IP (lower the TTL beforehand if you know a move is
    coming). Caddy obtains certificates on its own once DNS resolves.
 7. **Crons and jobs.** Install the crontab entries documented in `docs/ops/notification-hub.md`,

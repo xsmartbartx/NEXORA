@@ -74,13 +74,16 @@ case "$project" in
     sudo docker compose up -d
     ;;
   prism)
-    # Runs the published image named by PRISM_VERSION in /opt/prism/.env (no build on this host),
-    # so a deploy is a pull: the checkout for the compose file, then the image. The app applies
-    # its migrations on start-up. No service names: the stack is the app and its Postgres.
+    # Runs the published image named by PRISM_VERSION (no build on this host), so a deploy is a
+    # pull: the checkout for the compose file, then the image. The app applies its migrations on
+    # start-up. No service names: the stack is the app, its Postgres and a one-shot secrets step.
+    # The stack generates its own secrets in a Docker volume, so the env file in the checkout is
+    # optional and holds only non-secret overrides (version, license key).
     [[ "$#" -eq 0 ]] || { echo "Prism deploys as a whole; it takes no service names." >&2; exit 2; }
     checkout=/opt/prism
     cd "$checkout" && git pull --ff-only
-    compose=(sudo docker compose --env-file .env -f deploy/nexora/compose.yml)
+    compose=(sudo docker compose -f deploy/nexora/compose.yml)
+    if [[ -f .env ]]; then compose+=(--env-file .env); fi
     "${compose[@]}" pull app
     "${compose[@]}" up -d
     ;;
