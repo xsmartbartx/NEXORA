@@ -355,7 +355,18 @@ dumps each Postgres (`pg_dump -Fc`) and the stateful volumes into one
 archive to the OCI Object Storage bucket `nexora-backups` using instance
 principal auth (create-only; expiry is a bucket lifecycle rule). Only a fully
 successful run advances the heartbeat that `status.onenexora.com/api/backup`
-serves to the uptime workflow.
+serves to the uptime workflow. A stopped Prism stack does not cost the other
+products their backup: the archive is written without it and the run then
+fails without advancing the heartbeat.
+
+The cron entry runs a **copy** of `infrastructure/deployment/backup-all.sh`, so
+a `git pull` alone does not change what runs at night. After merging a change
+to the script, install it:
+
+```bash
+install -m 755 /opt/nexora/infrastructure/deployment/backup-all.sh /opt/backups/backup-all.sh
+diff /opt/backups/backup-all.sh /opt/nexora/infrastructure/deployment/backup-all.sh && echo installed
+```
 
 A backup you have never restored is a hypothesis. Run the drill on the VM:
 
@@ -368,7 +379,8 @@ It restores `nexora-postgres.dump` into a throwaway `postgres:16-alpine`
 container (never the production database), checks that `api_keys`,
 `audit_events`, `subscriptions` and `product_suspensions` exist, prints row
 counts and the restore time, and removes the container. It does the same for
-`codereviewer-postgres.dump` (`accounts`, `repositories`, `reviews`) on the
+`codereviewer-postgres.dump` (`accounts`, `repositories`, `reviews`) and
+`prism-postgres.dump` (`users`, `datasets`, `dataset_versions`, `audit_events`) on the
 Postgres major its dump records. Last run
 (2026-10-03, archive `platform-backup-20261003T030002Z`): passed, restore
 under 1 s on a 9.6 MB archive. Re-run it after any schema change and at least

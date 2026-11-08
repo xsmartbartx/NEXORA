@@ -11,6 +11,7 @@
 #   deploy.sh codereviewer               # CodeReviewer (/home/opc/codereviewer): migrate, web and worker
 #   deploy.sh linegist                   # Linegist (/home/opc/linegist, deploy/oci): migrate, then app
 #   deploy.sh omniflow [omniflow] [site] # OmniFlow (/home/opc/omniflow): the server and/or the product site
+#   deploy.sh prism                      # Prism (/opt/prism, deploy/nexora/compose.yml): pulls the released image
 #   deploy.sh edge                       # reload the shared Caddy config
 #
 # Waits up to 30 minutes for a running deploy to finish, then gives up.
@@ -22,7 +23,7 @@ if [[ "$(id -u)" -eq 0 ]]; then
   exec sudo -u opc -- "$0" "$@"
 fi
 
-project="${1:?usage: deploy.sh nexora|vigilo|neurawall|gateway|codereviewer|linegist|omniflow|edge [service...]}"
+project="${1:?usage: deploy.sh nexora|vigilo|neurawall|gateway|codereviewer|linegist|omniflow|prism|edge [service...]}"
 shift
 
 exec 9>/opt/.platform-deploy.lock
@@ -102,12 +103,26 @@ case "$project" in
     sudo docker compose build "$@"
     sudo docker compose up -d --no-deps "$@"
     ;;
+  prism)
+    # Runs the published image named by PRISM_VERSION (no build on this host), so a deploy is a
+    # pull: the checkout for the compose file, then the image. The app applies its migrations on
+    # start-up. No service names: the stack is the app, its Postgres and a one-shot secrets step.
+    # The stack generates its own secrets in a Docker volume, so the env file in the checkout is
+    # optional and holds only non-secret overrides (version, license key).
+    [[ "$#" -eq 0 ]] || { echo "Prism deploys as a whole; it takes no service names." >&2; exit 2; }
+    checkout=/opt/prism
+    cd "$checkout" && git pull --ff-only
+    compose=(sudo docker compose -f deploy/nexora/compose.yml)
+    if [[ -f .env ]]; then compose+=(--env-file .env); fi
+    "${compose[@]}" pull app
+    "${compose[@]}" up -d
+    ;;
   edge)
     cd /opt/nexora && git pull --ff-only
     sudo docker exec edge-caddy-1 caddy reload --config /etc/caddy/Caddyfile
     ;;
   *)
-    echo "Unknown project: $project (expected nexora, vigilo, neurawall, gateway, codereviewer, linegist, omniflow or edge)." >&2
+    echo "Unknown project: $project (expected nexora, vigilo, neurawall, gateway, codereviewer, linegist, omniflow, prism or edge)." >&2
     exit 2
     ;;
 esac
