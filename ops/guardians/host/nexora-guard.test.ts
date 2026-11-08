@@ -47,6 +47,19 @@ describe("what the key may ask for", () => {
     expect(r.needsApproval).toBe(true);
   });
 
+  it("deploys Linegist as a whole, with approval because it runs migrations", () => {
+    const r = ok("deploy linegist");
+    expect(r.argv).toEqual(["sudo", "-n", "-u", "opc", DEPLOY, "linegist"]);
+    expect(r.needsApproval).toBe(true);
+  });
+
+  it("deploys the OmniFlow server and site by name, without approval", () => {
+    const r = ok("deploy omniflow omniflow site");
+    expect(r.argv).toEqual(["sudo", "-n", "-u", "opc", DEPLOY, "omniflow", "omniflow", "site"]);
+    expect(r.needsApproval).toBe(false);
+    expect(ok("deploy omniflow site").needsApproval).toBe(false);
+  });
+
   it("allows the restore drill and --dry-run", () => {
     expect(ok("restore-drill").tier).toBe("T2");
     expect(ok("--dry-run deploy nexora website").dryRun).toBe(true);
@@ -80,6 +93,9 @@ describe("what it refuses", () => {
     "deploy nexora -f",
     "deploy edge website",
     "deploy codereviewer web",
+    "deploy linegist app",
+    "deploy omniflow",
+    "deploy omniflow caddy",
     "restore-drill now",
     "deploy nexora a b c d e f g h i",
     "scp x y",

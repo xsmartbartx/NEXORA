@@ -32,8 +32,9 @@ secrets, the NeuraWall signing key inside its data volume backup).
    use the Hetzner fallback below.
 2. **Packages on the host** (not yet scripted): Docker with the compose plugin, git, `nodejs:22`
    (`dnf module enable nodejs:22 && dnf install nodejs`, needed by the worker), the OCI CLI, `gpg`,
-   `rclone`. Create `/opt/nexora` (owned by `opc`), `/opt/backups`, `/opt/vigilo`, `/opt/neurawall`, and
-   `/home/opc/codereviewer`, and clone the four repositories (CodeReviewer also needs its server-only
+   `rclone`. Create `/opt/nexora` (owned by `opc`), `/opt/backups`, `/opt/vigilo`, `/opt/neurawall`, `/opt/gateway`,
+   `/home/opc/codereviewer`, `/home/opc/linegist` (AI_Cloud_Log_Anomaly_Detection_System) and
+   `/home/opc/omniflow`, and clone the repositories into them (CodeReviewer also needs its server-only
    `docker-compose.override.yml`, which publishes no host ports). Vigilo's remote must point at the Vigilo repository, not NEXORA.
 3. **Secrets.** Put the environment files back from the password manager (mode 600). Do not commit them.
 4. **Data.** Fetch the newest archive:
@@ -48,7 +49,8 @@ secrets, the NeuraWall signing key inside its data volume backup).
    volumes into their Docker volumes.
 
 5. **Start.** `infrastructure/deployment/deploy.sh nexora db-migrate website account console api gateway docs developers status sentinel cspm`,
-   then the Vigilo and NeuraWall stacks, `deploy.sh codereviewer`, then `deploy.sh edge`.
+   then the Vigilo and NeuraWall stacks, `deploy.sh codereviewer`, `deploy.sh linegist`, `deploy.sh omniflow`,
+   then `deploy.sh edge`.
 6. **DNS.** Point the `A` records at the new public IP (lower the TTL beforehand if you know a move is
    coming). Caddy obtains certificates on its own once DNS resolves.
 7. **Crons and jobs.** Install the crontab entries documented in `docs/ops/notification-hub.md`,
