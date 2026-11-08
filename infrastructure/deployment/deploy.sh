@@ -62,7 +62,16 @@ case "$project" in
     cd /opt/gateway && git pull --ff-only
     compose=(sudo docker compose --env-file deploy/.env.prod -f deploy/compose.prod.yml)
     "${compose[@]}" build "$@"
-    "${compose[@]}" up -d --no-deps "$@"
+    for service in "$@"; do
+      if [ "$service" = api ]; then
+        # api waits for migrate (`alembic upgrade head`, same image): build it and let `up` run
+        # it to completion first. --no-deps here would start the new API on the old schema.
+        "${compose[@]}" build migrate
+        "${compose[@]}" up -d api
+      else
+        "${compose[@]}" up -d --no-deps "$service"
+      fi
+    done
     ;;
   codereviewer)
     # One image serves migrate, web and worker, so the whole stack deploys together: build

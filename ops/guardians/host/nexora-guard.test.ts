@@ -47,6 +47,17 @@ describe("what the key may ask for", () => {
     expect(r.needsApproval).toBe(true);
   });
 
+  it("deploys the standalone Gateway, with approval only for api (it runs migrations)", () => {
+    expect(ok("deploy gateway web")).toMatchObject({
+      argv: ["sudo", "-n", "-u", "opc", DEPLOY, "gateway", "web"],
+      needsApproval: false,
+    });
+    expect(ok("deploy gateway api").needsApproval).toBe(true);
+    expect(ok("deploy gateway api web").needsApproval).toBe(true);
+    // NEXORA's own api service is not the Gateway's: no approval for it.
+    expect(ok("deploy nexora api").needsApproval).toBe(false);
+  });
+
   it("deploys Linegist as a whole, with approval because it runs migrations", () => {
     const r = ok("deploy linegist");
     expect(r.argv).toEqual(["sudo", "-n", "-u", "opc", DEPLOY, "linegist"]);
@@ -100,6 +111,9 @@ describe("what it refuses", () => {
     "deploy edge website",
     "deploy codereviewer web",
     "deploy linegist app",
+    "deploy gateway",
+    "deploy gateway postgres",
+    "deploy gateway migrate",
     "deploy omniflow",
     "deploy omniflow caddy",
     "deploy prism app",
