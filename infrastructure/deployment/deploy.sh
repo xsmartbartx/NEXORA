@@ -9,6 +9,8 @@
 #   deploy.sh neurawall control-plane    # NeuraWall (/opt/neurawall, deploy/compose/nexora-host.yml)
 #   deploy.sh gateway api web            # standalone Gateway (/opt/gateway, deploy/compose.prod.yml)
 #   deploy.sh codereviewer               # CodeReviewer (/home/opc/codereviewer): migrate, web and worker
+#   deploy.sh linegist                   # Linegist (/home/opc/linegist, deploy/oci): migrate, then app
+#   deploy.sh omniflow [omniflow] [site] # OmniFlow (/home/opc/omniflow): the server and/or the product site
 #   deploy.sh prism                      # Prism (/opt/prism, deploy/nexora/compose.yml): pulls the released image
 #   deploy.sh edge                       # reload the shared Caddy config
 #
@@ -21,7 +23,7 @@ if [[ "$(id -u)" -eq 0 ]]; then
   exec sudo -u opc -- "$0" "$@"
 fi
 
-project="${1:?usage: deploy.sh nexora|vigilo|neurawall|gateway|codereviewer|prism|edge [service...]}"
+project="${1:?usage: deploy.sh nexora|vigilo|neurawall|gateway|codereviewer|linegist|omniflow|prism|edge [service...]}"
 shift
 
 exec 9>/opt/.platform-deploy.lock
@@ -73,6 +75,34 @@ case "$project" in
     sudo docker compose build migrate
     sudo docker compose up -d
     ;;
+  linegist)
+    # migrate and app are two targets of one Dockerfile: build both, then `up -d app` runs the
+    # migration to completion before the app restarts (depends_on: service_completed_successfully).
+    # No --no-deps, or a new migration would be skipped. The database container is left as it is
+    # unless its own config changed. Compose reads deploy/oci/.env by itself; the "standalone"
+    # profile (its own Caddy) stays off because the shared edge serves linegist.onenexora.com.
+    [ "$#" -eq 0 ] || { echo "Linegist deploys as a whole; it takes no service names." >&2; exit 2; }
+    checkout=/home/opc/linegist
+    cd "$checkout" && git pull --ff-only
+    cd deploy/oci
+    sudo docker compose build migrate app
+    sudo docker compose up -d app
+    ;;
+  omniflow)
+    # Two independent services: the workflow server (`omniflow`) and the static product site
+    # (`site`, behind the "site" profile, which naming it turns on). Both by default.
+    [ "$#" -gt 0 ] || set -- omniflow site
+    for service in "$@"; do
+      case "$service" in
+        omniflow | site) ;;
+        *) echo "Unknown OmniFlow service: $service (expected omniflow or site)." >&2; exit 2 ;;
+      esac
+    done
+    checkout=/home/opc/omniflow
+    cd "$checkout" && git pull --ff-only
+    sudo docker compose build "$@"
+    sudo docker compose up -d --no-deps "$@"
+    ;;
   prism)
     # Runs the published image named by PRISM_VERSION (no build on this host), so a deploy is a
     # pull: the checkout for the compose file, then the image. The app applies its migrations on
@@ -92,7 +122,7 @@ case "$project" in
     sudo docker exec edge-caddy-1 caddy reload --config /etc/caddy/Caddyfile
     ;;
   *)
-    echo "Unknown project: $project (expected nexora, vigilo, neurawall, gateway, codereviewer, prism or edge)." >&2
+    echo "Unknown project: $project (expected nexora, vigilo, neurawall, gateway, codereviewer, linegist, omniflow, prism or edge)." >&2
     exit 2
     ;;
 esac
