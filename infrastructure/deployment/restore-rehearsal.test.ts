@@ -52,6 +52,22 @@ describe("restore-drill.sh", () => {
     expect(drill).toContain("FALLBACK_IMAGE=postgres:16-alpine");
   });
 
+  it("reads the major version from a real pg_restore header (with or without a colon)", () => {
+    const program = /sed -n '([^']+)'/.exec(
+      drill.slice(drill.indexOf("Dumped from database version") - 40),
+    )?.[1];
+    expect(program).toBeDefined();
+    const major = (line: string) =>
+      spawnSync("sed", ["-n", program as string], { input: line + "\n" })
+        .stdout.toString()
+        .trim();
+    // pg_restore -l prints "version: 17.11" (PostgreSQL 16 and 17); older ones had no colon.
+    expect(major(";     Dumped from database version: 17.11")).toBe("17");
+    expect(major(";     Dumped from database version: 16.15")).toBe("16");
+    expect(major("; Dumped from database version 15.4")).toBe("15");
+    expect(major("; Dumped by pg_dump version: 17.11")).toBe("");
+  });
+
   it("still fails loudly on any restore error", () => {
     expect(drill).toContain("--exit-on-error");
     expect(drill).toContain("RESTORE DRILL FAILED");

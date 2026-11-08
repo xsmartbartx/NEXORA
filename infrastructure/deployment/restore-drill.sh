@@ -47,7 +47,7 @@ drill() {
     image="$PG_IMAGE"
   else
     major=$(docker run --rm -v "$work:/w:ro" "$READER_IMAGE" pg_restore -l "/w/$db-postgres.dump" 2>/dev/null \
-      | sed -n 's/^; *Dumped from database version \([0-9][0-9]*\).*/\1/p' | head -1)
+      | sed -n 's/^; *Dumped from database version:\{0,1\} *\([0-9][0-9]*\).*/\1/p' | head -1)
     if [[ "$major" =~ ^[0-9]+$ ]]; then image="postgres:${major}-alpine"; else image="$FALLBACK_IMAGE"; fi
   fi
   echo "[$db] Postgres image: $image"
