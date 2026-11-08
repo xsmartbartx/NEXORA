@@ -54,6 +54,8 @@ const PROJECTS = {
   ]),
   vigilo: null, // service names are Vigilo's own; checked by shape only
   neurawall: null,
+  // The standalone Gateway (/opt/gateway); deploying api runs its migrations first.
+  gateway: new Set(["api", "web"]),
   // Deployed as a whole (one image for migrate, web and worker), like the edge.
   codereviewer: new Set(),
   // Deployed as a whole too: the migration runs before the app restarts.
@@ -65,8 +67,8 @@ const PROJECTS = {
 };
 // Projects deployed without service names.
 const WHOLE_PROJECTS = new Set(["edge", "codereviewer", "linegist", "prism"]);
-// Services whose deploy changes data or exposure: approval required even for a deploy.
-const GUARDED_SERVICES = new Set(["db-migrate"]);
+// Services whose deploy changes data or exposure, per project: approval required even for a deploy.
+const GUARDED_SERVICES = { nexora: new Set(["db-migrate"]), gateway: new Set(["api"]) };
 const NAME = /^[a-z][a-z0-9-]{0,40}$/;
 
 const AUDITS = {
@@ -132,7 +134,10 @@ export function resolve(command) {
       if (!NAME.test(s) || (known && !known.has(s))) return refuse(`service not allowed: ${s}`);
     }
     // The edge changes exposure; CodeReviewer, Linegist and Prism deploys always run their migrations.
-    const guarded = WHOLE_PROJECTS.has(project) || services.some((s) => GUARDED_SERVICES.has(s));
+    const guardedHere = Object.hasOwn(GUARDED_SERVICES, project)
+      ? GUARDED_SERVICES[project]
+      : new Set();
+    const guarded = WHOLE_PROJECTS.has(project) || services.some((s) => guardedHere.has(s));
     return done(["sudo", "-n", "-u", "opc", DEPLOY, project, ...services], "T2", guarded);
   }
 

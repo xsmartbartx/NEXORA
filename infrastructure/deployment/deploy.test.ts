@@ -59,6 +59,16 @@ describe("deploy.sh", () => {
     expect(linegist).not.toContain("standalone");
   });
 
+  it("runs the Gateway's migrations before its api restarts, and only for api", () => {
+    const gateway = codeOnly(branch("gateway"));
+    expect(gateway).toContain("cd /opt/gateway && git pull --ff-only");
+    expect(gateway).toContain('if [ "$service" = api ]; then');
+    expect(gateway).toContain('"${compose[@]}" build migrate');
+    expect(gateway).toMatch(/"\$\{compose\[@\]\}" up -d api$/m);
+    expect(gateway).toContain('"${compose[@]}" up -d --no-deps "$service"');
+    expect(gateway).not.toContain('up -d --no-deps "$@"');
+  });
+
   it("deploys only OmniFlow's server and site, both by default", () => {
     const omniflow = branch("omniflow");
     expect(omniflow).toContain("checkout=/home/opc/omniflow");
