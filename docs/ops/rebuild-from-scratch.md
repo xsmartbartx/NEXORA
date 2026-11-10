@@ -17,7 +17,11 @@ times in the table at the bottom and correct anything that turned out wrong.
 
 **Secrets are the gap.** The environment files exist only on the host. Keep a copy of each in your
 password manager; without them a restored database still cannot run the platform (Stripe, Clerk, webhook
-secrets, the NeuraWall signing key inside its data volume backup).
+secrets, the NeuraWall signing key inside its data volume backup). Prism has no generated secrets to keep:
+its secret key is inside the Prism data archive, and its database password is generated anew when its stack
+first starts on the new host. If `/opt/prism/.env` exists, keep a copy of it too (mode 600): it holds
+Prism's overrides, such as the deployed `PRISM_VERSION` (without it a rebuild runs the compose file's
+default version) and the license key if one was added.
 
 ## Steps
 
