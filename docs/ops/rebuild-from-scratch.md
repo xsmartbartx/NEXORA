@@ -12,14 +12,16 @@ times in the table at the bottom and correct anything that turned out wrong.
 | nightly backup (5 Postgres dumps, NeuraWall, Prism data, MinIO) | host `/opt/backups/archives` (14 days)                              | no                      | no                               |
 | off-site copy 1                                                 | OCI bucket `nexora-backups` (expires after `backup_retention_days`) | yes                     | **no**                           |
 | off-site copy 2                                                 | other provider, encrypted (`offsite-copy.sh`)                       | yes                     | yes, needs the private GPG key   |
-| secrets (`.env.prod`, Vigilo, NeuraWall, CodeReviewer)          | the host only                                                       | no                      | no                               |
+| secrets (`.env.prod`, Vigilo, NeuraWall, CodeReviewer, Prism)   | the host only                                                       | no                      | no                               |
 | infrastructure definition                                       | `infrastructure/terraform`                                          | yes                     | yes                              |
 
 **Secrets are the gap.** The environment files exist only on the host. Keep a copy of each in your
 password manager; without them a restored database still cannot run the platform (Stripe, Clerk, webhook
-secrets, the NeuraWall signing key inside its data volume backup). Prism has none to keep: its secret key
-is inside the Prism data archive, and its database password is generated anew when its stack first starts
-on the new host (only a license key, if one was added to `/opt/prism/.env`, belongs in the password manager).
+secrets, the NeuraWall signing key inside its data volume backup). Prism has no generated secrets to keep:
+its secret key is inside the Prism data archive, and its database password is generated anew when its stack
+first starts on the new host. If `/opt/prism/.env` exists, keep a copy of it too (mode 600): it holds
+Prism's overrides, such as the deployed `PRISM_VERSION` (without it a rebuild runs the compose file's
+default version) and the license key if one was added.
 
 ## Steps
 
