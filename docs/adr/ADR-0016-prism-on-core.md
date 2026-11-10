@@ -93,7 +93,10 @@ Manual steps, phase 1 (in this order):
   `docker network connect prism_default edge-caddy-1` (the edge stack's compose file names the
   network for its next recreation). No secrets file is needed: the stack writes a random database
   password into its private `prism_secrets` volume on first start and Prism generates its secret
-  key in `prism_data`, so both live in the nightly backup's volumes, not on a person's disk.
+  key in `prism_data`, so neither is on a person's disk. The nightly backup archives `prism_data`
+  (so the secret key is restored with the data) but not `prism_secrets`, and does not need to: a
+  rebuild starts with an empty database volume, `init-secrets` generates a new password for it, and
+  the dump is restored into that database.
 - Install the updated nightly script, which the cron runs from a copy (see `infrastructure/docker/README.md`):
   `install -m 755 /opt/nexora/infrastructure/deployment/backup-all.sh /opt/backups/backup-all.sh`.
   When this ADR was written the copy predated ADR-0015, so CodeReviewer's database was not in the
