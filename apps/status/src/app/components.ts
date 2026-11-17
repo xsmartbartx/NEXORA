@@ -106,6 +106,12 @@ export const components: StatusComponent[] = [
     category: "products",
     checkUrl: "https://prism.onenexora.com/readyz",
   },
+  {
+    name: "AUREX",
+    description: "aurex.onenexora.com",
+    category: "products",
+    checkUrl: "https://aurex.onenexora.com/api/v1/health",
+  },
 ];
 
 export const categoryLabel: Record<ComponentCategory, string> = {
