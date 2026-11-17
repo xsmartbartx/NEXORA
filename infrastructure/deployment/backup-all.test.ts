@@ -39,6 +39,7 @@ describe("backup-all.sh", () => {
       ["neurawall-postgres-1", "neurawall"],
       ["codereviewer-postgres-1", "codereviewer"],
       ["prism-postgres-1", "prism"],
+      ["aurex-db-1", "aurex"],
     ]) {
       expect(text).toMatch(
         new RegExp(`docker exec ${container} pg_dump .* > "\\$work/${db}-postgres.dump"`),
@@ -57,6 +58,19 @@ describe("backup-all.sh", () => {
       tail.indexOf("$HEARTBEAT.tmp"),
     );
     expect(tail).toContain("heartbeat not advanced");
+  });
+
+  it("still archives every other product when AUREX is stopped, then fails without a heartbeat", () => {
+    const aurex = text.indexOf('aurex_failed=""');
+    expect(aurex).toBeGreaterThan(-1);
+    expect(aurex).toBeLessThan(text.indexOf('tar czf "$archive"'));
+    expect(text).toContain("docker inspect -f '{{.State.Running}}' aurex-db-1");
+    expect(text).toMatch(/\|\| aurex_failed="pg_dump of aurex-db-1 failed"/);
+    const tail = text.slice(text.indexOf("OK off-site"));
+    expect(tail.indexOf('if [[ -n "$aurex_failed" ]]')).toBeGreaterThan(-1);
+    expect(tail.indexOf('if [[ -n "$aurex_failed" ]]')).toBeLessThan(
+      tail.indexOf("$HEARTBEAT.tmp"),
+    );
   });
 
   it("uses instance principal and never refers to stored credentials", () => {

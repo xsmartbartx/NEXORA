@@ -63,10 +63,12 @@ const PROJECTS = {
   omniflow: new Set(["omniflow", "site"]),
   // Deployed as a whole too (the app runs its migrations on start-up).
   prism: new Set(),
+  // Deployed as a whole too: the secrets step and the migrations run before the services restart.
+  aurex: new Set(),
   edge: new Set(),
 };
 // Projects deployed without service names.
-const WHOLE_PROJECTS = new Set(["edge", "codereviewer", "linegist", "prism"]);
+const WHOLE_PROJECTS = new Set(["edge", "codereviewer", "linegist", "prism", "aurex"]);
 // Services whose deploy changes data or exposure, per project: approval required even for a deploy.
 const GUARDED_SERVICES = { nexora: new Set(["db-migrate"]), gateway: new Set(["api"]) };
 const NAME = /^[a-z][a-z0-9-]{0,40}$/;
@@ -133,7 +135,7 @@ export function resolve(command) {
     for (const s of services) {
       if (!NAME.test(s) || (known && !known.has(s))) return refuse(`service not allowed: ${s}`);
     }
-    // The edge changes exposure; CodeReviewer, Linegist and Prism deploys always run their migrations.
+    // The edge changes exposure; CodeReviewer, Linegist, Prism and AUREX deploys always run their migrations.
     const guardedHere = Object.hasOwn(GUARDED_SERVICES, project)
       ? GUARDED_SERVICES[project]
       : new Set();

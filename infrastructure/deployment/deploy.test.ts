@@ -79,6 +79,18 @@ describe("deploy.sh", () => {
     expect(omniflow.indexOf("Unknown OmniFlow service")).toBeLessThan(omniflow.indexOf("git pull"));
   });
 
+  it("deploys AUREX as a whole and runs its secrets step and migrations before the services restart", () => {
+    const aurex = codeOnly(branch("aurex"));
+    expect(aurex).toContain("checkout=/opt/aurex");
+    expect(aurex).toContain("git pull --ff-only");
+    expect(aurex).toContain("takes no service names");
+    expect(aurex).toContain("-f deploy/docker-compose.edge.yml -f compose.site.yml --profile app");
+    expect(aurex).toContain('"${compose[@]}" build migrate web');
+    // --no-deps would skip init-secrets and migrate, which the services depend on.
+    expect(aurex).toMatch(/"\$\{compose\[@\]\}" up -d$/m);
+    expect(aurex).not.toContain("--no-deps");
+  });
+
   it("reports the commit from the checkout each project uses", () => {
     expect(text).toContain('git -C "${checkout:-/opt/${project/edge/nexora}}" log --oneline -1');
   });
