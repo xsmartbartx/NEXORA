@@ -35,6 +35,7 @@ export const ENDPOINTS: Endpoint[] = [
     category: "partners",
   },
   { name: "Prism", url: "https://prism.onenexora.com/readyz", category: "partners" },
+  { name: "AUREX", url: "https://aurex.onenexora.com/api/v1/health", category: "partners" },
 ];
 
 export const BACKUP_URL = "https://status.onenexora.com/api/backup";
