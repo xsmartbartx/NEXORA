@@ -14,6 +14,7 @@ approval where a change is hard to undo, logs every call, and supports `--dry-ru
 | `deploy codereviewer` (runs its migrations)    | T2   | **yes**            | same                                       |
 | `deploy linegist` (runs its migrations)        | T2   | **yes**            | same                                       |
 | `deploy prism` (runs its migrations)           | T2   | **yes**            | same                                       |
+| `deploy aurex` (runs its migrations)           | T2   | **yes**            | same                                       |
 | `restore-drill`                                | T2   | no                 | `restore-drill.sh` as `opc`                |
 | anything else                                  |      | refused (exit 126) |                                            |
 

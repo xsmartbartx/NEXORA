@@ -222,3 +222,22 @@ prism.onenexora.com {
 	}
 	reverse_proxy prism-app-1:8080
 }
+
+# AUREX (financial research terminal, github.com/xsmartbartx/Aurex): its own compose project in
+# /opt/aurex (deploy/docker-compose.edge.yml), reached over aurex_default. The web app and the API set
+# their own security headers and CSP, so security_headers is NOT imported; it has no Server Actions.
+# /api goes straight to the API; uploads are capped at 5 MB by the app, the edge allows 10 MB.
+aurex.onenexora.com {
+	import cloudflare_only
+	import no_server_actions
+	encode zstd gzip
+	request_body {
+		max_size 10MB
+	}
+	handle /api/* {
+		reverse_proxy aurex-api-1:8000
+	}
+	handle {
+		reverse_proxy aurex-web-1:3000
+	}
+}

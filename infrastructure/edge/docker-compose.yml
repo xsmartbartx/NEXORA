@@ -20,6 +20,7 @@ services:
       - linegist_default
       - codereviewer_default
       - prism_default
+      - aurex_default
     volumes:
       # Mount the directory, not the single file: `git pull` replaces Caddyfile with a
       # new inode, and a single-file bind mount keeps showing the old one, so
@@ -59,6 +60,11 @@ networks:
   prism_default:
     # Created by `docker compose up` in /opt/prism (deploy/nexora/compose.yml); that stack must have been started
     # once before this one, otherwise this stack (and with it every site on 80/443) fails to start.
+    external: true
+
+  aurex_default:
+    # Created by `docker compose -p aurex up` in /opt/aurex (deploy/docker-compose.edge.yml); that stack must have
+    # been started once before this one, otherwise this stack (and with it every site on 80/443) fails to start.
     external: true
 
 volumes:

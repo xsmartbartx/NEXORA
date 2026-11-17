@@ -3,7 +3,7 @@
 # and MinIO evidence volume, NEXORA's Postgres, NeuraWall's Postgres plus its
 # data volume (holds the bundle-signing key every enrolled node trusts),
 # CodeReviewer's Postgres (its pg-boss review queue lives in the same database),
-# and Prism's Postgres plus its data volume (the Parquet dataset versions and uploads).
+# Prism's Postgres plus its data volume (the Parquet dataset versions and uploads), and AUREX's Postgres.
 # Uses `docker exec` directly rather than `docker compose exec`, so it doesn't
 # depend on any stack's .env being loadable.
 #
@@ -71,6 +71,21 @@ if [[ -n "$prism_failed" ]]; then
   echo "$(date -u) PRISM SKIPPED: $prism_failed"
 fi
 
+# AUREX is independently run too, so it is handled like Prism: a stopped AUREX skips only its own dump and
+# then fails the run without advancing the heartbeat. Its database is its only state; a restored dump works
+# with the credentials the stack generates for itself.
+aurex_failed=""
+if [[ "$(docker inspect -f '{{.State.Running}}' aurex-db-1 2>/dev/null)" == "true" ]]; then
+  docker exec aurex-db-1 pg_dump -U aurex -d aurex -Fc > "$work/aurex-postgres.dump" \
+    || aurex_failed="pg_dump of aurex-db-1 failed"
+else
+  aurex_failed="aurex-db-1 is not running"
+fi
+if [[ -n "$aurex_failed" ]]; then
+  rm -f "$work/aurex-postgres.dump"
+  echo "$(date -u) AUREX SKIPPED: $aurex_failed"
+fi
+
 tar czf "$archive" -C "$work" .
 echo "$(date -u) OK local $archive $(du -h "$archive" | cut -f1)"
 
@@ -83,6 +98,10 @@ if oci os object put --auth instance_principal --bucket-name "$BUCKET" \
   echo "$(date -u) OK off-site oci://$BUCKET/$object"
   if [[ -n "$prism_failed" ]]; then
     echo "$(date -u) FAILED: archive is missing Prism ($prism_failed); heartbeat not advanced"
+    exit 1
+  fi
+  if [[ -n "$aurex_failed" ]]; then
+    echo "$(date -u) FAILED: archive is missing AUREX ($aurex_failed); heartbeat not advanced"
     exit 1
   fi
   # Only a fully successful run (local + off-site, every product) advances the heartbeat

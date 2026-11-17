@@ -12,7 +12,8 @@
 #   deploy.sh linegist                   # Linegist (/home/opc/linegist, deploy/oci): migrate, then app
 #   deploy.sh omniflow [omniflow] [site] # OmniFlow (/home/opc/omniflow): the server and/or the product site
 #   deploy.sh prism                      # Prism (/opt/prism, deploy/nexora/compose.yml): pulls the released image
-#   deploy.sh edge                       # reload the shared Caddy config
+#   deploy.sh aurex                      # AUREX (/opt/aurex, deploy/docker-compose.edge.yml): migrate, then api, worker, web
+#   deploy.sh edge                      # reload the shared Caddy config
 #
 # Waits up to 30 minutes for a running deploy to finish, then gives up.
 set -euo pipefail
@@ -23,7 +24,7 @@ if [[ "$(id -u)" -eq 0 ]]; then
   exec sudo -u opc -- "$0" "$@"
 fi
 
-project="${1:?usage: deploy.sh nexora|vigilo|neurawall|gateway|codereviewer|linegist|omniflow|prism|edge [service...]}"
+project="${1:?usage: deploy.sh nexora|vigilo|neurawall|gateway|codereviewer|linegist|omniflow|prism|aurex|edge [service...]}"
 shift
 
 exec 9>/opt/.platform-deploy.lock
@@ -126,12 +127,25 @@ case "$project" in
     "${compose[@]}" pull app
     "${compose[@]}" up -d
     ;;
+  aurex)
+    # One image serves init-secrets, migrate, api and worker (migrate is the service with `build:`), and
+    # web has its own: build both, then `up -d` runs the secrets step and the migrations to completion
+    # before api, worker and web restart (depends_on). No --no-deps, or a new migration would be skipped.
+    # The stack generates its own secrets in a Docker volume; the server-only compose.site.yml holds the
+    # non-secret site settings (public URL, administrator, SEC contact).
+    [[ "$#" -eq 0 ]] || { echo "AUREX deploys as a whole; it takes no service names." >&2; exit 2; }
+    checkout=/opt/aurex
+    cd "$checkout" && git pull --ff-only
+    compose=(sudo docker compose -p aurex -f docker-compose.yml -f deploy/docker-compose.edge.yml -f compose.site.yml --profile app)
+    "${compose[@]}" build migrate web
+    "${compose[@]}" up -d
+    ;;
   edge)
     cd /opt/nexora && git pull --ff-only
     sudo docker exec edge-caddy-1 caddy reload --config /etc/caddy/Caddyfile
     ;;
   *)
-    echo "Unknown project: $project (expected nexora, vigilo, neurawall, gateway, codereviewer, linegist, omniflow, prism or edge)." >&2
+    echo "Unknown project: $project (expected nexora, vigilo, neurawall, gateway, codereviewer, linegist, omniflow, prism, aurex or edge)." >&2
     exit 2
     ;;
 esac
