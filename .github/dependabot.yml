@@ -11,6 +11,15 @@ updates:
     groups:
       minor-and-patch:
         update-types: [minor, patch]
+    ignore:
+      # The types must match the Node the apps run on: 22, in
+      # infrastructure/docker/Dockerfile and CI. Raise this with the runtime.
+      - dependency-name: "@types/node"
+        versions: [">=23.0.0"]
+      # typescript-eslint does not support TypeScript 7 yet, so lint fails
+      # (closed PR #113). Remove once it does.
+      - dependency-name: "typescript"
+        versions: [">=7.0.0"]
 
   - package-ecosystem: github-actions
     directory: /
