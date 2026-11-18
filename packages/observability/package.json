@@ -14,7 +14,7 @@
     "@sentry/nextjs": "^11"
   },
   "devDependencies": {
-    "@types/node": "^20",
+    "@types/node": "^22",
     "typescript": "^5"
   },
   "peerDependencies": {
