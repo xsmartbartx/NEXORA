@@ -18,7 +18,7 @@
     "@clerk/shared": "^4.33.0"
   },
   "devDependencies": {
-    "@types/node": "^20",
+    "@types/node": "^26",
     "@types/react": "^19",
     "typescript": "^5"
   },
