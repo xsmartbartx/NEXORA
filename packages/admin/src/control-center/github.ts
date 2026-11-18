@@ -6,6 +6,7 @@ export const REPOS = [
   "xsmartbartx/NeuraWall",
   "xsmartbartx/CodeReviewer",
   "xsmartbartx/Prism",
+  "xsmartbartx/Aurex",
 ] as const;
 
 const CACHE_MS = 5 * 60_000;

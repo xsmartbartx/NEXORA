@@ -172,4 +172,32 @@ export const productCapabilities: ProductCapability[] = [
       "Server-rendered charts, dashboards and expiring, revocable share and embed links.",
     order: 4,
   },
+
+  {
+    product: "aurex",
+    label: "Sourced, point-in-time data",
+    description:
+      "ECB and SEC data where every value shows its source, freshness and license, stored as it was known.",
+    order: 1,
+  },
+  {
+    product: "aurex",
+    label: "Evidence-first answers",
+    description:
+      "Research answers cite their evidence; statements it does not support are withheld.",
+    order: 2,
+  },
+  {
+    product: "aurex",
+    label: "Portfolios and backtests",
+    description:
+      "Portfolio risk, scenario simulations and backtests that account for trading costs.",
+    order: 3,
+  },
+  {
+    product: "aurex",
+    label: "Impact graph",
+    description: "Traces how a rate or currency move reaches sectors, companies and holdings.",
+    order: 4,
+  },
 ];
