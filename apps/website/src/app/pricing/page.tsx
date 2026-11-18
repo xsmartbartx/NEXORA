@@ -23,7 +23,21 @@ function salesCta(product: string, plan: string): Tier["cta"] {
 
 const neurawallSales = (plan: string) => salesCta("NeuraWall", plan);
 const prismSales = (plan: string) => salesCta("Prism", plan);
-const aurexSales = (plan: string) => salesCta("AUREX", plan);
+
+/** A plan with no list price yet: shown as "Quote", with a contact-sales link. */
+function quotedTier(product: string, name: string, features: string[], highlighted = false): Tier {
+  return {
+    name,
+    monthlyCents: 0,
+    yearlyCents: 0,
+    priceLabel: "Quote",
+    noPeriod: true,
+    yearlyNote: "Priced by sales",
+    features,
+    cta: salesCta(product, name),
+    highlighted,
+  };
+}
 
 interface Tier {
   name: string;
@@ -325,37 +339,23 @@ const products: ProductPricing[] = [
         ],
         cta: { label: "Start free", href: `${aurexUrl}/signup` },
       },
-      {
-        name: "Pro",
-        monthlyCents: 0,
-        yearlyCents: 0,
-        priceLabel: "Quote",
-        noPeriod: true,
-        yearlyNote: "Priced by sales",
-        features: [
+      quotedTier(
+        "AUREX",
+        "Pro",
+        [
           "100 research questions a day",
           "Alerts, screener and reports",
           "Scenarios and simulations",
           "10 portfolios, 20 watchlists",
         ],
-        cta: aurexSales("Pro"),
-        highlighted: true,
-      },
-      {
-        name: "Quant and Business",
-        monthlyCents: 0,
-        yearlyCents: 0,
-        priceLabel: "Quote",
-        noPeriod: true,
-        yearlyNote: "Priced by sales",
-        features: [
-          "Backtesting with costs",
-          "API keys, export and your own data",
-          "Team members, roles and audit trail",
-          "Up to 1,000 research questions a day",
-        ],
-        cta: aurexSales("Quant or Business"),
-      },
+        true,
+      ),
+      quotedTier("AUREX", "Quant and Business", [
+        "Backtesting with costs",
+        "API keys, export and your own data",
+        "Team members, roles and audit trail",
+        "Up to 1,000 research questions a day",
+      ]),
     ],
     note: "Plans apply per AUREX organisation. Enterprise adds licensed data connectors and self-hosted or dedicated deployments. AUREX provides analysis and simulation, not investment advice.",
   },
