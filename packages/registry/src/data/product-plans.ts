@@ -16,6 +16,8 @@ import type { ProductPlan } from "../types";
  * a real page rather than a redirect, so its references are kept in sync by
  * hand with its own `src/lib/billing/plans.ts`. Prism likewise bills itself
  * (offline license keys, `PLANS` in its `server/services/licensing.py`).
+ * AUREX bills itself as well (`PLANS` in its `security/plans.py`); its paid
+ * plans have no list price yet, so they show as "Contact sales".
  */
 export const productPlans: ProductPlan[] = [
   { product: "sentinel", name: "Free", limits: "20 scans/mo", price_reference: "$0" },
@@ -41,5 +43,18 @@ export const productPlans: ProductPlan[] = [
     name: "Pro",
     limits: "25 users, unlimited datasets",
     price_reference: "From $49/mo",
+  },
+
+  {
+    product: "aurex",
+    name: "Community",
+    limits: "5 AI questions/day, 1 portfolio",
+    price_reference: "$0",
+  },
+  {
+    product: "aurex",
+    name: "Pro",
+    limits: "100 AI questions/day, alerts and simulations",
+    price_reference: "Contact sales",
   },
 ];

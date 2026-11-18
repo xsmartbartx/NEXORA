@@ -6,7 +6,7 @@ import { buttonVariants, cn } from "@nexora/ui";
 export const metadata: Metadata = {
   title: "Pricing",
   description:
-    "Sentinel, CSPM and Gateway are each free to start, with independent Starter, Pro, Business and Scale tiers. Vigilo, CodeReviewer and Prism start at $0; NeuraWall plans run from $149 a month to dedicated enterprise deployments. Yearly billing saves up to 20%.",
+    "Sentinel, CSPM and Gateway are each free to start, with independent Starter, Pro, Business and Scale tiers. Vigilo, CodeReviewer, Prism and AUREX start at $0; NeuraWall plans run from $149 a month to dedicated enterprise deployments. Yearly billing saves up to 20%.",
 };
 
 const consoleUrl = process.env.NEXT_PUBLIC_CONSOLE_URL ?? "https://console.onenexora.com";
@@ -14,6 +14,7 @@ const vigiloUrl = "https://vigilo.onenexora.com";
 const neurawallUrl = "https://neurawall.onenexora.com";
 const codereviewerUrl = "https://codereviewer.onenexora.com";
 const prismInstallUrl = "https://github.com/xsmartbartx/Prism/blob/main/docs/install.md";
+const aurexUrl = "https://aurex.onenexora.com";
 
 function salesCta(product: string, plan: string): Tier["cta"] {
   const subject = encodeURIComponent(product + " " + plan);
@@ -22,6 +23,21 @@ function salesCta(product: string, plan: string): Tier["cta"] {
 
 const neurawallSales = (plan: string) => salesCta("NeuraWall", plan);
 const prismSales = (plan: string) => salesCta("Prism", plan);
+
+/** A plan with no list price yet: shown as "Quote", with a contact-sales link. */
+function quotedTier(product: string, name: string, features: string[], highlighted = false): Tier {
+  return {
+    name,
+    monthlyCents: 0,
+    yearlyCents: 0,
+    priceLabel: "Quote",
+    noPeriod: true,
+    yearlyNote: "Priced by sales",
+    features,
+    cta: salesCta(product, name),
+    highlighted,
+  };
+}
 
 interface Tier {
   name: string;
@@ -32,6 +48,8 @@ interface Tier {
   highlighted?: boolean;
   /** Replaces the formatted monthly price, e.g. for a quoted range. */
   priceLabel?: string;
+  /** Drops the "/ month" suffix, for a price label that is not a monthly amount (e.g. "Quote"). */
+  noPeriod?: boolean;
   /** Replaces the "or $X / year" line. */
   yearlyNote?: string;
 }
@@ -302,6 +320,45 @@ const products: ProductPricing[] = [
     ],
     note: "Plans apply per Prism instance and are unlocked with a license key that verifies offline, so self-hosted installations need no connection to NEXORA.",
   },
+  // AUREX's plans mirror its own plan table (PLANS in security/plans.py in the Aurex repository).
+  // The paid plans have no list price yet, so they are quoted by sales.
+  {
+    product: "AUREX",
+    summary:
+      "A financial research terminal: sourced market data, evidence-first answers, portfolios, backtests and an impact graph — at aurex.onenexora.com.",
+    tiers: [
+      {
+        name: "Community",
+        monthlyCents: 0,
+        yearlyCents: 0,
+        features: [
+          "Public and demonstration data",
+          "Charts, screener and one watchlist",
+          "Portfolio analytics",
+          "5 research questions a day",
+        ],
+        cta: { label: "Start free", href: `${aurexUrl}/signup` },
+      },
+      quotedTier(
+        "AUREX",
+        "Pro",
+        [
+          "100 research questions a day",
+          "Alerts, screener and reports",
+          "Scenarios and simulations",
+          "10 portfolios, 20 watchlists",
+        ],
+        true,
+      ),
+      quotedTier("AUREX", "Quant and Business", [
+        "Backtesting with costs",
+        "API keys, export and your own data",
+        "Team members, roles and audit trail",
+        "Up to 1,000 research questions a day",
+      ]),
+    ],
+    note: "Plans apply per AUREX organisation. Enterprise adds licensed data connectors and self-hosted or dedicated deployments. AUREX provides analysis and simulation, not investment advice.",
+  },
 ];
 
 function formatUsd(cents: number): string {
@@ -356,7 +413,7 @@ export default function PricingPage() {
                     <span className="text-4xl font-semibold tracking-tight">
                       {tier.priceLabel ?? formatUsd(tier.monthlyCents)}
                     </span>
-                    <span className="text-muted-foreground"> / month</span>
+                    {!tier.noPeriod && <span className="text-muted-foreground"> / month</span>}
                   </p>
                   <p className="mt-1 h-5 text-sm text-muted-foreground">
                     {tier.yearlyNote ??
