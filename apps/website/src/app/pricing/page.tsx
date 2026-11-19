@@ -23,21 +23,7 @@ function salesCta(product: string, plan: string): Tier["cta"] {
 
 const neurawallSales = (plan: string) => salesCta("NeuraWall", plan);
 const prismSales = (plan: string) => salesCta("Prism", plan);
-
-/** A plan with no list price yet: shown as "Quote", with a contact-sales link. */
-function quotedTier(product: string, name: string, features: string[], highlighted = false): Tier {
-  return {
-    name,
-    monthlyCents: 0,
-    yearlyCents: 0,
-    priceLabel: "Quote",
-    noPeriod: true,
-    yearlyNote: "Priced by sales",
-    features,
-    cta: salesCta(product, name),
-    highlighted,
-  };
-}
+const aurexSales = (plan: string) => salesCta("AUREX", plan);
 
 interface Tier {
   name: string;
@@ -48,8 +34,6 @@ interface Tier {
   highlighted?: boolean;
   /** Replaces the formatted monthly price, e.g. for a quoted range. */
   priceLabel?: string;
-  /** Drops the "/ month" suffix, for a price label that is not a monthly amount (e.g. "Quote"). */
-  noPeriod?: boolean;
   /** Replaces the "or $X / year" line. */
   yearlyNote?: string;
 }
@@ -320,8 +304,8 @@ const products: ProductPricing[] = [
     ],
     note: "Plans apply per Prism instance and are unlocked with a license key that verifies offline, so self-hosted installations need no connection to NEXORA.",
   },
-  // AUREX's plans mirror its own plan table (PLANS in security/plans.py in the Aurex repository).
-  // The paid plans have no list price yet, so they are quoted by sales.
+  // AUREX's plans mirror its own plan table (PLANS in security/plans.py in the Aurex repository)
+  // and the prices it shows on aurex.onenexora.com/pricing. Quant and Enterprise are priced by sales.
   {
     product: "AUREX",
     summary:
@@ -339,25 +323,33 @@ const products: ProductPricing[] = [
         ],
         cta: { label: "Start free", href: `${aurexUrl}/signup` },
       },
-      quotedTier(
-        "AUREX",
-        "Pro",
-        [
+      {
+        name: "Pro",
+        monthlyCents: 2900,
+        yearlyCents: 0,
+        features: [
           "100 research questions a day",
           "Alerts, screener and reports",
           "Scenarios and simulations",
           "10 portfolios, 20 watchlists",
         ],
-        true,
-      ),
-      quotedTier("AUREX", "Quant and Business", [
-        "Backtesting with costs",
-        "API keys, export and your own data",
-        "Team members, roles and audit trail",
-        "Up to 1,000 research questions a day",
-      ]),
+        cta: aurexSales("Pro"),
+        highlighted: true,
+      },
+      {
+        name: "Business",
+        monthlyCents: 9900,
+        yearlyCents: 0,
+        features: [
+          "Backtesting with costs, API keys and export",
+          "Up to 25 team members, roles and audit trail",
+          "1,000 research questions a day",
+          "Shared impact-graph links",
+        ],
+        cta: aurexSales("Business"),
+      },
     ],
-    note: "Plans apply per AUREX organisation. Enterprise adds licensed data connectors and self-hosted or dedicated deployments. AUREX provides analysis and simulation, not investment advice.",
+    note: "Plans apply per AUREX organisation. Quant (backtesting, API keys and data export for one analyst) and Enterprise (licensed data, self-hosted or dedicated deployments) are priced by sales. AUREX provides analysis and simulation, not investment advice.",
   },
 ];
 
@@ -413,7 +405,7 @@ export default function PricingPage() {
                     <span className="text-4xl font-semibold tracking-tight">
                       {tier.priceLabel ?? formatUsd(tier.monthlyCents)}
                     </span>
-                    {!tier.noPeriod && <span className="text-muted-foreground"> / month</span>}
+                    <span className="text-muted-foreground"> / month</span>
                   </p>
                   <p className="mt-1 h-5 text-sm text-muted-foreground">
                     {tier.yearlyNote ??
