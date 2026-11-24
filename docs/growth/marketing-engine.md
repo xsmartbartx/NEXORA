@@ -183,7 +183,16 @@ This is a UI foundation, not a claim that campaign CRUD, database persistence, A
 - Daily metric aggregation, source freshness and attribution caveats.
 - Weekly report snapshots.
 
-### G5 — Acquisition and attribution foundation\n\n- Internal authenticated lead register with organisation scoping and minimal contact fields.\n- Capture campaign/source/medium and UTM parameters on lead creation; retain an append-only touchpoint record.\n- Record consent status, timestamp and evidence source separately from lifecycle stage. A lead record never implies marketing permission.\n- Enforce organisation-scoped idempotency keys for retried intake operations.\n- Keep lead scoring rule-based and explainable if introduced; do not add an opaque AI score.\n- Do not report CAC, revenue attribution or conversion until CRM, billing and product event sources are mapped and validated.\n\n### G6 — Controlled external actions
+### G5 — Acquisition and attribution foundation
+
+- Internal authenticated lead register with organisation scoping and minimal contact fields.
+- Capture campaign/source/medium and UTM parameters on lead creation; retain an append-only touchpoint record.
+- Record consent status, timestamp and evidence source separately from lifecycle stage. A lead record never implies marketing permission.
+- Enforce organisation-scoped idempotency keys for retried intake operations.
+- Keep lead scoring rule-based and explainable if introduced; do not add an opaque AI score.
+- Do not report CAC, revenue attribution or conversion until CRM, billing and product event sources are mapped and validated.
+
+### G6 — Controlled external actions
 
 - CRM/email adapters with consent/suppression enforcement.
 - Social publishing adapters only where official APIs and permissions support the action.
@@ -196,7 +205,16 @@ This is a UI foundation, not a claim that campaign CRUD, database persistence, A
 - Lead stage changes are audited and update the lead's `updated_at` timestamp.
 - The Acquisition & Leads table now exposes a controlled stage selector; no cross-organisation identifiers are accepted.
 
-## 7.3 G5 implementation checkpoint — acquisition foundation\n\n- Added `growth_leads` and `growth_lead_touchpoints` with organisation indexes, campaign references, lifecycle/consent constraints and optional idempotency keys.\n- Added an authenticated Console lead register and intake form. The route is not public and does not expose an unauthenticated capture endpoint.\n- Captures source, medium and UTM fields and writes an append-only `lead_created` touchpoint in the same database transaction.\n- Stores consent status separately; granted and not-required states require an evidence source, and granted/denied states receive a timestamp. No marketing message is sent.\n- The current slice is a first-touch operational register, not multi-channel identity stitching or revenue attribution. Lead scoring, public form protection, CRM sync and outcome metrics remain deferred.\n- Apply migration `0011_growth_acquisition_attribution.sql` before using the lead workspace.\n\n## 8. Definition of done
+## 7.3 G5 implementation checkpoint — acquisition foundation
+
+- Added `growth_leads` and `growth_lead_touchpoints` with organisation indexes, campaign references, lifecycle/consent constraints and optional idempotency keys.
+- Added an authenticated Console lead register and intake form. The route is not public and does not expose an unauthenticated capture endpoint.
+- Captures source, medium and UTM fields and writes an append-only `lead_created` touchpoint in the same database transaction.
+- Stores consent status separately; granted and not-required states require an evidence source, and granted/denied states receive a timestamp. No marketing message is sent.
+- The current slice is a first-touch operational register, not multi-channel identity stitching or revenue attribution. Lead scoring, public form protection, CRM sync and outcome metrics remain deferred.
+- Apply migration `0011_growth_acquisition_attribution.sql` before using the lead workspace.
+
+## 8. Definition of done
 
 - Cross-organisation access tests prove no Growth data leaks between organisations.
 - Every mutation is authenticated, authorised and audited.
