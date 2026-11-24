@@ -138,6 +138,18 @@ Use the existing API error envelope, authentication and rate-limiting convention
 
 Do not expose generic SQL, arbitrary workflow execution or unrestricted proxy endpoints.
 
+## 7.1 Current implementation checkpoint
+
+The first Console vertical slice is present on `feat/growth-engine-foundation`:
+
+- `/growth` is an authenticated route protected by `requireOrg()`.
+- The global Console navigation exposes **Growth**.
+- The dashboard reads the product count from Product Registry.
+- Campaign, approval, revenue and n8n metrics are explicitly marked unavailable until their data sources are connected; no demo values are presented as production metrics.
+- Products and the existing Analytics surface are linked; remaining P0 modules are shown as planned rather than routing to unfinished pages.
+
+This is a UI foundation, not a claim that campaign CRUD, database persistence, AI generation or provider integrations are complete. Those require the G1–G4 implementation slices below.
+
 ## 7. Delivery sequence
 
 ### G0 — Contracts and foundations
