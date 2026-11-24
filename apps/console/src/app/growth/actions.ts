@@ -969,3 +969,32 @@ export async function getGrowthLeadLifecycleReport() {
     }),
   };
 }
+
+/** Aggregate acquisition data-quality indicators without returning lead PII. */
+export async function getGrowthAcquisitionQualityReport() {
+  const { orgId } = await requireOrg();
+  const [totals] = await db
+    .select({
+      total: count(),
+      missingSource: sql<number>`count(*) filter (where ${growthLeads.source} is null and ${growthLeads.utmSource} is null)`,
+      missingMedium: sql<number>`count(*) filter (where ${growthLeads.medium} is null and ${growthLeads.utmMedium} is null)`,
+      missingCampaign: sql<number>`count(*) filter (where ${growthLeads.campaignId} is null and ${growthLeads.utmCampaign} is null)`,
+    })
+    .from(growthLeads)
+    .where(eq(growthLeads.orgId, orgId));
+
+  const duplicateGroups = await db
+    .select({ email: growthLeads.email })
+    .from(growthLeads)
+    .where(eq(growthLeads.orgId, orgId))
+    .groupBy(growthLeads.email)
+    .having(sql`count(*) > 1`);
+
+  return {
+    total: totals?.total ?? 0,
+    missingSource: Number(totals?.missingSource ?? 0),
+    missingMedium: Number(totals?.missingMedium ?? 0),
+    missingCampaign: Number(totals?.missingCampaign ?? 0),
+    duplicateEmailGroups: duplicateGroups.length,
+  };
+}
