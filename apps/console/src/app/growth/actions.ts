@@ -840,3 +840,78 @@ export async function updateGrowthLeadStageFromForm(formData: FormData): Promise
   revalidatePath("/growth");
   revalidatePath("/growth/leads");
 }
+
+
+const LEAD_TOUCHPOINT_TYPES = [
+  "website_visit",
+  "content_engagement",
+  "demo_request",
+  "sales_conversation",
+  "event_attendance",
+  "partner_referral",
+  "other",
+] as const;
+
+/**
+ * Append an attributed interaction to a lead owned by the active organisation.
+ * The server supplies occurredAt; callers cannot backdate events.
+ */
+export async function recordGrowthLeadTouchpointFromForm(formData: FormData): Promise<void> {
+  const { orgId, userId } = await requireOrg();
+  const leadId = requiredText(formData.get("leadId"), "Lead id", 64);
+  if (!isUuid(leadId)) throw new Error("Lead id is invalid");
+
+  const touchpointType = String(formData.get("touchpointType") ?? "");
+  if (!(LEAD_TOUCHPOINT_TYPES as readonly string[]).includes(touchpointType)) {
+    throw new Error("Unsupported touchpoint type");
+  }
+
+  const source = optionalText(formData.get("source"), "Source", 100);
+  const medium = optionalText(formData.get("medium"), "Medium", 100);
+  const utmSource = optionalText(formData.get("utmSource"), "UTM source", 160);
+  const utmMedium = optionalText(formData.get("utmMedium"), "UTM medium", 160);
+  const utmCampaign = optionalText(formData.get("utmCampaign"), "UTM campaign", 160);
+  const utmContent = optionalText(formData.get("utmContent"), "UTM content", 160);
+  const utmTerm = optionalText(formData.get("utmTerm"), "UTM term", 160);
+  const idempotencyKey = optionalText(formData.get("idempotencyKey"), "Idempotency key", 128);
+
+  const [lead] = await db
+    .select({ id: growthLeads.id })
+    .from(growthLeads)
+    .where(and(eq(growthLeads.id, leadId), eq(growthLeads.orgId, orgId)))
+    .limit(1);
+  if (!lead) throw new Error("Lead not found in this organisation");
+
+  const inserted = await db
+    .insert(growthLeadTouchpoints)
+    .values({
+      orgId,
+      leadId,
+      touchpointType,
+      source,
+      medium,
+      utmSource,
+      utmMedium,
+      utmCampaign,
+      utmContent,
+      utmTerm,
+      occurredAt: new Date(),
+      idempotencyKey,
+    })
+    .onConflictDoNothing()
+    .returning({ id: growthLeadTouchpoints.id });
+
+  if (inserted.length > 0) {
+    await logEvent({
+      orgId,
+      actorId: userId,
+      action: "console.growth.lead.touchpoint_recorded",
+      resourceType: "growth_lead",
+      resourceId: leadId,
+      metadata: { touchpointType, source, medium },
+    });
+  }
+
+  revalidatePath("/growth");
+  revalidatePath("/growth/leads");
+}
