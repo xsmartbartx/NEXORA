@@ -326,7 +326,6 @@ export async function reviewGrowthApproval(
   revalidatePath("/growth/content");
 }
 
-
 export async function listGrowthContentItems() {
   const { orgId } = await requireOrg();
   const rows = await db
@@ -404,12 +403,10 @@ export async function rejectGrowthApproval(formData: FormData) {
   await reviewGrowthApproval(approvalId, "rejected", String(formData.get("reviewNote") ?? ""));
 }
 
-
 export async function requestGrowthApprovalFromForm(formData: FormData) {
   const versionId = requiredText(formData.get("contentVersionId"), "Content version id", 64);
   await requestGrowthApproval(versionId);
 }
-
 
 export async function createGrowthCampaignFromForm(formData: FormData): Promise<void> {
   await createGrowthCampaign(formData);
