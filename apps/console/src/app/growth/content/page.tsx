@@ -5,6 +5,7 @@ import {
   createGrowthContentDraft,
   listGrowthCampaigns,
   listGrowthContentItems,
+  requestGrowthApprovalFromForm,
 } from "../actions";
 
 export const metadata: Metadata = {
@@ -149,9 +150,22 @@ export default async function GrowthContentPage() {
                       {item.version ?? "—"}
                     </p>
                   </div>
-                  <span className="rounded-full bg-muted px-2.5 py-1 text-xs capitalize">
-                    {item.status.replaceAll("_", " ")}
-                  </span>
+                  <div className="flex items-center gap-2">
+                    <span className="rounded-full bg-muted px-2.5 py-1 text-xs capitalize">
+                      {item.status.replaceAll("_", " ")}
+                    </span>
+                    {item.versionId && item.status !== "in_review" && item.status !== "approved" ? (
+                      <form action={requestGrowthApprovalFromForm}>
+                        <input type="hidden" name="contentVersionId" value={item.versionId} />
+                        <button
+                          type="submit"
+                          className="rounded-lg border border-border px-3 py-1.5 text-xs font-medium"
+                        >
+                          Request approval
+                        </button>
+                      </form>
+                    ) : null}
+                  </div>
                 </div>
               </article>
             ))}
