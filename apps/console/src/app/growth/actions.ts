@@ -13,6 +13,8 @@ import {
   growthCampaigns,
   growthContentItems,
   growthContentVersions,
+  growthLeads,
+  growthLeadTouchpoints,
 } from "@nexora/database";
 import { logEvent } from "@nexora/telemetry";
 import { getProductBySlug } from "@nexora/registry";
@@ -647,4 +649,146 @@ export async function getGrowthAnalytics() {
     aiDraftsLast30Days: aiRows[0]?.value ?? 0,
     aiDraftsByDay: dailyAiRows.map((row) => ({ day: row.day, count: row.value })),
   };
+}
+
+
+function optionalText(value: FormDataEntryValue | null, label: string, max = 160): string | null {
+  const result = String(value ?? "").trim();
+  if (!result) return null;
+  if (result.length > max) throw new Error(`${label} is too long`);
+  return result;
+}
+
+const LEAD_CONSENT_STATES = ["unknown", "granted", "denied", "not_required"] as const;
+const LEAD_STAGES = ["new", "qualified", "contacted", "disqualified"] as const;
+
+/** List only the active organisation's lead records; no cross-tenant lookup is possible. */
+export async function listGrowthLeads() {
+  const { orgId } = await requireOrg();
+  const rows = await db
+    .select({
+      id: growthLeads.id,
+      email: growthLeads.email,
+      name: growthLeads.name,
+      company: growthLeads.company,
+      stage: growthLeads.stage,
+      source: growthLeads.source,
+      medium: growthLeads.medium,
+      utmCampaign: growthLeads.utmCampaign,
+      consentStatus: growthLeads.consentStatus,
+      createdAt: growthLeads.createdAt,
+    })
+    .from(growthLeads)
+    .where(eq(growthLeads.orgId, orgId))
+    .orderBy(desc(growthLeads.createdAt))
+    .limit(100);
+
+  return rows.map((row) => ({ ...row, createdAt: row.createdAt.toISOString() }));
+}
+
+/**
+ * Internal, authenticated lead intake. This is deliberately not a public form
+ * or CRM sync endpoint; external ingestion requires a separately authenticated adapter.
+ */
+export async function createGrowthLeadFromForm(formData: FormData): Promise<void> {
+  const { orgId, userId } = await requireOrg();
+  const email = requiredText(formData.get("email"), "Email", 254).toLowerCase();
+  if (!/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(email)) {
+    throw new Error("Enter a valid email address");
+  }
+
+  const name = optionalText(formData.get("name"), "Name", 160);
+  const company = optionalText(formData.get("company"), "Company", 160);
+  const source = optionalText(formData.get("source"), "Source", 100);
+  const medium = optionalText(formData.get("medium"), "Medium", 100);
+  const utmSource = optionalText(formData.get("utmSource"), "UTM source", 160);
+  const utmMedium = optionalText(formData.get("utmMedium"), "UTM medium", 160);
+  const utmCampaign = optionalText(formData.get("utmCampaign"), "UTM campaign", 160);
+  const utmContent = optionalText(formData.get("utmContent"), "UTM content", 160);
+  const utmTerm = optionalText(formData.get("utmTerm"), "UTM term", 160);
+  const consentStatus = String(formData.get("consentStatus") ?? "unknown");
+  if (!(LEAD_CONSENT_STATES as readonly string[]).includes(consentStatus)) {
+    throw new Error("Unsupported consent status");
+  }
+  const consentSource = optionalText(formData.get("consentSource"), "Consent source", 200);
+  const consentAt = consentStatus === "granted" || consentStatus === "denied" ? new Date() : null;
+  if (consentStatus === "granted" && !consentSource) {
+    throw new Error("Consent source is required when consent is granted");
+  }
+
+  const campaignId = String(formData.get("campaignId") ?? "").trim() || null;
+  if (campaignId) {
+    if (!isUuid(campaignId)) throw new Error("Campaign id is invalid");
+    const [campaign] = await db
+      .select({ id: growthCampaigns.id })
+      .from(growthCampaigns)
+      .where(and(eq(growthCampaigns.id, campaignId), eq(growthCampaigns.orgId, orgId)))
+      .limit(1);
+    if (!campaign) throw new Error("Campaign not found in this organisation");
+  }
+
+  const idempotencyKey = optionalText(formData.get("idempotencyKey"), "Idempotency key", 128);
+  if (idempotencyKey) {
+    const [existing] = await db
+      .select({ id: growthLeads.id })
+      .from(growthLeads)
+      .where(and(eq(growthLeads.orgId, orgId), eq(growthLeads.idempotencyKey, idempotencyKey)))
+      .limit(1);
+    if (existing) return;
+  }
+
+  const leadId = await db.transaction(async (tx) => {
+    const [lead] = await tx
+      .insert(growthLeads)
+      .values({
+        orgId,
+        email,
+        name,
+        company,
+        source,
+        medium,
+        campaignId,
+        utmSource,
+        utmMedium,
+        utmCampaign,
+        utmContent,
+        utmTerm,
+        consentStatus,
+        consentAt,
+        consentSource,
+        idempotencyKey,
+        createdBy: userId,
+      })
+      .returning({ id: growthLeads.id });
+
+    if (!lead) throw new Error("Lead could not be created");
+
+    await tx.insert(growthLeadTouchpoints).values({
+      orgId,
+      leadId: lead.id,
+      touchpointType: "lead_created",
+      source,
+      medium,
+      campaignId,
+      utmSource,
+      utmMedium,
+      utmCampaign,
+      utmContent,
+      utmTerm,
+      idempotencyKey: idempotencyKey ? `${idempotencyKey}:lead_created` : null,
+    });
+    return lead.id;
+  });
+
+  await logEvent({
+    orgId,
+    actorId: userId,
+    action: "console.growth.lead.created",
+    resourceType: "growth_lead",
+    resourceId: leadId,
+    metadata: { source, medium, campaignId, consentStatus },
+  });
+
+  revalidatePath("/growth");
+  revalidatePath("/growth/leads");
 }
