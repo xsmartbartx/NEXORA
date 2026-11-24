@@ -11,6 +11,11 @@ import {
   growthContentVersions,
 } from "@nexora/database";
 import { logEvent } from "@nexora/telemetry";
+import { getProductBySlug } from "@nexora/registry";
+
+function isUuid(value: string): boolean {
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value);
+}
 
 function requiredText(value: FormDataEntryValue | null, label: string, max = 500): string {
   const result = String(value ?? "").trim();
@@ -246,6 +251,18 @@ export async function reviewGrowthApproval(
 
   if (!version) throw new Error("Approved content version no longer exists");
 
+  const [latestVersion] = await db
+    .select({ id: growthContentVersions.id })
+    .from(growthContentVersions)
+    .where(
+      and(
+        eq(growthContentVersions.contentItemId, version.contentItemId),
+        eq(growthContentVersions.orgId, orgId),
+      ),
+    )
+    .orderBy(desc(growthContentVersions.version))
+    .limit(1);
+
   await db.transaction(async (tx) => {
     const [updated] = await tx
       .update(growthApprovals)
@@ -266,15 +283,17 @@ export async function reviewGrowthApproval(
 
     if (!updated) throw new Error("Approval was already reviewed");
 
-    await tx
-      .update(growthContentItems)
-      .set({ status: decision === "approved" ? "approved" : "draft", updatedAt: new Date() })
-      .where(
-        and(
-          eq(growthContentItems.id, version.contentItemId),
-          eq(growthContentItems.orgId, orgId),
-        ),
-      );
+    if (latestVersion?.id === approval.contentVersionId) {
+      await tx
+        .update(growthContentItems)
+        .set({ status: decision === "approved" ? "approved" : "draft", updatedAt: new Date() })
+        .where(
+          and(
+            eq(growthContentItems.id, version.contentItemId),
+            eq(growthContentItems.orgId, orgId),
+          ),
+        );
+    }
   });
 
   await logEvent({
