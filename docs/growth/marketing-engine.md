@@ -238,3 +238,16 @@ The generated item remains a draft and must pass the existing version-specific a
 **Runtime requirement:** the Console deployment must have the same managed `GATEWAY_UPSTREAM_API_KEY` and compatible Gateway model/limit configuration as the Gateway deployment. The variable is documented in `apps/console/.env.example`; it must be configured in the deployment secret manager, not committed to Git.
 
 This is an AI-assisted draft workflow, not yet a multi-provider router, prompt-template registry, source-grounded research system or autonomous publishing agent. Provider routing and richer evidence ingestion remain separate follow-up work.
+
+
+## 7.2 Growth operational analytics checkpoint
+
+The Growth analytics route at `/growth/analytics` reports organisation-scoped operational facts from PostgreSQL:
+
+- campaign and content record totals, grouped by their persisted statuses;
+- pending and completed approval counts;
+- AI-generated content draft events for the trailing 30-day window, including daily counts.
+
+The Growth overview consumes the same server-side query for its active-campaign and pending-approval cards. Queries are scoped by the authenticated Clerk organisation ID.
+
+These are workflow/operations metrics, not evidence of market performance. Revenue attribution, CAC, conversion, activation and retention remain unavailable until trusted billing, CRM and product analytics sources are integrated and their identifiers can be joined to campaign records. The UI explicitly distinguishes those unavailable business metrics from operational counts.
