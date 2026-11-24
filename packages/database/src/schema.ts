@@ -257,7 +257,7 @@ export const growthContentItems = pgTable(
   {
     id: uuid("id").primaryKey().defaultRandom(),
     orgId: text("org_id").notNull(),
-    campaignId: uuid("campaign_id"),
+    campaignId: uuid("campaign_id").references(() => growthCampaigns.id, { onDelete: "set null" }),
     productSlug: text("product_slug"),
     title: text("title").notNull(),
     contentType: text("content_type").notNull(),
@@ -282,7 +282,9 @@ export const growthContentVersions = pgTable(
   {
     id: uuid("id").primaryKey().defaultRandom(),
     orgId: text("org_id").notNull(),
-    contentItemId: uuid("content_item_id").notNull(),
+    contentItemId: uuid("content_item_id")
+      .notNull()
+      .references(() => growthContentItems.id, { onDelete: "cascade" }),
     version: integer("version").notNull(),
     body: text("body").notNull(),
     sourceRefs: jsonb("source_refs").notNull().default([]),
@@ -301,7 +303,9 @@ export const growthApprovals = pgTable(
   {
     id: uuid("id").primaryKey().defaultRandom(),
     orgId: text("org_id").notNull(),
-    contentVersionId: uuid("content_version_id").notNull(),
+    contentVersionId: uuid("content_version_id")
+      .notNull()
+      .references(() => growthContentVersions.id, { onDelete: "cascade" }),
     status: text("status").notNull().default("pending"),
     requestedBy: text("requested_by").notNull(),
     reviewedBy: text("reviewed_by"),
