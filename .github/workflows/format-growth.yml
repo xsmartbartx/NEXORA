@@ -1,4 +1,4 @@
-name: Format Growth Engine files
+name: Check Growth Engine formatting
 
 on:
   pull_request:
@@ -10,32 +10,29 @@ on:
       - "docs/growth/marketing-engine.md"
       - ".github/workflows/format-growth.yml"
 
-permissions:
-  contents: write
-
 concurrency:
   group: growth-format-${{ github.event.pull_request.head.ref }}
   cancel-in-progress: true
 
+permissions:
+  contents: read
+
 jobs:
   format:
-    if: github.event.pull_request.head.repo.full_name == github.repository
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
-        with:
-          ref: ${{ github.event.pull_request.head.ref }}
-          persist-credentials: true
       - uses: actions/setup-node@v7
         with:
           node-version: 22
           cache: npm
       - run: npm install -g npm@11.12.1
       - run: npm ci
-      - name: Apply repository formatting
+      - name: Check repository formatting
         run: |
-          npx prettier --write \
+          npx prettier --check \
             apps/console/src/app/growth/actions.ts \
+            apps/console/src/app/growth/analytics/page.tsx \
             apps/console/src/app/growth/approvals/page.tsx \
             apps/console/src/app/growth/campaigns/page.tsx \
             apps/console/src/app/growth/content/page.tsx \
@@ -43,11 +40,3 @@ jobs:
             docs/adr/ADR-0014-growth-engine-boundary.md \
             docs/growth/marketing-engine.md \
             packages/database/src/schema.ts
-      - name: Commit formatted files
-        run: |
-          if git diff --quiet; then exit 0; fi
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add apps/console/src/app/growth docs/adr/ADR-0014-growth-engine-boundary.md docs/growth/marketing-engine.md packages/database/src/schema.ts
-          git commit -m "style(growth): apply Prettier formatting"
-          git push origin "HEAD:${{ github.event.pull_request.head.ref }}"
