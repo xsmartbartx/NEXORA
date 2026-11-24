@@ -5,6 +5,7 @@ on:
     branches: [main]
     paths:
       - "apps/console/src/app/growth/**"
+      - "packages/database/src/index.ts"
       - "packages/database/src/schema.ts"
       - "docs/adr/ADR-0014-growth-engine-boundary.md"
       - "docs/growth/marketing-engine.md"
@@ -37,6 +38,8 @@ jobs:
             apps/console/src/app/growth/campaigns/page.tsx \
             apps/console/src/app/growth/content/page.tsx \
             apps/console/src/app/growth/page.tsx \
+            apps/console/src/app/growth/leads/page.tsx \
+            packages/database/src/index.ts \
             docs/adr/ADR-0014-growth-engine-boundary.md \
             docs/growth/marketing-engine.md \
             packages/database/src/schema.ts
