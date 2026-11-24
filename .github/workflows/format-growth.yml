@@ -1,0 +1,45 @@
+name: Check Growth Engine formatting
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - "apps/console/src/app/growth/**"
+      - "packages/database/src/index.ts"
+      - "packages/database/src/schema.ts"
+      - "docs/adr/ADR-0014-growth-engine-boundary.md"
+      - "docs/growth/marketing-engine.md"
+      - ".github/workflows/format-growth.yml"
+
+concurrency:
+  group: growth-format-${{ github.event.pull_request.head.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  format:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm install -g npm@11.12.1
+      - run: npm ci
+      - name: Check repository formatting
+        run: |
+          npx prettier --check \
+            apps/console/src/app/growth/actions.ts \
+            apps/console/src/app/growth/analytics/page.tsx \
+            apps/console/src/app/growth/approvals/page.tsx \
+            apps/console/src/app/growth/campaigns/page.tsx \
+            apps/console/src/app/growth/content/page.tsx \
+            apps/console/src/app/growth/page.tsx \
+            apps/console/src/app/growth/leads/page.tsx \
+            packages/database/src/index.ts \
+            docs/adr/ADR-0014-growth-engine-boundary.md \
+            docs/growth/marketing-engine.md \
+            packages/database/src/schema.ts

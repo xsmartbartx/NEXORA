@@ -1,5 +1,6 @@
 import {
   check,
+  foreignKey,
   index,
   integer,
   jsonb,
@@ -216,3 +217,226 @@ export type NewProductSuspension = typeof productSuspensions.$inferInsert;
 export type OpsCost = typeof opsCosts.$inferSelect;
 export type NewOpsCost = typeof opsCosts.$inferInsert;
 export type OpsChecklistCompletion = typeof opsChecklistCompletions.$inferSelect;
+
+/**
+ * Growth Engine P0 persistence. Product identity remains a stable registry slug;
+ * campaign/content records are organisation-scoped and never trigger external publishing.
+ */
+export const growthCampaigns = pgTable(
+  "growth_campaigns",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    orgId: text("org_id").notNull(),
+    name: text("name").notNull(),
+    objective: text("objective").notNull(),
+    status: text("status").notNull().default("draft"),
+    ownerId: text("owner_id").notNull(),
+    startsAt: timestamp("starts_at", { withTimezone: true }),
+    endsAt: timestamp("ends_at", { withTimezone: true }),
+    budgetCents: integer("budget_cents"),
+    currency: text("currency").notNull().default("USD"),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    index("growth_campaigns_org_updated_idx").on(table.orgId, table.updatedAt),
+    check(
+      "growth_campaigns_status_chk",
+      sql`${table.status} in ('draft', 'planned', 'active', 'paused', 'completed', 'archived')`,
+    ),
+    check(
+      "growth_campaigns_budget_chk",
+      sql`${table.budgetCents} is null or ${table.budgetCents} >= 0`,
+    ),
+    check(
+      "growth_campaigns_dates_chk",
+      sql`${table.endsAt} is null or ${table.startsAt} is null or ${table.endsAt} >= ${table.startsAt}`,
+    ),
+  ],
+);
+
+export const growthContentItems = pgTable(
+  "growth_content_items",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    orgId: text("org_id").notNull(),
+    campaignId: uuid("campaign_id"),
+    productSlug: text("product_slug"),
+    title: text("title").notNull(),
+    contentType: text("content_type").notNull(),
+    channel: text("channel").notNull(),
+    status: text("status").notNull().default("draft"),
+    createdBy: text("created_by").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    index("growth_content_items_org_status_idx").on(table.orgId, table.status, table.updatedAt),
+    index("growth_content_items_org_campaign_idx").on(table.orgId, table.campaignId),
+    check(
+      "growth_content_items_status_chk",
+      sql`${table.status} in ('draft', 'in_review', 'approved', 'archived')`,
+    ),
+    foreignKey({
+      columns: [table.campaignId],
+      foreignColumns: [growthCampaigns.id],
+      name: "growth_content_campaign_fk",
+    }).onDelete("set null"),
+  ],
+);
+
+export const growthContentVersions = pgTable(
+  "growth_content_versions",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    orgId: text("org_id").notNull(),
+    contentItemId: uuid("content_item_id").notNull(),
+    version: integer("version").notNull(),
+    body: text("body").notNull(),
+    sourceRefs: jsonb("source_refs").notNull().default([]),
+    createdBy: text("created_by").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    uniqueIndex("growth_content_versions_item_version_idx").on(table.contentItemId, table.version),
+    index("growth_content_versions_org_item_idx").on(table.orgId, table.contentItemId),
+    check("growth_content_versions_version_chk", sql`${table.version} > 0`),
+    foreignKey({
+      columns: [table.contentItemId],
+      foreignColumns: [growthContentItems.id],
+      name: "growth_content_version_item_fk",
+    }).onDelete("cascade"),
+  ],
+);
+
+export const growthApprovals = pgTable(
+  "growth_approvals",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    orgId: text("org_id").notNull(),
+    contentVersionId: uuid("content_version_id").notNull(),
+    status: text("status").notNull().default("pending"),
+    requestedBy: text("requested_by").notNull(),
+    reviewedBy: text("reviewed_by"),
+    reviewNote: text("review_note"),
+    requestedAt: timestamp("requested_at", { withTimezone: true }).notNull().defaultNow(),
+    reviewedAt: timestamp("reviewed_at", { withTimezone: true }),
+  },
+  (table) => [
+    uniqueIndex("growth_approvals_one_pending_version_idx")
+      .on(table.contentVersionId)
+      .where(sql`${table.status} = 'pending'`),
+    index("growth_approvals_org_status_requested_idx").on(
+      table.orgId,
+      table.status,
+      table.requestedAt,
+    ),
+    check(
+      "growth_approvals_status_chk",
+      sql`${table.status} in ('pending', 'approved', 'rejected', 'withdrawn')`,
+    ),
+    foreignKey({
+      columns: [table.contentVersionId],
+      foreignColumns: [growthContentVersions.id],
+      name: "growth_approval_version_fk",
+    }).onDelete("cascade"),
+  ],
+);
+
+/**
+ * Growth acquisition records. Contact fields are limited to the minimum needed
+ * for an organisation's own lead follow-up. Consent is recorded separately
+ * from lead status and must never be inferred from source or campaign membership.
+ */
+export const growthLeads = pgTable(
+  "growth_leads",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    orgId: text("org_id").notNull(),
+    email: text("email").notNull(),
+    name: text("name"),
+    company: text("company"),
+    stage: text("stage").notNull().default("new"),
+    source: text("source"),
+    medium: text("medium"),
+    campaignId: uuid("campaign_id"),
+    utmSource: text("utm_source"),
+    utmMedium: text("utm_medium"),
+    utmCampaign: text("utm_campaign"),
+    utmContent: text("utm_content"),
+    utmTerm: text("utm_term"),
+    consentStatus: text("consent_status").notNull().default("unknown"),
+    consentAt: timestamp("consent_at", { withTimezone: true }),
+    consentSource: text("consent_source"),
+    idempotencyKey: text("idempotency_key"),
+    createdBy: text("created_by").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    index("growth_leads_org_stage_created_idx").on(table.orgId, table.stage, table.createdAt),
+    index("growth_leads_org_campaign_idx").on(table.orgId, table.campaignId),
+    uniqueIndex("growth_leads_org_idempotency_idx")
+      .on(table.orgId, table.idempotencyKey)
+      .where(sql`${table.idempotencyKey} is not null`),
+    check("growth_leads_stage_chk", sql`${table.stage} in ('new', 'qualified', 'contacted', 'disqualified')`),
+    check("growth_leads_consent_chk", sql`${table.consentStatus} in ('unknown', 'granted', 'denied', 'not_required')`),
+    check("growth_leads_consent_timestamp_chk", sql`${table.consentStatus} <> 'granted' or ${table.consentAt} is not null`),
+    foreignKey({
+      columns: [table.campaignId],
+      foreignColumns: [growthCampaigns.id],
+      name: "growth_lead_campaign_fk",
+    }).onDelete("set null"),
+  ],
+);
+
+/** Append-only attribution history for a known lead; no anonymous device fingerprinting. */
+export const growthLeadTouchpoints = pgTable(
+  "growth_lead_touchpoints",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    orgId: text("org_id").notNull(),
+    leadId: uuid("lead_id").notNull(),
+    touchpointType: text("touchpoint_type").notNull().default("lead_created"),
+    source: text("source"),
+    medium: text("medium"),
+    campaignId: uuid("campaign_id"),
+    utmSource: text("utm_source"),
+    utmMedium: text("utm_medium"),
+    utmCampaign: text("utm_campaign"),
+    utmContent: text("utm_content"),
+    utmTerm: text("utm_term"),
+    occurredAt: timestamp("occurred_at", { withTimezone: true }).notNull().defaultNow(),
+    idempotencyKey: text("idempotency_key"),
+  },
+  (table) => [
+    index("growth_lead_touchpoints_org_lead_occurred_idx").on(table.orgId, table.leadId, table.occurredAt),
+    uniqueIndex("growth_lead_touchpoints_org_idempotency_idx")
+      .on(table.orgId, table.idempotencyKey)
+      .where(sql`${table.idempotencyKey} is not null`),
+    foreignKey({
+      columns: [table.leadId],
+      foreignColumns: [growthLeads.id],
+      name: "growth_lead_touchpoint_lead_fk",
+    }).onDelete("cascade"),
+    foreignKey({
+      columns: [table.campaignId],
+      foreignColumns: [growthCampaigns.id],
+      name: "growth_lead_touchpoint_campaign_fk",
+    }).onDelete("set null"),
+  ],
+);
+
+export type GrowthLead = typeof growthLeads.$inferSelect;
+export type NewGrowthLead = typeof growthLeads.$inferInsert;
+export type GrowthLeadTouchpoint = typeof growthLeadTouchpoints.$inferSelect;
+export type NewGrowthLeadTouchpoint = typeof growthLeadTouchpoints.$inferInsert;
+
+export type GrowthCampaign = typeof growthCampaigns.$inferSelect;
+export type NewGrowthCampaign = typeof growthCampaigns.$inferInsert;
+export type GrowthContentItem = typeof growthContentItems.$inferSelect;
+export type NewGrowthContentItem = typeof growthContentItems.$inferInsert;
+export type GrowthContentVersion = typeof growthContentVersions.$inferSelect;
+export type NewGrowthContentVersion = typeof growthContentVersions.$inferInsert;
+export type GrowthApproval = typeof growthApprovals.$inferSelect;
+export type NewGrowthApproval = typeof growthApprovals.$inferInsert;
