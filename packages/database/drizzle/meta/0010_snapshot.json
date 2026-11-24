@@ -958,7 +958,21 @@
           "with": {}
         }
       },
-      "foreignKeys": {},
+      "foreignKeys": {
+        "growth_content_items_campaign_id_growth_campaigns_id_fk": {
+          "name": "growth_content_items_campaign_id_growth_campaigns_id_fk",
+          "tableFrom": "growth_content_items",
+          "tableTo": "growth_campaigns",
+          "columns": [
+            "campaign_id"
+          ],
+          "foreignColumns": [
+            "id"
+          ],
+          "onDelete": "set null",
+          "onUpdate": "no action"
+        }
+      },
       "compositePrimaryKeys": {},
       "uniqueConstraints": {},
       "policies": {},
@@ -1070,7 +1084,21 @@
           "with": {}
         }
       },
-      "foreignKeys": {},
+      "foreignKeys": {
+        "growth_content_versions_content_item_id_growth_content_items_id_fk": {
+          "name": "growth_content_versions_content_item_id_growth_content_items_id_fk",
+          "tableFrom": "growth_content_versions",
+          "tableTo": "growth_content_items",
+          "columns": [
+            "content_item_id"
+          ],
+          "foreignColumns": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
       "compositePrimaryKeys": {},
       "uniqueConstraints": {},
       "policies": {},
@@ -1189,7 +1217,21 @@
           "with": {}
         }
       },
-      "foreignKeys": {},
+      "foreignKeys": {
+        "growth_approvals_content_version_id_growth_content_versions_id_fk": {
+          "name": "growth_approvals_content_version_id_growth_content_versions_id_fk",
+          "tableFrom": "growth_approvals",
+          "tableTo": "growth_content_versions",
+          "columns": [
+            "content_version_id"
+          ],
+          "foreignColumns": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
       "compositePrimaryKeys": {},
       "uniqueConstraints": {},
       "policies": {},
