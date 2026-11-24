@@ -266,4 +266,5 @@ These are workflow/operations metrics, not evidence of market performance. Reven
 - The action verifies lead ownership before insertion, uses an organisation-scoped idempotency key and relies on the server clock for `occurred_at`; callers cannot backdate attribution.
 - Successful insertions emit an audit event containing the touchpoint category and non-PII source metadata only.
 - The Leads workspace exposes a compact touchpoint capture form. This records interactions supplied by an operator; it does not imply anonymous visitor tracking, identity stitching or verified channel conversion.
-- First-touch and last-touch reporting must be derived from the ordered touchpoint history. Until multiple events exist for a lead, both models legitimately resolve to the same event. Revenue, CAC and ROI remain unavailable.
+- Added deterministic first-touch and last-touch reporting. Each lead contributes once to each model, with tie-breaking by timestamp and touchpoint ID; missing source/medium values are grouped as unknown. Where a lead has only its creation event, both models correctly resolve to that event.
+- Attribution reports lead counts by source and medium only. Revenue, CAC, ROI and conversion claims remain unavailable until verified CRM, billing and product outcome sources are integrated.
