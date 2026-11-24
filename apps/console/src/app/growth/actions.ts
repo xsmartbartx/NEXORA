@@ -232,6 +232,10 @@ export async function reviewGrowthApproval(
   reviewNote = "",
 ) {
   const { orgId, userId } = await requireOrg();
+  if (decision !== "approved" && decision !== "rejected") {
+    throw new Error("Unsupported approval decision");
+  }
+  if (typeof reviewNote !== "string") throw new Error("Review note must be text");
   if (!isUuid(approvalId)) throw new Error("Approval id is invalid");
   const [approval] = await db
     .select({
