@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { requireOrg } from "@nexora/auth/server";
-import { createGrowthCampaign, listGrowthCampaigns } from "../actions";
+import { createGrowthCampaignFromForm, listGrowthCampaigns } from "../actions";
 
 export const metadata: Metadata = {
   title: "Growth campaigns",
@@ -26,7 +26,7 @@ export default async function GrowthCampaignsPage() {
 
       <section className="mt-8 rounded-xl border border-border bg-card p-6">
         <h2 className="font-semibold">New campaign</h2>
-        <form action={createGrowthCampaign} className="mt-4 grid gap-4 md:grid-cols-2">
+        <form action={createGrowthCampaignFromForm} className="mt-4 grid gap-4 md:grid-cols-2">
           <label className="grid gap-1.5 text-sm">
             <span className="font-medium">Name</span>
             <input
