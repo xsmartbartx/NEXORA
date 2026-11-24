@@ -65,19 +65,19 @@ Explicitly defer social calendar automation, SEO keyword research, video product
 
 All timestamps are UTC. IDs are UUIDs unless a stable external identifier is required. All tenant-owned tables include `org_id` and indexes beginning with `org_id`.
 
-| Table | Key fields | Purpose |
-|---|---|---|
-| `growth_product_profiles` | org_id, product_slug, icp, positioning, use_cases, proof_points, approved_claims, updated_by | Organisation-specific growth context referencing Product Registry |
-| `growth_campaigns` | org_id, product_slug, name, objective, status, start_at, end_at, budget_minor, currency, owner_id | Campaign plan and lifecycle |
-| `growth_campaign_channels` | org_id, campaign_id, channel, destination, utm_source, utm_medium, utm_campaign | Channel configuration and UTM mapping |
-| `growth_content_items` | org_id, campaign_id, product_slug, type, title, status, owner_id, scheduled_at | Logical content item |
-| `growth_content_versions` | org_id, content_item_id, version, body, metadata, source_refs, created_by | Immutable content revisions and evidence |
-| `growth_media_assets` | org_id, storage_key, mime_type, size_bytes, checksum, metadata, uploaded_by | References to media in object storage; no binary blobs in Postgres |
-| `growth_approvals` | org_id, content_version_id, channel, decision, decided_by, decided_at, comment | Version-specific approval/rejection history |
-| `growth_workflow_runs` | org_id, workflow_key, idempotency_key, external_run_id, status, input_ref, output_ref, started_at, finished_at, error_code | Durable workflow execution state |
-| `growth_metric_daily` | org_id, product_slug, campaign_id, channel, metric_date, metric_key, metric_value, currency | Daily aggregated performance metrics |
-| `growth_attribution_touchpoints` | org_id, anonymous_id_hash, pseudonymous_user_id, campaign_id, source, medium, occurred_at | Pseudonymous attribution touchpoints with retention policy |
-| `growth_reports` | org_id, period_start, period_end, report_type, snapshot, generated_at, generated_by | Reproducible report snapshots |
+| Table                            | Key fields                                                                                                                 | Purpose                                                            |
+| -------------------------------- | -------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------ |
+| `growth_product_profiles`        | org_id, product_slug, icp, positioning, use_cases, proof_points, approved_claims, updated_by                               | Organisation-specific growth context referencing Product Registry  |
+| `growth_campaigns`               | org_id, product_slug, name, objective, status, start_at, end_at, budget_minor, currency, owner_id                          | Campaign plan and lifecycle                                        |
+| `growth_campaign_channels`       | org_id, campaign_id, channel, destination, utm_source, utm_medium, utm_campaign                                            | Channel configuration and UTM mapping                              |
+| `growth_content_items`           | org_id, campaign_id, product_slug, type, title, status, owner_id, scheduled_at                                             | Logical content item                                               |
+| `growth_content_versions`        | org_id, content_item_id, version, body, metadata, source_refs, created_by                                                  | Immutable content revisions and evidence                           |
+| `growth_media_assets`            | org_id, storage_key, mime_type, size_bytes, checksum, metadata, uploaded_by                                                | References to media in object storage; no binary blobs in Postgres |
+| `growth_approvals`               | org_id, content_version_id, channel, decision, decided_by, decided_at, comment                                             | Version-specific approval/rejection history                        |
+| `growth_workflow_runs`           | org_id, workflow_key, idempotency_key, external_run_id, status, input_ref, output_ref, started_at, finished_at, error_code | Durable workflow execution state                                   |
+| `growth_metric_daily`            | org_id, product_slug, campaign_id, channel, metric_date, metric_key, metric_value, currency                                | Daily aggregated performance metrics                               |
+| `growth_attribution_touchpoints` | org_id, anonymous_id_hash, pseudonymous_user_id, campaign_id, source, medium, occurred_at                                  | Pseudonymous attribution touchpoints with retention policy         |
+| `growth_reports`                 | org_id, period_start, period_end, report_type, snapshot, generated_at, generated_by                                        | Reproducible report snapshots                                      |
 
 Use existing platform audit events for security-sensitive actions where appropriate. Add domain-specific audit actions for campaign edits, content generation, approval decisions, integration changes and export operations. Do not create a second user or organisation table.
 
@@ -94,19 +94,19 @@ Use existing platform audit events for security-sensitive actions where appropri
 
 Each n8n workflow is triggered by a signed, authenticated event and carries `event_id`, `org_id`, `actor_id`, `occurred_at`, `schema_version` and a minimal resource reference. Validate the organisation and resource again when processing. Use an idempotency key for every side effect.
 
-| ID | Workflow | Trigger | Output | Gate |
-|---|---|---|---|---|
-| WF-01 | GitHub Release Monitor | Verified release webhook | Candidate product update | Human selects campaign relevance |
-| WF-02 | AI Content Draft | Content brief submitted | Versioned draft + source references | Draft only; never publish |
-| WF-03 | Channel Adaptation | Approved base draft | Channel-specific variants | Approval per final variant |
-| WF-04 | SEO Draft | Approved article brief | Article draft + evidence checklist | Editorial/fact-check approval |
-| WF-05 | Content Calendar Builder | Weekly schedule request | Suggested schedule | Owner confirms |
-| WF-06 | Campaign Metrics Import | Scheduled connector sync | Daily metric aggregates | Data-quality validation |
-| WF-07 | Lead Event Sync | Consented lead event | CRM upsert | Duplicate and consent checks |
-| WF-08 | Transactional Lifecycle Event | Product lifecycle event | Provider message request | Template and eligibility checks |
-| WF-09 | Activation Cohort | Product telemetry aggregate | Cohort summary | Aggregate-only reporting |
-| WF-10 | Weekly Growth Report | Weekly schedule | Report snapshot | Owner review |
-| WF-11+ | Video, competitor, pricing, partner workflows | Deferred | Deferred | Separate design review |
+| ID     | Workflow                                      | Trigger                     | Output                              | Gate                             |
+| ------ | --------------------------------------------- | --------------------------- | ----------------------------------- | -------------------------------- |
+| WF-01  | GitHub Release Monitor                        | Verified release webhook    | Candidate product update            | Human selects campaign relevance |
+| WF-02  | AI Content Draft                              | Content brief submitted     | Versioned draft + source references | Draft only; never publish        |
+| WF-03  | Channel Adaptation                            | Approved base draft         | Channel-specific variants           | Approval per final variant       |
+| WF-04  | SEO Draft                                     | Approved article brief      | Article draft + evidence checklist  | Editorial/fact-check approval    |
+| WF-05  | Content Calendar Builder                      | Weekly schedule request     | Suggested schedule                  | Owner confirms                   |
+| WF-06  | Campaign Metrics Import                       | Scheduled connector sync    | Daily metric aggregates             | Data-quality validation          |
+| WF-07  | Lead Event Sync                               | Consented lead event        | CRM upsert                          | Duplicate and consent checks     |
+| WF-08  | Transactional Lifecycle Event                 | Product lifecycle event     | Provider message request            | Template and eligibility checks  |
+| WF-09  | Activation Cohort                             | Product telemetry aggregate | Cohort summary                      | Aggregate-only reporting         |
+| WF-10  | Weekly Growth Report                          | Weekly schedule             | Report snapshot                     | Owner review                     |
+| WF-11+ | Video, competitor, pricing, partner workflows | Deferred                    | Deferred                            | Separate design review           |
 
 ### Release-to-campaign flow
 
@@ -153,12 +153,14 @@ This is a UI foundation, not a claim that campaign CRUD, database persistence, A
 ## 7. Delivery sequence
 
 ### G0 — Contracts and foundations
+
 - ADR approval, threat model, RBAC matrix and event schemas.
 - Confirm existing Console route conventions and shared UI components.
 - Define migration ownership and organisation isolation tests.
 - Define n8n deployment, webhook authentication and secret rotation.
 
 ### G1 — P0 vertical slice
+
 - Growth navigation and Overview shell.
 - Product profiles read from Product Registry.
 - Campaign CRUD and channel mapping.
@@ -167,18 +169,21 @@ This is a UI foundation, not a claim that campaign CRUD, database persistence, A
 - No external publishing.
 
 ### G2 — AI + GitHub automation
+
 - AI Gateway integration with structured output and prompt versioning.
 - Signed GitHub release ingestion.
 - n8n WF-01/WF-02 with retries, idempotency and dead-letter handling.
 - Human approval queue.
 
 ### G3 — Analytics + reports
+
 - UTM conventions and event contract.
 - PostHog/Search Console import adapters.
 - Daily metric aggregation, source freshness and attribution caveats.
 - Weekly report snapshots.
 
 ### G4 — Controlled external actions
+
 - CRM/email adapters with consent/suppression enforcement.
 - Social publishing adapters only where official APIs and permissions support the action.
 - Per-channel approval, rollback/withdrawal procedure and delivery audit.
@@ -195,7 +200,6 @@ This is a UI foundation, not a claim that campaign CRUD, database persistence, A
 - Metrics show source, time window, currency and freshness; unknown attribution is not silently treated as direct.
 - Migrations, tests, docs and operational runbooks ship with each phase.
 - No new secret is committed to Git or stored in application tables.
-
 
 ## 7.2 G2 implementation checkpoint — campaign, content and approval foundation
 
@@ -214,7 +218,6 @@ Database migration: \`0010_growth_engine_p0.sql\`. The schema intentionally keep
 ### G2 acceptance boundary
 
 This slice is a functional persistence and review foundation, not the complete Marketing Engine. It does not yet include campaign editing/archiving, content revision UI, source citation ingestion, AI Gateway generation, n8n execution, channel publishing, analytics attribution or report generation. The migration must be applied to the target PostgreSQL database before the new screens can perform reads and writes. Runtime database availability and migration execution are environment-dependent and are not implied by CI.
-
 
 ## 7.3 G3 implementation checkpoint — AI-assisted content drafts
 

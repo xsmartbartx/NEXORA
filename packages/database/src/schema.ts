@@ -218,7 +218,6 @@ export type OpsCost = typeof opsCosts.$inferSelect;
 export type NewOpsCost = typeof opsCosts.$inferInsert;
 export type OpsChecklistCompletion = typeof opsChecklistCompletions.$inferSelect;
 
-
 /**
  * Growth Engine P0 persistence. Product identity remains a stable registry slug;
  * campaign/content records are organisation-scoped and never trigger external publishing.
@@ -245,7 +244,10 @@ export const growthCampaigns = pgTable(
       "growth_campaigns_status_chk",
       sql`${table.status} in ('draft', 'planned', 'active', 'paused', 'completed', 'archived')`,
     ),
-    check("growth_campaigns_budget_chk", sql`${table.budgetCents} is null or ${table.budgetCents} >= 0`),
+    check(
+      "growth_campaigns_budget_chk",
+      sql`${table.budgetCents} is null or ${table.budgetCents} >= 0`,
+    ),
     check(
       "growth_campaigns_dates_chk",
       sql`${table.endsAt} is null or ${table.startsAt} is null or ${table.endsAt} >= ${table.startsAt}`,

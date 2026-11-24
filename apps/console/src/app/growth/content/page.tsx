@@ -15,10 +15,7 @@ export const metadata: Metadata = {
 
 export default async function GrowthContentPage() {
   await requireOrg();
-  const [campaigns, items] = await Promise.all([
-    listGrowthCampaigns(),
-    listGrowthContentItems(),
-  ]);
+  const [campaigns, items] = await Promise.all([listGrowthCampaigns(), listGrowthContentItems()]);
   const products = getAllProducts();
 
   return (
@@ -26,16 +23,16 @@ export default async function GrowthContentPage() {
       <p className="text-sm font-medium text-link">Growth Engine</p>
       <h1 className="mt-2 text-3xl font-semibold tracking-tight">Content Studio</h1>
       <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
-        Create versioned content drafts tied to a campaign or product. This workspace stores
-        drafts only; it does not publish or distribute content.
+        Create versioned content drafts tied to a campaign or product. This workspace stores drafts
+        only; it does not publish or distribute content.
       </p>
 
       <section className="mt-8 rounded-xl border border-border bg-card p-6">
         <div>
           <h2 className="font-semibold">AI draft generator</h2>
           <p className="mt-1 text-sm text-muted-foreground">
-            Generate a first draft through the NEXORA AI Gateway. Output is saved as version 1
-            and must pass the normal approval workflow before any external use.
+            Generate a first draft through the NEXORA AI Gateway. Output is saved as version 1 and
+            must pass the normal approval workflow before any external use.
           </p>
         </div>
         <form action={generateGrowthContentDraftFromForm} className="mt-4 grid gap-4">

@@ -71,7 +71,9 @@ export async function createGrowthCampaign(formData: FormData) {
     throw new Error("Budget must be a non-negative whole number of cents");
   }
 
-  const currency = String(formData.get("currency") ?? "USD").trim().toUpperCase();
+  const currency = String(formData.get("currency") ?? "USD")
+    .trim()
+    .toUpperCase();
   if (!/^[A-Z]{3}$/.test(currency)) throw new Error("Currency must be a three-letter code");
 
   const [created] = await db
@@ -188,10 +190,7 @@ export async function requestGrowthApproval(contentVersionId: string) {
     })
     .from(growthContentVersions)
     .where(
-      and(
-        eq(growthContentVersions.id, contentVersionId),
-        eq(growthContentVersions.orgId, orgId),
-      ),
+      and(eq(growthContentVersions.id, contentVersionId), eq(growthContentVersions.orgId, orgId)),
     )
     .limit(1);
 
@@ -208,10 +207,7 @@ export async function requestGrowthApproval(contentVersionId: string) {
     .update(growthContentItems)
     .set({ status: "in_review", updatedAt: new Date() })
     .where(
-      and(
-        eq(growthContentItems.id, version.contentItemId),
-        eq(growthContentItems.orgId, orgId),
-      ),
+      and(eq(growthContentItems.id, version.contentItemId), eq(growthContentItems.orgId, orgId)),
     );
 
   await logEvent({
@@ -419,7 +415,6 @@ export async function createGrowthContentDraftFromForm(formData: FormData): Prom
   await createGrowthContentDraft(formData);
 }
 
-
 function relayErrorMessage(raw: unknown): string {
   if (typeof raw === "object" && raw !== null && "error" in raw) {
     return String((raw as { error: unknown }).error);
@@ -512,7 +507,11 @@ export async function generateGrowthContentDraft(formData: FormData): Promise<vo
     action: "gateway.proxy.completed",
     resourceType: "chat_request",
     outcome: result.ok ? "success" : "failure",
-    metadata: { status: result.status, latencyMs: Date.now() - startedAt, feature: "growth.content" },
+    metadata: {
+      status: result.status,
+      latencyMs: Date.now() - startedAt,
+      feature: "growth.content",
+    },
   });
 
   if (!result.ok) throw new Error(relayErrorMessage(result.raw));

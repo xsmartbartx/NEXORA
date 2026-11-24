@@ -52,15 +52,7 @@ const modules: GrowthModule[] = [
   },
 ];
 
-function MetricCard({
-  label,
-  value,
-  note,
-}: {
-  label: string;
-  value: string;
-  note: string;
-}) {
+function MetricCard({ label, value, note }: { label: string; value: string; note: string }) {
   return (
     <section className="rounded-xl border border-border bg-card p-5">
       <p className="text-sm text-muted-foreground">{label}</p>
@@ -86,9 +78,7 @@ export default async function GrowthPage() {
             unavailable data is shown as not configured, never as an invented zero.
           </p>
         </div>
-        <span
-          className="rounded-full border border-border px-3 py-1.5 text-xs font-medium text-muted-foreground"
-        >
+        <span className="rounded-full border border-border px-3 py-1.5 text-xs font-medium text-muted-foreground">
           Foundation · P0
         </span>
       </div>
@@ -99,21 +89,9 @@ export default async function GrowthPage() {
           value={String(products.length)}
           note="Live Product Registry"
         />
-        <MetricCard
-          label="Active campaigns"
-          value="—"
-          note="Campaign data source not connected"
-        />
-        <MetricCard
-          label="Pending approvals"
-          value="—"
-          note="Approval workflow not connected"
-        />
-        <MetricCard
-          label="Attributed revenue"
-          value="—"
-          note="Revenue attribution not connected"
-        />
+        <MetricCard label="Active campaigns" value="—" note="Campaign data source not connected" />
+        <MetricCard label="Pending approvals" value="—" note="Approval workflow not connected" />
+        <MetricCard label="Attributed revenue" value="—" note="Revenue attribution not connected" />
       </div>
 
       <section className="mt-10">
@@ -135,9 +113,7 @@ export default async function GrowthPage() {
               <>
                 <div className="flex items-center justify-between gap-3">
                   <h3 className="font-semibold">{module.name}</h3>
-                  <span
-                    className="rounded-full bg-muted px-2.5 py-1 text-[11px] font-medium text-muted-foreground"
-                  >
+                  <span className="rounded-full bg-muted px-2.5 py-1 text-[11px] font-medium text-muted-foreground">
                     {module.status}
                   </span>
                 </div>
@@ -179,9 +155,7 @@ export default async function GrowthPage() {
               n8n is planned as an execution layer. Workflow state will remain persisted in NEXORA.
             </p>
           </div>
-          <span
-            className="rounded-full border border-border px-3 py-1.5 text-xs text-muted-foreground"
-          >
+          <span className="rounded-full border border-border px-3 py-1.5 text-xs text-muted-foreground">
             Not connected
           </span>
         </div>

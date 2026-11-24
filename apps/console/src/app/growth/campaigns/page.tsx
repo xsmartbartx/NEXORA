@@ -110,10 +110,7 @@ export default async function GrowthCampaignsPage() {
         ) : (
           <div className="mt-4 grid gap-3">
             {campaigns.map((campaign) => (
-              <article
-                key={campaign.id}
-                className="rounded-xl border border-border bg-card p-5"
-              >
+              <article key={campaign.id} className="rounded-xl border border-border bg-card p-5">
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <div>
                     <h3 className="font-semibold">{campaign.name}</h3>

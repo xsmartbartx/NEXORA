@@ -19,8 +19,8 @@ export default async function GrowthApprovalsPage() {
       <p className="text-sm font-medium text-link">Growth Engine</p>
       <h1 className="mt-2 text-3xl font-semibold tracking-tight">Approvals</h1>
       <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
-        Review requests are bound to an immutable content version. Approval records a decision
-        only; external publishing and outbound delivery remain separate, unimplemented actions.
+        Review requests are bound to an immutable content version. Approval records a decision only;
+        external publishing and outbound delivery remain separate, unimplemented actions.
       </p>
 
       <div className="mt-8 flex items-center justify-between gap-3">
@@ -52,9 +52,7 @@ export default async function GrowthApprovalsPage() {
                 </div>
                 <span className="rounded-full bg-muted px-2.5 py-1 text-xs">Pending</span>
               </div>
-              <pre
-                className="mt-4 max-h-64 overflow-auto whitespace-pre-wrap rounded-lg bg-muted/50 p-4 text-sm"
-              >
+              <pre className="mt-4 max-h-64 overflow-auto whitespace-pre-wrap rounded-lg bg-muted/50 p-4 text-sm">
                 {approval.body}
               </pre>
               <div className="mt-4 grid gap-3 md:grid-cols-[1fr_auto_auto]">

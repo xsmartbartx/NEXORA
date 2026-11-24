@@ -22,12 +22,14 @@ NEXORA already has shared identity, organisations, Product Registry, billing, te
 ## Consequences
 
 ### Positive
+
 - Reuses existing identity, tenancy, UI shell, API conventions and operational infrastructure.
 - Avoids a parallel user/product catalogue and limits operational surface area.
 - Makes workflow execution observable and replay-safe.
 - Establishes a controlled approval boundary before external side effects.
 
 ### Costs and constraints
+
 - Growth schema and APIs must follow existing database and module ownership rules.
 - Integration failures must not block the Console or core product flows.
 - Provider coverage varies; unsupported publishing actions remain manual.
@@ -38,7 +40,6 @@ NEXORA already has shared identity, organisations, Product Registry, billing, te
 - **Separate Growth SaaS:** rejected because it duplicates platform identity, organisation management and product metadata.
 - **n8n as the database/UI:** rejected because workflow engines are not the durable business system of record and do not provide the platform's tenant and audit contracts.
 - **Direct AI-provider calls from the browser:** rejected because this leaks credentials and bypasses the governed AI Gateway.
-
 
 ## Implementation note — shared AI relay
 
