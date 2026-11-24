@@ -195,3 +195,22 @@ This is a UI foundation, not a claim that campaign CRUD, database persistence, A
 - Metrics show source, time window, currency and freshness; unknown attribution is not silently treated as direct.
 - Migrations, tests, docs and operational runbooks ship with each phase.
 - No new secret is committed to Git or stored in application tables.
+
+
+## 7.2 G2 implementation checkpoint — campaign, content and approval foundation
+
+The first persisted Growth slice is implemented in \`packages/database\` and the Console:
+
+- \`growth_campaigns\` stores organisation-owned campaign briefs, scheduling windows, optional integer minor-unit budgets and lifecycle status.
+- \`growth_content_items\` stores content metadata and references Product Registry records by slug. Campaign references are nullable and protected by a database foreign key.
+- \`growth_content_versions\` stores immutable body snapshots with monotonically increasing version numbers per content item, source-reference JSON and organisation ownership.
+- \`growth_approvals\` stores review decisions against an exact content-version ID. A partial unique index allows at most one pending approval per version.
+- Campaign creation, draft creation, approval requests and review decisions are server actions. Each action obtains the active organisation and user from \`requireOrg()\`, scopes reads and writes by \`org_id\`, validates user input and emits an audit event.
+- The Console now exposes \`/growth/campaigns\`, \`/growth/content\` and \`/growth/approvals\`. Dashboard links point to these implemented surfaces.
+- Campaign/content creation and approval are data-only operations. They do not publish, send email, alter pricing or invoke n8n. External actions remain behind a future explicit approval-and-execution boundary.
+
+Database migration: \`0010_growth_engine_p0.sql\`. The schema intentionally keeps Clerk organisation/user identifiers as text references by convention; those identities are not owned by the application database. The relational foreign keys inside Growth protect campaign/content/version relationships, while every application query still applies organisation scope.
+
+### G2 acceptance boundary
+
+This slice is a functional persistence and review foundation, not the complete Marketing Engine. It does not yet include campaign editing/archiving, content revision UI, source citation ingestion, AI Gateway generation, n8n execution, channel publishing, analytics attribution or report generation. The migration must be applied to the target PostgreSQL database before the new screens can perform reads and writes. Runtime database availability and migration execution are environment-dependent and are not implied by CI.
