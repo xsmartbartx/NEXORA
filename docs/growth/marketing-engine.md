@@ -76,7 +76,8 @@ All timestamps are UTC. IDs are UUIDs unless a stable external identifier is req
 | `growth_approvals`               | org_id, content_version_id, channel, decision, decided_by, decided_at, comment                                             | Version-specific approval/rejection history                        |
 | `growth_workflow_runs`           | org_id, workflow_key, idempotency_key, external_run_id, status, input_ref, output_ref, started_at, finished_at, error_code | Durable workflow execution state                                   |
 | `growth_metric_daily`            | org_id, product_slug, campaign_id, channel, metric_date, metric_key, metric_value, currency                                | Daily aggregated performance metrics                               |
-| `growth_attribution_touchpoints` | org_id, anonymous_id_hash, pseudonymous_user_id, campaign_id, source, medium, occurred_at                                  | Pseudonymous attribution touchpoints with retention policy         |
+| `growth_leads`                   | org_id, email, stage, campaign_id, source, medium, utm_*, consent_status, consent_at, consent_source, idempotency_key         | Minimal organisation-owned lead register and first-touch context   |
+| `growth_lead_touchpoints`         | org_id, lead_id, touchpoint_type, campaign_id, source, medium, utm_*, occurred_at, idempotency_key                           | Append-only attribution history for known leads                     |
 | `growth_reports`                 | org_id, period_start, period_end, report_type, snapshot, generated_at, generated_by                                        | Reproducible report snapshots                                      |
 
 Use existing platform audit events for security-sensitive actions where appropriate. Add domain-specific audit actions for campaign edits, content generation, approval decisions, integration changes and export operations. Do not create a second user or organisation table.
@@ -85,7 +86,7 @@ Use existing platform audit events for security-sensitive actions where appropri
 
 - Store only data needed for campaign operations and measurement.
 - Keep raw behavioural events in the analytics system where possible; persist aggregates and pseudonymous attribution references in Growth.
-- Do not place customer content, secrets, access tokens, payment data or sensitive personal data in prompts or analytics properties.
+- Do not place customer content, secrets, access tokens, payment data or sensitive personal data in prompts or analytics properties. Lead contact data is limited to email, optional name/company and is visible only within its owning organisation.
 - Apply consent and lawful-basis checks before marketing email processing; keep suppression/unsubscribe state authoritative in the email provider or CRM and synchronise it safely.
 - Define retention and deletion jobs before enabling person-level attribution.
 - Treat generated claims as unverified until linked to an approved source or product evidence.
@@ -182,14 +183,14 @@ This is a UI foundation, not a claim that campaign CRUD, database persistence, A
 - Daily metric aggregation, source freshness and attribution caveats.
 - Weekly report snapshots.
 
-### G4 — Controlled external actions
+### G5 — Acquisition and attribution foundation\n\n- Internal authenticated lead register with organisation scoping and minimal contact fields.\n- Capture campaign/source/medium and UTM parameters on lead creation; retain an append-only touchpoint record.\n- Record consent status, timestamp and evidence source separately from lifecycle stage. A lead record never implies marketing permission.\n- Enforce organisation-scoped idempotency keys for retried intake operations.\n- Keep lead scoring rule-based and explainable if introduced; do not add an opaque AI score.\n- Do not report CAC, revenue attribution or conversion until CRM, billing and product event sources are mapped and validated.\n\n### G6 — Controlled external actions
 
 - CRM/email adapters with consent/suppression enforcement.
 - Social publishing adapters only where official APIs and permissions support the action.
 - Per-channel approval, rollback/withdrawal procedure and delivery audit.
 - Additional workflows only after operational review.
 
-## 8. Definition of done
+## 7.3 G5 implementation checkpoint — acquisition foundation\n\n- Added `growth_leads` and `growth_lead_touchpoints` with organisation indexes, campaign references, lifecycle/consent constraints and optional idempotency keys.\n- Added an authenticated Console lead register and intake form. The route is not public and does not expose an unauthenticated capture endpoint.\n- Captures source, medium and UTM fields and writes an append-only `lead_created` touchpoint in the same database transaction.\n- Stores consent status separately; granted and not-required states require an evidence source, and granted/denied states receive a timestamp. No marketing message is sent.\n- The current slice is a first-touch operational register, not multi-channel identity stitching or revenue attribution. Lead scoring, public form protection, CRM sync and outcome metrics remain deferred.\n- Apply migration `0011_growth_acquisition_attribution.sql` before using the lead workspace.\n\n## 8. Definition of done
 
 - Cross-organisation access tests prove no Growth data leaks between organisations.
 - Every mutation is authenticated, authorised and audited.
