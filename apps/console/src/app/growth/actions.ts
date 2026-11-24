@@ -673,6 +673,8 @@ export async function listGrowthLeads() {
       stage: growthLeads.stage,
       source: growthLeads.source,
       medium: growthLeads.medium,
+      utmSource: growthLeads.utmSource,
+      utmMedium: growthLeads.utmMedium,
       utmCampaign: growthLeads.utmCampaign,
       consentStatus: growthLeads.consentStatus,
       createdAt: growthLeads.createdAt,
@@ -799,6 +801,41 @@ export async function createGrowthLeadFromForm(formData: FormData): Promise<void
       metadata: { source, medium, campaignId, consentStatus },
     });
   }
+
+  revalidatePath("/growth");
+  revalidatePath("/growth/leads");
+}
+
+
+const LEAD_STAGES = ["new", "qualified", "contacted", "disqualified"] as const;
+
+/** Update a lead lifecycle stage without allowing cross-organisation record access. */
+export async function updateGrowthLeadStageFromForm(formData: FormData): Promise<void> {
+  const { orgId, userId } = await requireOrg();
+  const leadId = requiredText(formData.get("leadId"), "Lead id", 64);
+  if (!isUuid(leadId)) throw new Error("Lead id is invalid");
+
+  const stage = String(formData.get("stage") ?? "");
+  if (!(LEAD_STAGES as readonly string[]).includes(stage)) {
+    throw new Error("Unsupported lead stage");
+  }
+
+  const [updated] = await db
+    .update(growthLeads)
+    .set({ stage, updatedAt: new Date() })
+    .where(and(eq(growthLeads.id, leadId), eq(growthLeads.orgId, orgId)))
+    .returning({ id: growthLeads.id, stage: growthLeads.stage });
+
+  if (!updated) throw new Error("Lead not found in this organisation");
+
+  await logEvent({
+    orgId,
+    actorId: userId,
+    action: "console.growth.lead.stage_updated",
+    resourceType: "growth_lead",
+    resourceId: updated.id,
+    metadata: { stage: updated.stage },
+  });
 
   revalidatePath("/growth");
   revalidatePath("/growth/leads");
