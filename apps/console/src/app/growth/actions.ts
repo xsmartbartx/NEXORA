@@ -736,7 +736,7 @@ export async function createGrowthLeadFromForm(formData: FormData): Promise<void
     if (existing) return;
   }
 
-  const leadId = await db.transaction(async (tx) => {
+  const result = await db.transaction(async (tx) => {
     const [lead] = await tx
       .insert(growthLeads)
       .values({
@@ -758,9 +758,19 @@ export async function createGrowthLeadFromForm(formData: FormData): Promise<void
         idempotencyKey,
         createdBy: userId,
       })
+      .onConflictDoNothing()
       .returning({ id: growthLeads.id });
 
-    if (!lead) throw new Error("Lead could not be created");
+    if (!lead) {
+      if (!idempotencyKey) throw new Error("Lead could not be created");
+      const [existing] = await tx
+        .select({ id: growthLeads.id })
+        .from(growthLeads)
+        .where(and(eq(growthLeads.orgId, orgId), eq(growthLeads.idempotencyKey, idempotencyKey)))
+        .limit(1);
+      if (!existing) throw new Error("Idempotent lead lookup failed");
+      return { leadId: existing.id, created: false };
+    }
 
     await tx.insert(growthLeadTouchpoints).values({
       orgId,
@@ -776,17 +786,19 @@ export async function createGrowthLeadFromForm(formData: FormData): Promise<void
       utmTerm,
       idempotencyKey: idempotencyKey ? `${idempotencyKey}:lead_created` : null,
     });
-    return lead.id;
+    return { leadId: lead.id, created: true };
   });
 
-  await logEvent({
-    orgId,
-    actorId: userId,
-    action: "console.growth.lead.created",
-    resourceType: "growth_lead",
-    resourceId: leadId,
-    metadata: { source, medium, campaignId, consentStatus },
-  });
+  if (result.created) {
+    await logEvent({
+      orgId,
+      actorId: userId,
+      action: "console.growth.lead.created",
+      resourceType: "growth_lead",
+      resourceId: result.leadId,
+      metadata: { source, medium, campaignId, consentStatus },
+    });
+  }
 
   revalidatePath("/growth");
   revalidatePath("/growth/leads");
