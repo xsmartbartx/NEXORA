@@ -257,3 +257,13 @@ The Growth analytics route at `/growth/analytics` reports organisation-scoped op
 The Growth overview consumes the same server-side query for its active-campaign and pending-approval cards. Queries are scoped by the authenticated Clerk organisation ID.
 
 These are workflow/operations metrics, not evidence of market performance. Revenue attribution, CAC, conversion, activation and retention remain unavailable until trusted billing, CRM and product analytics sources are integrated and their identifiers can be joined to campaign records. The UI explicitly distinguishes those unavailable business metrics from operational counts.
+
+
+### G5.2 — Attribution event capture
+
+- Added an authenticated action for appending touchpoints to an existing lead in the active organisation.
+- Touchpoint types are constrained to a controlled vocabulary; source, medium and UTM fields are length-limited.
+- The action verifies lead ownership before insertion, uses an organisation-scoped idempotency key and relies on the server clock for `occurred_at`; callers cannot backdate attribution.
+- Successful insertions emit an audit event containing the touchpoint category and non-PII source metadata only.
+- The Leads workspace exposes a compact touchpoint capture form. This records interactions supplied by an operator; it does not imply anonymous visitor tracking, identity stitching or verified channel conversion.
+- First-touch and last-touch reporting must be derived from the ordered touchpoint history. Until multiple events exist for a lead, both models legitimately resolve to the same event. Revenue, CAC and ROI remain unavailable.
