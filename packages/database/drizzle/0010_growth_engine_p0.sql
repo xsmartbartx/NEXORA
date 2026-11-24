@@ -69,3 +69,9 @@ CREATE TABLE "growth_approvals" (
 CREATE UNIQUE INDEX "growth_approvals_one_pending_version_idx" ON "growth_approvals" USING btree ("content_version_id") WHERE "growth_approvals"."status" = 'pending';
 --> statement-breakpoint
 CREATE INDEX "growth_approvals_org_status_requested_idx" ON "growth_approvals" USING btree ("org_id", "status", "requested_at");
+--> statement-breakpoint
+ALTER TABLE "growth_content_items" ADD CONSTRAINT "growth_content_items_campaign_id_growth_campaigns_id_fk" FOREIGN KEY ("campaign_id") REFERENCES "growth_campaigns"("id") ON DELETE set null ON UPDATE no action;
+--> statement-breakpoint
+ALTER TABLE "growth_content_versions" ADD CONSTRAINT "growth_content_versions_content_item_id_growth_content_items_id_fk" FOREIGN KEY ("content_item_id") REFERENCES "growth_content_items"("id") ON DELETE cascade ON UPDATE no action;
+--> statement-breakpoint
+ALTER TABLE "growth_approvals" ADD CONSTRAINT "growth_approvals_content_version_id_growth_content_versions_id_fk" FOREIGN KEY ("content_version_id") REFERENCES "growth_content_versions"("id") ON DELETE cascade ON UPDATE no action;
