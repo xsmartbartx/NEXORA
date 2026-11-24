@@ -7,7 +7,14 @@ export const metadata: Metadata = {
   title: "Growth",
 };
 
-type GrowthModule = {\n  name: string;\n  description: string;\n  status: string;\n  href?: string;\n};\n\nconst modules: GrowthModule[] = [
+type GrowthModule = {
+  name: string;
+  description: string;
+  status: string;
+  href?: string;
+};
+
+const modules: GrowthModule[] = [
   {
     name: "Products",
     description: "Portfolio context, ICP, positioning and approved product claims.",
