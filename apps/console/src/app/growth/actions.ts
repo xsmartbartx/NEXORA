@@ -368,3 +368,9 @@ export async function rejectGrowthApproval(formData: FormData) {
   const approvalId = requiredText(formData.get("approvalId"), "Approval id", 64);
   await reviewGrowthApproval(approvalId, "rejected", String(formData.get("reviewNote") ?? ""));
 }
+
+
+export async function requestGrowthApprovalFromForm(formData: FormData) {
+  const versionId = requiredText(formData.get("contentVersionId"), "Content version id", 64);
+  await requestGrowthApproval(versionId);
+}
