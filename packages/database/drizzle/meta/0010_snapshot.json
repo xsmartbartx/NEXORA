@@ -959,8 +959,8 @@
         }
       },
       "foreignKeys": {
-        "growth_content_items_campaign_id_growth_campaigns_id_fk": {
-          "name": "growth_content_items_campaign_id_growth_campaigns_id_fk",
+        "growth_content_campaign_fk": {
+          "name": "growth_content_campaign_fk",
           "tableFrom": "growth_content_items",
           "tableTo": "growth_campaigns",
           "columns": [
@@ -1085,8 +1085,8 @@
         }
       },
       "foreignKeys": {
-        "growth_content_versions_content_item_id_growth_content_items_id_fk": {
-          "name": "growth_content_versions_content_item_id_growth_content_items_id_fk",
+        "growth_content_version_item_fk": {
+          "name": "growth_content_version_item_fk",
           "tableFrom": "growth_content_versions",
           "tableTo": "growth_content_items",
           "columns": [
@@ -1218,8 +1218,8 @@
         }
       },
       "foreignKeys": {
-        "growth_approvals_content_version_id_growth_content_versions_id_fk": {
-          "name": "growth_approvals_content_version_id_growth_content_versions_id_fk",
+        "growth_approval_version_fk": {
+          "name": "growth_approval_version_fk",
           "tableFrom": "growth_approvals",
           "tableTo": "growth_content_versions",
           "columns": [
