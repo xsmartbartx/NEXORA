@@ -1,0 +1,41 @@
+name: Prepare Growth formatting artifact
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - ".github/workflows/format-growth-artifact.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  format-artifact:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm install -g npm@11.12.1
+      - run: npm ci
+      - name: Format Growth files in runner workspace only
+        run: |
+          npx prettier --write \
+            apps/console/src/app/growth/actions.ts \
+            apps/console/src/app/growth/analytics/page.tsx \
+            apps/console/src/app/growth/leads/page.tsx \
+            docs/growth/marketing-engine.md \
+            packages/database/src/schema.ts
+      - uses: actions/upload-artifact@v4
+        with:
+          name: growth-prettier-output
+          path: |
+            apps/console/src/app/growth/actions.ts
+            apps/console/src/app/growth/analytics/page.tsx
+            apps/console/src/app/growth/leads/page.tsx
+            docs/growth/marketing-engine.md
+            packages/database/src/schema.ts
+          if-no-files-found: error
+          retention-days: 2
