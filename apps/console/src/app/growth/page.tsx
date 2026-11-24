@@ -17,17 +17,20 @@ const modules = [
   {
     name: "Campaigns",
     description: "Plan objectives, audiences, channels, budgets and launch windows.",
-    status: "Next",
+    status: "Available",
+    href: "/growth/campaigns",
   },
   {
     name: "Content Studio",
     description: "Create briefs, AI-assisted drafts, revisions and source references.",
-    status: "Next",
+    status: "Available",
+    href: "/growth/content",
   },
   {
     name: "Approvals",
     description: "Review exact content versions before any external action.",
-    status: "Next",
+    status: "Available",
+    href: "/growth/approvals",
   },
   {
     name: "Analytics",
