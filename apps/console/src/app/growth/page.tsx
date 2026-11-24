@@ -7,7 +7,7 @@ export const metadata: Metadata = {
   title: "Growth",
 };
 
-const modules = [
+type GrowthModule = {\n  name: string;\n  description: string;\n  status: string;\n  href?: string;\n};\n\nconst modules: GrowthModule[] = [
   {
     name: "Products",
     description: "Portfolio context, ICP, positioning and approved product claims.",
@@ -43,7 +43,7 @@ const modules = [
     description: "Generate reproducible weekly and monthly growth snapshots.",
     status: "Next",
   },
-] as const;
+];
 
 function MetricCard({
   label,
