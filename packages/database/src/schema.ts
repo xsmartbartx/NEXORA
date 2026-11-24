@@ -1,5 +1,6 @@
 import {
   check,
+  foreignKey,
   index,
   integer,
   jsonb,
@@ -257,7 +258,7 @@ export const growthContentItems = pgTable(
   {
     id: uuid("id").primaryKey().defaultRandom(),
     orgId: text("org_id").notNull(),
-    campaignId: uuid("campaign_id").references(() => growthCampaigns.id, { onDelete: "set null" }),
+    campaignId: uuid("campaign_id"),
     productSlug: text("product_slug"),
     title: text("title").notNull(),
     contentType: text("content_type").notNull(),
@@ -274,6 +275,11 @@ export const growthContentItems = pgTable(
       "growth_content_items_status_chk",
       sql`${table.status} in ('draft', 'in_review', 'approved', 'archived')`,
     ),
+    foreignKey({
+      columns: [table.campaignId],
+      foreignColumns: [growthCampaigns.id],
+      name: "growth_content_campaign_fk",
+    }).onDelete("set null"),
   ],
 );
 
@@ -282,9 +288,7 @@ export const growthContentVersions = pgTable(
   {
     id: uuid("id").primaryKey().defaultRandom(),
     orgId: text("org_id").notNull(),
-    contentItemId: uuid("content_item_id")
-      .notNull()
-      .references(() => growthContentItems.id, { onDelete: "cascade" }),
+    contentItemId: uuid("content_item_id").notNull(),
     version: integer("version").notNull(),
     body: text("body").notNull(),
     sourceRefs: jsonb("source_refs").notNull().default([]),
@@ -295,6 +299,11 @@ export const growthContentVersions = pgTable(
     uniqueIndex("growth_content_versions_item_version_idx").on(table.contentItemId, table.version),
     index("growth_content_versions_org_item_idx").on(table.orgId, table.contentItemId),
     check("growth_content_versions_version_chk", sql`${table.version} > 0`),
+    foreignKey({
+      columns: [table.contentItemId],
+      foreignColumns: [growthContentItems.id],
+      name: "growth_content_version_item_fk",
+    }).onDelete("cascade"),
   ],
 );
 
@@ -303,9 +312,7 @@ export const growthApprovals = pgTable(
   {
     id: uuid("id").primaryKey().defaultRandom(),
     orgId: text("org_id").notNull(),
-    contentVersionId: uuid("content_version_id")
-      .notNull()
-      .references(() => growthContentVersions.id, { onDelete: "cascade" }),
+    contentVersionId: uuid("content_version_id").notNull(),
     status: text("status").notNull().default("pending"),
     requestedBy: text("requested_by").notNull(),
     reviewedBy: text("reviewed_by"),
@@ -326,6 +333,11 @@ export const growthApprovals = pgTable(
       "growth_approvals_status_chk",
       sql`${table.status} in ('pending', 'approved', 'rejected', 'withdrawn')`,
     ),
+    foreignKey({
+      columns: [table.contentVersionId],
+      foreignColumns: [growthContentVersions.id],
+      name: "growth_approval_version_fk",
+    }).onDelete("cascade"),
   ],
 );
 
