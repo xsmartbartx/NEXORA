@@ -1,6 +1,11 @@
 import type { Metadata } from "next";
 import { requireOrg } from "@nexora/auth/server";
-import { createGrowthLeadFromForm, listGrowthCampaigns, listGrowthLeads } from "../actions";
+import {
+  createGrowthLeadFromForm,
+  listGrowthCampaigns,
+  listGrowthLeads,
+  updateGrowthLeadStageFromForm,
+} from "../actions";
 
 export const metadata: Metadata = {
   title: "Growth leads",
@@ -125,7 +130,28 @@ export default async function GrowthLeadsPage() {
                       {lead.name ? <p className="text-xs text-muted-foreground">{lead.email}</p> : null}
                     </td>
                     <td className="px-4 py-3">{lead.company || "—"}</td>
-                    <td className="px-4 py-3 capitalize">{lead.stage}</td>
+                    <td className="px-4 py-3">
+                      <form action={updateGrowthLeadStageFromForm} className="flex items-center gap-2">
+                        <input type="hidden" name="leadId" value={lead.id} />
+                        <select
+                          name="stage"
+                          defaultValue={lead.stage}
+                          aria-label={"Stage for " + lead.email}
+                          className="rounded-md border border-border bg-background px-2 py-1 text-xs"
+                        >
+                          <option value="new">New</option>
+                          <option value="qualified">Qualified</option>
+                          <option value="contacted">Contacted</option>
+                          <option value="disqualified">Disqualified</option>
+                        </select>
+                        <button
+                          type="submit"
+                          className="text-xs font-medium text-link hover:underline"
+                        >
+                          Save
+                        </button>
+                      </form>
+                    </td>
                     <td className="px-4 py-3">
                       <p>{lead.source || lead.utmSource || "Unknown"}</p>
                       <p className="text-xs text-muted-foreground">{lead.medium || lead.utmMedium || "No medium"}</p>
