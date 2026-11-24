@@ -110,7 +110,17 @@ export async function createGrowthContentDraft(formData: FormData) {
   const campaignId = String(formData.get("campaignId") ?? "").trim() || null;
   const productSlug = String(formData.get("productSlug") ?? "").trim() || null;
 
+  if (!["social_post", "article", "email", "video_script", "landing_page"].includes(contentType)) {
+    throw new Error("Unsupported content type");
+  }
+  if (!["linkedin", "youtube", "website", "email", "x", "other"].includes(channel)) {
+    throw new Error("Unsupported channel");
+  }
+  if (productSlug && !getProductBySlug(productSlug)) {
+    throw new Error("Product does not exist in the Product Registry");
+  }
   if (campaignId) {
+    if (!isUuid(campaignId)) throw new Error("Campaign id is invalid");
     const [campaign] = await db
       .select({ id: growthCampaigns.id })
       .from(growthCampaigns)
@@ -167,6 +177,7 @@ export async function createGrowthContentDraft(formData: FormData) {
 
 export async function requestGrowthApproval(contentVersionId: string) {
   const { orgId, userId } = await requireOrg();
+  if (!isUuid(contentVersionId)) throw new Error("Content version id is invalid");
   const [version] = await db
     .select({
       id: growthContentVersions.id,
@@ -221,6 +232,7 @@ export async function reviewGrowthApproval(
   reviewNote = "",
 ) {
   const { orgId, userId } = await requireOrg();
+  if (!isUuid(approvalId)) throw new Error("Approval id is invalid");
   const [approval] = await db
     .select({
       id: growthApprovals.id,
