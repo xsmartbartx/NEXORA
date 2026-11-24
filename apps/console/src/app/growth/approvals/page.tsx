@@ -52,7 +52,9 @@ export default async function GrowthApprovalsPage() {
                 </div>
                 <span className="rounded-full bg-muted px-2.5 py-1 text-xs">Pending</span>
               </div>
-              <pre className="mt-4 max-h-64 overflow-auto whitespace-pre-wrap rounded-lg bg-muted/50 p-4 text-sm">
+              <pre
+                className="mt-4 max-h-64 overflow-auto whitespace-pre-wrap rounded-lg bg-muted/50 p-4 text-sm"
+              >
                 {approval.body}
               </pre>
               <div className="mt-4 grid gap-3 md:grid-cols-[1fr_auto_auto]">
