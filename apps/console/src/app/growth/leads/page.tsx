@@ -4,6 +4,7 @@ import {
   createGrowthLeadFromForm,
   listGrowthCampaigns,
   listGrowthLeads,
+  recordGrowthLeadTouchpointFromForm,
   updateGrowthLeadStageFromForm,
 } from "../actions";
 
@@ -120,6 +121,7 @@ export default async function GrowthLeadsPage() {
                   <th className="px-4 py-3 font-medium">Acquisition</th>
                   <th className="px-4 py-3 font-medium">Consent</th>
                   <th className="px-4 py-3 font-medium">Created</th>
+                  <th className="px-4 py-3 font-medium">Record touchpoint</th>
                 </tr>
               </thead>
               <tbody>
@@ -160,6 +162,26 @@ export default async function GrowthLeadsPage() {
                     <td className="px-4 py-3 capitalize">{lead.consentStatus.replace("_", " ")}</td>
                     <td className="px-4 py-3 text-muted-foreground">
                       {new Intl.DateTimeFormat("en", { dateStyle: "medium" }).format(new Date(lead.createdAt))}
+                    </td>
+                    <td className="px-4 py-3">
+                      <form action={recordGrowthLeadTouchpointFromForm} className="grid min-w-56 gap-2">
+                        <input type="hidden" name="leadId" value={lead.id} />
+                        <select name="touchpointType" defaultValue="sales_conversation" className="rounded-md border border-border bg-background px-2 py-1 text-xs">
+                          <option value="website_visit">Website visit</option>
+                          <option value="content_engagement">Content engagement</option>
+                          <option value="demo_request">Demo request</option>
+                          <option value="sales_conversation">Sales conversation</option>
+                          <option value="event_attendance">Event attendance</option>
+                          <option value="partner_referral">Partner referral</option>
+                          <option value="other">Other</option>
+                        </select>
+                        <div className="grid grid-cols-2 gap-1">
+                          <input name="source" maxLength={100} placeholder="Source" className="min-w-0 rounded-md border border-border bg-background px-2 py-1 text-xs" />
+                          <input name="medium" maxLength={100} placeholder="Medium" className="min-w-0 rounded-md border border-border bg-background px-2 py-1 text-xs" />
+                        </div>
+                        <input name="utmCampaign" maxLength={160} placeholder="UTM campaign (optional)" className="rounded-md border border-border bg-background px-2 py-1 text-xs" />
+                        <button type="submit" className="text-left text-xs font-medium text-link hover:underline">Add touchpoint</button>
+                      </form>
                     </td>
                   </tr>
                 ))}
