@@ -915,3 +915,29 @@ export async function recordGrowthLeadTouchpointFromForm(formData: FormData): Pr
   revalidatePath("/growth");
   revalidatePath("/growth/leads");
 }
+
+/** First-touch and last-touch attribution grouped by source and medium. */
+export async function getGrowthAttributionReport() {
+  const { orgId } = await requireOrg();
+  const ranked = db
+    .select({
+      source: sql<string>`COALESCE(NULLIF(${growthLeadTouchpoints.source}, ''), NULLIF(${growthLeadTouchpoints.utmSource}, ''), 'unknown')`,
+      medium: sql<string>`COALESCE(NULLIF(${growthLeadTouchpoints.medium}, ''), NULLIF(${growthLeadTouchpoints.utmMedium}, ''), 'unknown')`,
+      firstRank: sql<number>`ROW_NUMBER() OVER (PARTITION BY ${growthLeadTouchpoints.leadId} ORDER BY ${growthLeadTouchpoints.occurredAt} ASC, ${growthLeadTouchpoints.id} ASC)`.as('first_rank'),
+      lastRank: sql<number>`ROW_NUMBER() OVER (PARTITION BY ${growthLeadTouchpoints.leadId} ORDER BY ${growthLeadTouchpoints.occurredAt} DESC, ${growthLeadTouchpoints.id} DESC)`.as('last_rank'),
+    })
+    .from(growthLeadTouchpoints)
+    .where(eq(growthLeadTouchpoints.orgId, orgId))
+    .as('ranked_touchpoints');
+
+  const [firstTouch, lastTouch] = await Promise.all([
+    db.select({ source: ranked.source, medium: ranked.medium, leads: count() })
+      .from(ranked).where(eq(ranked.firstRank, 1))
+      .groupBy(ranked.source, ranked.medium).orderBy(desc(count())),
+    db.select({ source: ranked.source, medium: ranked.medium, leads: count() })
+      .from(ranked).where(eq(ranked.lastRank, 1))
+      .groupBy(ranked.source, ranked.medium).orderBy(desc(count())),
+  ]);
+
+  return { firstTouch, lastTouch };
+}
