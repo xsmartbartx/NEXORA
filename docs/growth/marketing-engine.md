@@ -223,6 +223,7 @@ The NEXORA Gateway relay has been extracted into the server-side workspace packa
 The Content Studio now provides an AI draft generator that:
 
 - Requires an authenticated organisation and checks the existing `gateway.proxy` entitlement before a model call.
+- Applies the shared Redis-backed rate limiter per organisation because this browser-session action does not pass through the API-key Gateway middleware.
 - Builds a constrained prompt from the user brief, selected channel, content type, Product Registry identity and an organisation-scoped campaign objective.
 - Instructs the model not to invent product capabilities, pricing, customer proof, metrics or guarantees; missing facts must be marked `[VERIFY]`.
 - Calls the server-side NEXORA AI relay. The upstream key remains a server environment secret and is never sent to the browser or stored in Growth records.
