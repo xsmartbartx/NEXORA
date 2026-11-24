@@ -1,6 +1,7 @@
 "use server";
 
 import { and, desc, eq } from "drizzle-orm";
+import { checkRateLimit } from "@nexora/api-kit";
 import { checkEntitlement } from "@nexora/entitlements";
 import { relayChatRequest } from "@nexora/ai-relay";
 import { revalidatePath } from "next/cache";
@@ -464,6 +465,21 @@ export async function generateGrowthContentDraft(formData: FormData): Promise<vo
     throw new Error(entitlement.reason ?? "Your organisation is not entitled to use AI Gateway.");
   }
 
+  // The browser-session path does not pass through withApiKey, so apply the
+  // same shared Redis-backed limiter explicitly at the organisation boundary.
+  const rate = await checkRateLimit(orgId, "growth-ai");
+  if (rate.limited) {
+    await logEvent({
+      orgId,
+      actorId: userId,
+      action: "console.growth.content.ai_rate_limited",
+      resourceType: "chat_request",
+      outcome: "failure",
+      metadata: { resetAt: rate.resetAt },
+    });
+    throw new Error("AI draft generation rate limit reached. Try again shortly.");
+  }
+
   const productContext = product
     ? `Product: ${product.short_name} (registry slug: ${product.slug}). Use only claims present in the brief.`
     : "No specific product is associated with this draft.";
@@ -531,7 +547,7 @@ export async function generateGrowthContentDraft(formData: FormData): Promise<vo
           {
             kind: "ai_generation",
             provider: "nexora_gateway",
-            model: "gateway_default",
+            model: process.env.GATEWAY_DEFAULT_MODEL ?? "claude-haiku-4-5",
             generatedAt: new Date().toISOString(),
           },
         ],
