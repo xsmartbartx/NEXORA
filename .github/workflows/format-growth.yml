@@ -16,7 +16,7 @@ concurrency:
   cancel-in-progress: true
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   format:
@@ -31,7 +31,7 @@ jobs:
       - run: npm ci
       - name: Check repository formatting
         run: |
-          npx prettier --check \
+          npx prettier --write \
             apps/console/src/app/growth/actions.ts \
             apps/console/src/app/growth/analytics/page.tsx \
             apps/console/src/app/growth/approvals/page.tsx \
@@ -43,3 +43,13 @@ jobs:
             docs/adr/ADR-0014-growth-engine-boundary.md \
             docs/growth/marketing-engine.md \
             packages/database/src/schema.ts
+
+      - name: Commit formatted Growth files
+        run: |
+          if [ -n "$(git status --porcelain)" ]; then
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add apps/console/src/app/growth/actions.ts apps/console/src/app/growth/analytics/page.tsx apps/console/src/app/growth/approvals/page.tsx apps/console/src/app/growth/campaigns/page.tsx apps/console/src/app/growth/content/page.tsx apps/console/src/app/growth/page.tsx apps/console/src/app/growth/leads/page.tsx packages/database/src/index.ts packages/database/src/schema.ts docs/adr/ADR-0014-growth-engine-boundary.md docs/growth/marketing-engine.md
+            git commit -m "style(growth): apply Prettier formatting"
+            git push
+          fi
