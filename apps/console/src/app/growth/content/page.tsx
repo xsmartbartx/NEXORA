@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { requireOrg } from "@nexora/auth/server";
 import { getAllProducts } from "@nexora/registry";
 import {
-  createGrowthContentDraft,
+  createGrowthContentDraftFromForm,
   listGrowthCampaigns,
   listGrowthContentItems,
   requestGrowthApprovalFromForm,
@@ -31,7 +31,7 @@ export default async function GrowthContentPage() {
 
       <section className="mt-8 rounded-xl border border-border bg-card p-6">
         <h2 className="font-semibold">New content draft</h2>
-        <form action={createGrowthContentDraft} className="mt-4 grid gap-4">
+        <form action={createGrowthContentDraftFromForm} className="mt-4 grid gap-4">
           <div className="grid gap-4 md:grid-cols-2">
             <label className="grid gap-1.5 text-sm">
               <span className="font-medium">Title</span>
