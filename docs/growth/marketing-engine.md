@@ -276,3 +276,5 @@ These are workflow/operations metrics, not evidence of market performance. Reven
 - Analytics shows counts and percentage share for new, qualified, contacted and disqualified leads.
 - The report explicitly represents a current-state snapshot. It does not claim stage-to-stage conversion because the current schema stores the current stage, not a timestamped stage-transition history.
 - Historical conversion rates require a dedicated stage history/event model; this is intentionally kept separate from the current lead record.
+
+- Added privacy-conscious acquisition quality indicators for missing source, medium and campaign metadata, plus duplicate-email groups; the report returns counts only and never exposes email addresses. Missing campaign tags are treated as a quality signal, not automatically as an error.
