@@ -82,10 +82,26 @@ export default async function GrowthPage() {
       </div>
 
       <div className="mt-8 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <MetricCard label="Portfolio products" value={String(products.length)} note="Live Product Registry" />
-        <MetricCard label="Active campaigns" value="—" note="Campaign data source not connected" />
-        <MetricCard label="Pending approvals" value="—" note="Approval workflow not connected" />
-        <MetricCard label="Attributed revenue" value="—" note="Revenue attribution not connected" />
+        <MetricCard
+          label="Portfolio products"
+          value={String(products.length)}
+          note="Live Product Registry"
+        />
+        <MetricCard
+          label="Active campaigns"
+          value="—"
+          note="Campaign data source not connected"
+        />
+        <MetricCard
+          label="Pending approvals"
+          value="—"
+          note="Approval workflow not connected"
+        />
+        <MetricCard
+          label="Attributed revenue"
+          value="—"
+          note="Revenue attribution not connected"
+        />
       </div>
 
       <section className="mt-10">
@@ -113,7 +129,9 @@ export default async function GrowthPage() {
                 </div>
                 <p className="mt-3 text-sm leading-6 text-muted-foreground">{module.description}</p>
                 {module.href ? (
-                  <span className="mt-5 inline-block text-xs font-medium text-link">Open module →</span>
+                  <span className="mt-5 inline-block text-xs font-medium text-link">
+                    Open module →
+                  </span>
                 ) : (
                   <span className="mt-5 inline-block text-xs text-muted-foreground">
                     Planned for the next implementation slice
