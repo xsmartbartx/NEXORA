@@ -86,7 +86,9 @@ export default async function GrowthPage() {
             unavailable data is shown as not configured, never as an invented zero.
           </p>
         </div>
-        <span className="rounded-full border border-border px-3 py-1.5 text-xs font-medium text-muted-foreground">
+        <span
+          className="rounded-full border border-border px-3 py-1.5 text-xs font-medium text-muted-foreground"
+        >
           Foundation · P0
         </span>
       </div>
@@ -133,7 +135,9 @@ export default async function GrowthPage() {
               <>
                 <div className="flex items-center justify-between gap-3">
                   <h3 className="font-semibold">{module.name}</h3>
-                  <span className="rounded-full bg-muted px-2.5 py-1 text-[11px] font-medium text-muted-foreground">
+                  <span
+                    className="rounded-full bg-muted px-2.5 py-1 text-[11px] font-medium text-muted-foreground"
+                  >
                     {module.status}
                   </span>
                 </div>
@@ -175,7 +179,9 @@ export default async function GrowthPage() {
               n8n is planned as an execution layer. Workflow state will remain persisted in NEXORA.
             </p>
           </div>
-          <span className="rounded-full border border-border px-3 py-1.5 text-xs text-muted-foreground">
+          <span
+            className="rounded-full border border-border px-3 py-1.5 text-xs text-muted-foreground"
+          >
             Not connected
           </span>
         </div>
