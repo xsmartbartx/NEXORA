@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { requireOrg } from "@nexora/auth/server";
-import { getGrowthAnalytics, getGrowthAttributionReport } from "../actions";
+import { getGrowthAnalytics, getGrowthAttributionReport, getGrowthLeadLifecycleReport } from "../actions";
 
 export const metadata: Metadata = {
   title: "Growth analytics",
@@ -30,7 +30,7 @@ function Metric({
 
 export default async function GrowthAnalyticsPage() {
   await requireOrg();
-  const [data, attribution] = await Promise.all([getGrowthAnalytics(), getGrowthAttributionReport()]);
+  const [data, attribution, lifecycle] = await Promise.all([getGrowthAnalytics(), getGrowthAttributionReport(), getGrowthLeadLifecycleReport()]);
   const activeCampaigns = countFor(data.campaigns.byStatus, "active");
   const pendingApprovals = data.approvals.pending;
   const maxDaily = Math.max(1, ...data.aiDraftsByDay.map((point) => point.count));
@@ -107,6 +107,31 @@ export default async function GrowthAnalyticsPage() {
                   className="w-full rounded-t-sm bg-primary/70"
                   style={{ height: `${Math.max(4, (point.count / maxDaily) * 100)}px` }}
                 />
+              </div>
+            ))}
+          </div>
+        )}
+      </section>
+
+
+      <section className="mt-8 rounded-xl border border-border bg-card p-6">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <h2 className="font-semibold">Lead lifecycle distribution</h2>
+          <span className="text-xs text-muted-foreground">{lifecycle.total} leads · current stage snapshot</span>
+        </div>
+        <p className="mt-2 text-sm text-muted-foreground">
+          Each lead appears in exactly one current stage. Percentages show the share of all recorded leads,
+          not historical stage-to-stage conversion.
+        </p>
+        {lifecycle.total === 0 ? (
+          <p className="mt-4 text-sm text-muted-foreground">No lead records yet.</p>
+        ) : (
+          <div className="mt-5 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+            {lifecycle.stages.map((stage) => (
+              <div key={stage.stage} className="rounded-lg border border-border p-4">
+                <p className="text-sm capitalize text-muted-foreground">{stage.stage}</p>
+                <p className="mt-2 text-2xl font-semibold tabular-nums">{stage.leads}</p>
+                <p className="mt-1 text-xs text-muted-foreground">{stage.sharePercent}% of leads</p>
               </div>
             ))}
           </div>
