@@ -660,7 +660,6 @@ function optionalText(value: FormDataEntryValue | null, label: string, max = 160
 }
 
 const LEAD_CONSENT_STATES = ["unknown", "granted", "denied", "not_required"] as const;
-const LEAD_STAGES = ["new", "qualified", "contacted", "disqualified"] as const;
 
 /** List only the active organisation's lead records; no cross-tenant lookup is possible. */
 export async function listGrowthLeads() {
@@ -712,8 +711,8 @@ export async function createGrowthLeadFromForm(formData: FormData): Promise<void
   }
   const consentSource = optionalText(formData.get("consentSource"), "Consent source", 200);
   const consentAt = consentStatus === "granted" || consentStatus === "denied" ? new Date() : null;
-  if (consentStatus === "granted" && !consentSource) {
-    throw new Error("Consent source is required when consent is granted");
+  if ((consentStatus === "granted" || consentStatus === "not_required") && !consentSource) {
+    throw new Error("Consent evidence is required for granted or not-required status");
   }
 
   const campaignId = String(formData.get("campaignId") ?? "").trim() || null;
