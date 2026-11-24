@@ -48,6 +48,12 @@ const modules: GrowthModule[] = [
     href: "/growth/analytics",
   },
   {
+    name: "Acquisition & Leads",
+    description: "Register organisation-owned leads with consent provenance and UTM touchpoints.",
+    status: "Available",
+    href: "/growth/leads",
+  },
+  {
     name: "Reports",
     description: "Generate reproducible weekly and monthly growth snapshots.",
     status: "Next",
