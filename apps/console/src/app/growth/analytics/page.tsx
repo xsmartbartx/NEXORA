@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { requireOrg } from "@nexora/auth/server";
-import { getGrowthAnalytics, getGrowthAttributionReport, getGrowthLeadLifecycleReport } from "../actions";
+import { getGrowthAcquisitionQualityReport, getGrowthAnalytics, getGrowthAttributionReport, getGrowthLeadLifecycleReport } from "../actions";
 
 export const metadata: Metadata = {
   title: "Growth analytics",
@@ -30,7 +30,7 @@ function Metric({
 
 export default async function GrowthAnalyticsPage() {
   await requireOrg();
-  const [data, attribution, lifecycle] = await Promise.all([getGrowthAnalytics(), getGrowthAttributionReport(), getGrowthLeadLifecycleReport()]);
+  const [data, attribution, lifecycle, quality] = await Promise.all([getGrowthAnalytics(), getGrowthAttributionReport(), getGrowthLeadLifecycleReport(), getGrowthAcquisitionQualityReport()]);
   const activeCampaigns = countFor(data.campaigns.byStatus, "active");
   const pendingApprovals = data.approvals.pending;
   const maxDaily = Math.max(1, ...data.aiDraftsByDay.map((point) => point.count));
@@ -113,6 +113,21 @@ export default async function GrowthAnalyticsPage() {
         )}
       </section>
 
+
+
+      <section className="mt-8 rounded-xl border border-border bg-card p-6">
+        <h2 className="font-semibold">Acquisition data quality</h2>
+        <p className="mt-2 text-sm text-muted-foreground">
+          Organisation-scoped completeness checks. Duplicate groups are counted without exposing email addresses.
+        </p>
+        <div className="mt-5 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+          <div><p className="text-sm text-muted-foreground">Missing source</p><p className="mt-1 text-2xl font-semibold tabular-nums">{quality.missingSource}</p></div>
+          <div><p className="text-sm text-muted-foreground">Missing medium</p><p className="mt-1 text-2xl font-semibold tabular-nums">{quality.missingMedium}</p></div>
+          <div><p className="text-sm text-muted-foreground">Missing campaign</p><p className="mt-1 text-2xl font-semibold tabular-nums">{quality.missingCampaign}</p></div>
+          <div><p className="text-sm text-muted-foreground">Duplicate email groups</p><p className="mt-1 text-2xl font-semibold tabular-nums">{quality.duplicateEmailGroups}</p></div>
+        </div>
+        <p className="mt-3 text-xs text-muted-foreground">A missing field is not automatically an error: direct, organic or manually entered leads may legitimately lack campaign metadata.</p>
+      </section>
 
       <section className="mt-8 rounded-xl border border-border bg-card p-6">
         <div className="flex flex-wrap items-center justify-between gap-3">
