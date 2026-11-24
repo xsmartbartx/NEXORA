@@ -1,6 +1,6 @@
 "use server";
 
-import { and, desc, eq } from "drizzle-orm";
+import { and, count, desc, eq, gte, sql } from "drizzle-orm";
 import { checkRateLimit } from "@nexora/api-kit";
 import { checkEntitlement } from "@nexora/entitlements";
 import { relayChatRequest } from "@nexora/ai-relay";
@@ -8,6 +8,7 @@ import { revalidatePath } from "next/cache";
 import { requireOrg } from "@nexora/auth/server";
 import {
   db,
+  auditEvents,
   growthApprovals,
   growthCampaigns,
   growthContentItems,
@@ -573,4 +574,78 @@ export async function generateGrowthContentDraft(formData: FormData): Promise<vo
 
 export async function generateGrowthContentDraftFromForm(formData: FormData): Promise<void> {
   await generateGrowthContentDraft(formData);
+}
+
+
+/**
+ * Growth operational analytics. These are counts of records and audited
+ * actions, not business outcomes: revenue, CAC and attribution stay unavailable
+ * until verified billing/CRM/analytics sources are connected.
+ */
+export async function getGrowthAnalytics() {
+  const { orgId } = await requireOrg();
+  const since = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+
+  const [campaignRows, contentRows, approvalRows, aiRows, dailyAiRows] = await Promise.all([
+    db
+      .select({ status: growthCampaigns.status, value: count() })
+      .from(growthCampaigns)
+      .where(eq(growthCampaigns.orgId, orgId))
+      .groupBy(growthCampaigns.status),
+    db
+      .select({ status: growthContentItems.status, value: count() })
+      .from(growthContentItems)
+      .where(eq(growthContentItems.orgId, orgId))
+      .groupBy(growthContentItems.status),
+    db
+      .select({ status: growthApprovals.status, value: count() })
+      .from(growthApprovals)
+      .where(eq(growthApprovals.orgId, orgId))
+      .groupBy(growthApprovals.status),
+    db
+      .select({ value: count() })
+      .from(auditEvents)
+      .where(
+        and(
+          eq(auditEvents.orgId, orgId),
+          eq(auditEvents.action, "console.growth.content.ai_draft_generated"),
+          gte(auditEvents.createdAt, since),
+        ),
+      ),
+    db
+      .select({
+        day: sql<string>`to_char(date_trunc('day', ${auditEvents.createdAt}), 'YYYY-MM-DD')`,
+        value: count(),
+      })
+      .from(auditEvents)
+      .where(
+        and(
+          eq(auditEvents.orgId, orgId),
+          eq(auditEvents.action, "console.growth.content.ai_draft_generated"),
+          gte(auditEvents.createdAt, since),
+        ),
+      )
+      .groupBy(sql`date_trunc('day', ${auditEvents.createdAt})`)
+      .orderBy(sql`date_trunc('day', ${auditEvents.createdAt})`),
+  ]);
+
+  const total = (rows: { value: number }[]) => rows.reduce((sum, row) => sum + row.value, 0);
+  return {
+    periodStart: since.toISOString(),
+    campaigns: {
+      total: total(campaignRows),
+      byStatus: campaignRows.map((row) => ({ status: row.status, count: row.value })),
+    },
+    content: {
+      total: total(contentRows),
+      byStatus: contentRows.map((row) => ({ status: row.status, count: row.value })),
+    },
+    approvals: {
+      total: total(approvalRows),
+      pending: approvalRows.find((row) => row.status === "pending")?.value ?? 0,
+      byStatus: approvalRows.map((row) => ({ status: row.status, count: row.value })),
+    },
+    aiDraftsLast30Days: aiRows[0]?.value ?? 0,
+    aiDraftsByDay: dailyAiRows.map((row) => ({ day: row.day, count: row.value })),
+  };
 }
