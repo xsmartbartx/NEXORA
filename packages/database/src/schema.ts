@@ -343,6 +343,95 @@ export const growthApprovals = pgTable(
   ],
 );
 
+/**
+ * Growth acquisition records. Contact fields are limited to the minimum needed
+ * for an organisation's own lead follow-up. Consent is recorded separately
+ * from lead status and must never be inferred from source or campaign membership.
+ */
+export const growthLeads = pgTable(
+  "growth_leads",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    orgId: text("org_id").notNull(),
+    email: text("email").notNull(),
+    name: text("name"),
+    company: text("company"),
+    stage: text("stage").notNull().default("new"),
+    source: text("source"),
+    medium: text("medium"),
+    campaignId: uuid("campaign_id"),
+    utmSource: text("utm_source"),
+    utmMedium: text("utm_medium"),
+    utmCampaign: text("utm_campaign"),
+    utmContent: text("utm_content"),
+    utmTerm: text("utm_term"),
+    consentStatus: text("consent_status").notNull().default("unknown"),
+    consentAt: timestamp("consent_at", { withTimezone: true }),
+    consentSource: text("consent_source"),
+    idempotencyKey: text("idempotency_key"),
+    createdBy: text("created_by").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    index("growth_leads_org_stage_created_idx").on(table.orgId, table.stage, table.createdAt),
+    index("growth_leads_org_campaign_idx").on(table.orgId, table.campaignId),
+    uniqueIndex("growth_leads_org_idempotency_idx")
+      .on(table.orgId, table.idempotencyKey)
+      .where(sql`${table.idempotencyKey} is not null`),
+    check("growth_leads_stage_chk", sql`${table.stage} in ('new', 'qualified', 'contacted', 'disqualified')`),
+    check("growth_leads_consent_chk", sql`${table.consentStatus} in ('unknown', 'granted', 'denied', 'not_required')`),
+    check("growth_leads_consent_timestamp_chk", sql`${table.consentStatus} <> 'granted' or ${table.consentAt} is not null`),
+    foreignKey({
+      columns: [table.campaignId],
+      foreignColumns: [growthCampaigns.id],
+      name: "growth_lead_campaign_fk",
+    }).onDelete("set null"),
+  ],
+);
+
+/** Append-only attribution history for a known lead; no anonymous device fingerprinting. */
+export const growthLeadTouchpoints = pgTable(
+  "growth_lead_touchpoints",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    orgId: text("org_id").notNull(),
+    leadId: uuid("lead_id").notNull(),
+    touchpointType: text("touchpoint_type").notNull().default("lead_created"),
+    source: text("source"),
+    medium: text("medium"),
+    campaignId: uuid("campaign_id"),
+    utmSource: text("utm_source"),
+    utmMedium: text("utm_medium"),
+    utmCampaign: text("utm_campaign"),
+    utmContent: text("utm_content"),
+    utmTerm: text("utm_term"),
+    occurredAt: timestamp("occurred_at", { withTimezone: true }).notNull().defaultNow(),
+    idempotencyKey: text("idempotency_key"),
+  },
+  (table) => [
+    index("growth_lead_touchpoints_org_lead_occurred_idx").on(table.orgId, table.leadId, table.occurredAt),
+    uniqueIndex("growth_lead_touchpoints_org_idempotency_idx")
+      .on(table.orgId, table.idempotencyKey)
+      .where(sql`${table.idempotencyKey} is not null`),
+    foreignKey({
+      columns: [table.leadId],
+      foreignColumns: [growthLeads.id],
+      name: "growth_lead_touchpoint_lead_fk",
+    }).onDelete("cascade"),
+    foreignKey({
+      columns: [table.campaignId],
+      foreignColumns: [growthCampaigns.id],
+      name: "growth_lead_touchpoint_campaign_fk",
+    }).onDelete("set null"),
+  ],
+);
+
+export type GrowthLead = typeof growthLeads.$inferSelect;
+export type NewGrowthLead = typeof growthLeads.$inferInsert;
+export type GrowthLeadTouchpoint = typeof growthLeadTouchpoints.$inferSelect;
+export type NewGrowthLeadTouchpoint = typeof growthLeadTouchpoints.$inferInsert;
+
 export type GrowthCampaign = typeof growthCampaigns.$inferSelect;
 export type NewGrowthCampaign = typeof growthCampaigns.$inferInsert;
 export type GrowthContentItem = typeof growthContentItems.$inferSelect;
