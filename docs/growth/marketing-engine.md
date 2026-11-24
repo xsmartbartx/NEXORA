@@ -268,3 +268,11 @@ These are workflow/operations metrics, not evidence of market performance. Reven
 - The Leads workspace exposes a compact touchpoint capture form. This records interactions supplied by an operator; it does not imply anonymous visitor tracking, identity stitching or verified channel conversion.
 - Added deterministic first-touch and last-touch reporting. Each lead contributes once to each model, with tie-breaking by timestamp and touchpoint ID; missing source/medium values are grouped as unknown. Where a lead has only its creation event, both models correctly resolve to that event.
 - Attribution reports lead counts by source and medium only. Revenue, CAC, ROI and conversion claims remain unavailable until verified CRM, billing and product outcome sources are integrated.
+
+ 
+### G5.3 — Lead lifecycle reporting
+
+- Added an organisation-scoped lifecycle distribution report using the current lead stage.
+- Analytics shows counts and percentage share for new, qualified, contacted and disqualified leads.
+- The report explicitly represents a current-state snapshot. It does not claim stage-to-stage conversion because the current schema stores the current stage, not a timestamped stage-transition history.
+- Historical conversion rates require a dedicated stage history/event model; this is intentionally kept separate from the current lead record.
