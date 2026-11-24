@@ -214,3 +214,23 @@ Database migration: \`0010_growth_engine_p0.sql\`. The schema intentionally keep
 ### G2 acceptance boundary
 
 This slice is a functional persistence and review foundation, not the complete Marketing Engine. It does not yet include campaign editing/archiving, content revision UI, source citation ingestion, AI Gateway generation, n8n execution, channel publishing, analytics attribution or report generation. The migration must be applied to the target PostgreSQL database before the new screens can perform reads and writes. Runtime database availability and migration execution are environment-dependent and are not implied by CI.
+
+
+## 7.3 G3 implementation checkpoint — AI-assisted content drafts
+
+The NEXORA Gateway relay has been extracted into the server-side workspace package `@nexora/ai-relay`. The existing Gateway route and first-party Growth Console workflow now use the same relay implementation, model allow-list, request-size limits and provider credential contract.
+
+The Content Studio now provides an AI draft generator that:
+
+- Requires an authenticated organisation and checks the existing `gateway.proxy` entitlement before a model call.
+- Builds a constrained prompt from the user brief, selected channel, content type, Product Registry identity and an organisation-scoped campaign objective.
+- Instructs the model not to invent product capabilities, pricing, customer proof, metrics or guarantees; missing facts must be marked `[VERIFY]`.
+- Calls the server-side NEXORA AI relay. The upstream key remains a server environment secret and is never sent to the browser or stored in Growth records.
+- Persists the model output as version 1 of a normal Growth content item, with minimal provider metadata in `source_refs`.
+- Emits Gateway usage and Growth audit events. The prompt itself is not written to audit metadata.
+
+The generated item remains a draft and must pass the existing version-specific approval flow. No publish, email, ad or pricing action is connected.
+
+**Runtime requirement:** the Console deployment must have the same managed `GATEWAY_UPSTREAM_API_KEY` and compatible Gateway model/limit configuration as the Gateway deployment. The variable is documented in `apps/console/.env.example`; it must be configured in the deployment secret manager, not committed to Git.
+
+This is an AI-assisted draft workflow, not yet a multi-provider router, prompt-template registry, source-grounded research system or autonomous publishing agent. Provider routing and richer evidence ingestion remain separate follow-up work.
