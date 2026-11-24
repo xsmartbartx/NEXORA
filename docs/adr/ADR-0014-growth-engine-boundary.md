@@ -38,3 +38,8 @@ NEXORA already has shared identity, organisations, Product Registry, billing, te
 - **Separate Growth SaaS:** rejected because it duplicates platform identity, organisation management and product metadata.
 - **n8n as the database/UI:** rejected because workflow engines are not the durable business system of record and do not provide the platform's tenant and audit contracts.
 - **Direct AI-provider calls from the browser:** rejected because this leaks credentials and bypasses the governed AI Gateway.
+
+
+## Implementation note — shared AI relay
+
+The provider relay implementation lives in the server-side `@nexora/ai-relay` workspace package and is consumed by the Gateway API and trusted first-party server workflows. This keeps provider credentials and model policy out of browser code while avoiding duplicate relay implementations. User-facing workflows still enforce organisation entitlements and write usage/audit events before persisting generated output as a draft.
