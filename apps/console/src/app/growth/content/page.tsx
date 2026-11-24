@@ -216,7 +216,7 @@ export default async function GrowthContentPage() {
               maxLength={50000}
               rows={10}
               className="rounded-lg border border-border bg-background px-3 py-2"
-              placeholder="Write or paste the first draft. AI generation will be connected through the AI Gateway in a later slice."
+              placeholder="Write or paste the first draft. This content is stored as a versioned draft and is not published."
             />
           </label>
           <div>
