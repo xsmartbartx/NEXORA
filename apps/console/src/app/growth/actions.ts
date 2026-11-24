@@ -576,7 +576,6 @@ export async function generateGrowthContentDraftFromForm(formData: FormData): Pr
   await generateGrowthContentDraft(formData);
 }
 
-
 /**
  * Growth operational analytics. These are counts of records and audited
  * actions, not business outcomes: revenue, CAC and attribution stay unavailable

@@ -42,7 +42,8 @@ const modules: GrowthModule[] = [
   },
   {
     name: "Analytics",
-    description: "Operational campaign, content and approval metrics; business attribution remains pending.",
+    description:
+      "Operational campaign, content and approval metrics; business attribution remains pending.",
     status: "Available",
     href: "/growth/analytics",
   },
@@ -67,7 +68,8 @@ export default async function GrowthPage() {
   await requireOrg();
   const products = getAllProducts();
   const analytics = await getGrowthAnalytics();
-  const activeCampaigns = analytics.campaigns.byStatus.find((row) => row.status === "active")?.count ?? 0;
+  const activeCampaigns =
+    analytics.campaigns.byStatus.find((row) => row.status === "active")?.count ?? 0;
 
   return (
     <div className="mx-auto w-full max-w-6xl px-6 py-10">
@@ -92,9 +94,21 @@ export default async function GrowthPage() {
           value={String(products.length)}
           note="Live Product Registry"
         />
-        <MetricCard label="Active campaigns" value={String(activeCampaigns)} note={`${analytics.campaigns.total} campaigns in this organisation`} />
-        <MetricCard label="Pending approvals" value={String(analytics.approvals.pending)} note="Awaiting review" />
-        <MetricCard label="Attributed revenue" value="—" note="Billing and attribution sources not connected" />
+        <MetricCard
+          label="Active campaigns"
+          value={String(activeCampaigns)}
+          note={`${analytics.campaigns.total} campaigns in this organisation`}
+        />
+        <MetricCard
+          label="Pending approvals"
+          value={String(analytics.approvals.pending)}
+          note="Awaiting review"
+        />
+        <MetricCard
+          label="Attributed revenue"
+          value="—"
+          note="Billing and attribution sources not connected"
+        />
       </div>
 
       <section className="mt-10">

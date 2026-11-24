@@ -239,7 +239,6 @@ The generated item remains a draft and must pass the existing version-specific a
 
 This is an AI-assisted draft workflow, not yet a multi-provider router, prompt-template registry, source-grounded research system or autonomous publishing agent. Provider routing and richer evidence ingestion remain separate follow-up work.
 
-
 ## 7.2 Growth operational analytics checkpoint
 
 The Growth analytics route at `/growth/analytics` reports organisation-scoped operational facts from PostgreSQL:
