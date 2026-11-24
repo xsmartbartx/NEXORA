@@ -216,3 +216,120 @@ export type NewProductSuspension = typeof productSuspensions.$inferInsert;
 export type OpsCost = typeof opsCosts.$inferSelect;
 export type NewOpsCost = typeof opsCosts.$inferInsert;
 export type OpsChecklistCompletion = typeof opsChecklistCompletions.$inferSelect;
+
+
+/**
+ * Growth Engine P0 persistence. Product identity remains a stable registry slug;
+ * campaign/content records are organisation-scoped and never trigger external publishing.
+ */
+export const growthCampaigns = pgTable(
+  "growth_campaigns",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    orgId: text("org_id").notNull(),
+    name: text("name").notNull(),
+    objective: text("objective").notNull(),
+    status: text("status").notNull().default("draft"),
+    ownerId: text("owner_id").notNull(),
+    startsAt: timestamp("starts_at", { withTimezone: true }),
+    endsAt: timestamp("ends_at", { withTimezone: true }),
+    budgetCents: integer("budget_cents"),
+    currency: text("currency").notNull().default("USD"),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    index("growth_campaigns_org_updated_idx").on(table.orgId, table.updatedAt),
+    check(
+      "growth_campaigns_status_chk",
+      sql`${table.status} in ('draft', 'planned', 'active', 'paused', 'completed', 'archived')`,
+    ),
+    check("growth_campaigns_budget_chk", sql`${table.budgetCents} is null or ${table.budgetCents} >= 0`),
+    check(
+      "growth_campaigns_dates_chk",
+      sql`${table.endsAt} is null or ${table.startsAt} is null or ${table.endsAt} >= ${table.startsAt}`,
+    ),
+  ],
+);
+
+export const growthContentItems = pgTable(
+  "growth_content_items",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    orgId: text("org_id").notNull(),
+    campaignId: uuid("campaign_id"),
+    productSlug: text("product_slug"),
+    title: text("title").notNull(),
+    contentType: text("content_type").notNull(),
+    channel: text("channel").notNull(),
+    status: text("status").notNull().default("draft"),
+    createdBy: text("created_by").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    index("growth_content_items_org_status_idx").on(table.orgId, table.status, table.updatedAt),
+    index("growth_content_items_org_campaign_idx").on(table.orgId, table.campaignId),
+    check(
+      "growth_content_items_status_chk",
+      sql`${table.status} in ('draft', 'in_review', 'approved', 'archived')`,
+    ),
+  ],
+);
+
+export const growthContentVersions = pgTable(
+  "growth_content_versions",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    orgId: text("org_id").notNull(),
+    contentItemId: uuid("content_item_id").notNull(),
+    version: integer("version").notNull(),
+    body: text("body").notNull(),
+    sourceRefs: jsonb("source_refs").notNull().default([]),
+    createdBy: text("created_by").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    uniqueIndex("growth_content_versions_item_version_idx").on(table.contentItemId, table.version),
+    index("growth_content_versions_org_item_idx").on(table.orgId, table.contentItemId),
+    check("growth_content_versions_version_chk", sql`${table.version} > 0`),
+  ],
+);
+
+export const growthApprovals = pgTable(
+  "growth_approvals",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    orgId: text("org_id").notNull(),
+    contentVersionId: uuid("content_version_id").notNull(),
+    status: text("status").notNull().default("pending"),
+    requestedBy: text("requested_by").notNull(),
+    reviewedBy: text("reviewed_by"),
+    reviewNote: text("review_note"),
+    requestedAt: timestamp("requested_at", { withTimezone: true }).notNull().defaultNow(),
+    reviewedAt: timestamp("reviewed_at", { withTimezone: true }),
+  },
+  (table) => [
+    uniqueIndex("growth_approvals_one_pending_version_idx")
+      .on(table.contentVersionId)
+      .where(sql`${table.status} = 'pending'`),
+    index("growth_approvals_org_status_requested_idx").on(
+      table.orgId,
+      table.status,
+      table.requestedAt,
+    ),
+    check(
+      "growth_approvals_status_chk",
+      sql`${table.status} in ('pending', 'approved', 'rejected', 'withdrawn')`,
+    ),
+  ],
+);
+
+export type GrowthCampaign = typeof growthCampaigns.$inferSelect;
+export type NewGrowthCampaign = typeof growthCampaigns.$inferInsert;
+export type GrowthContentItem = typeof growthContentItems.$inferSelect;
+export type NewGrowthContentItem = typeof growthContentItems.$inferInsert;
+export type GrowthContentVersion = typeof growthContentVersions.$inferSelect;
+export type NewGrowthContentVersion = typeof growthContentVersions.$inferInsert;
+export type GrowthApproval = typeof growthApprovals.$inferSelect;
+export type NewGrowthApproval = typeof growthApprovals.$inferInsert;
