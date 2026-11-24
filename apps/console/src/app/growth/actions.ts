@@ -1,6 +1,8 @@
 "use server";
 
 import { and, desc, eq } from "drizzle-orm";
+import { checkEntitlement } from "@nexora/entitlements";
+import { relayChatRequest } from "@nexora/ai-relay";
 import { revalidatePath } from "next/cache";
 import { requireOrg } from "@nexora/auth/server";
 import {
@@ -414,4 +416,145 @@ export async function createGrowthCampaignFromForm(formData: FormData): Promise<
 
 export async function createGrowthContentDraftFromForm(formData: FormData): Promise<void> {
   await createGrowthContentDraft(formData);
+}
+
+
+function relayErrorMessage(raw: unknown): string {
+  if (typeof raw === "object" && raw !== null && "error" in raw) {
+    return String((raw as { error: unknown }).error);
+  }
+  return "The AI Gateway request failed.";
+}
+
+export async function generateGrowthContentDraft(formData: FormData): Promise<void> {
+  const { orgId, userId } = await requireOrg();
+  const title = requiredText(formData.get("title"), "Content title", 200);
+  const brief = requiredText(formData.get("brief"), "Content brief", 8_000);
+  const contentType = requiredText(formData.get("contentType"), "Content type", 40);
+  const channel = requiredText(formData.get("channel"), "Channel", 40);
+  const campaignId = String(formData.get("campaignId") ?? "").trim() || null;
+  const productSlug = String(formData.get("productSlug") ?? "").trim() || null;
+
+  if (!["social_post", "article", "email", "video_script", "landing_page"].includes(contentType)) {
+    throw new Error("Unsupported content type");
+  }
+  if (!["linkedin", "youtube", "website", "email", "x", "other"].includes(channel)) {
+    throw new Error("Unsupported channel");
+  }
+
+  const product = productSlug ? getProductBySlug(productSlug) : null;
+  if (productSlug && !product) {
+    throw new Error("Product does not exist in the Product Registry");
+  }
+
+  let campaignContext = "No campaign is associated with this draft.";
+  if (campaignId) {
+    if (!isUuid(campaignId)) throw new Error("Campaign id is invalid");
+    const [campaign] = await db
+      .select({ name: growthCampaigns.name, objective: growthCampaigns.objective })
+      .from(growthCampaigns)
+      .where(and(eq(growthCampaigns.id, campaignId), eq(growthCampaigns.orgId, orgId)))
+      .limit(1);
+    if (!campaign) throw new Error("Campaign not found in this organisation");
+    campaignContext = `Campaign: ${campaign.name}\nObjective: ${campaign.objective}`;
+  }
+
+  const entitlement = await checkEntitlement(orgId, "gateway.proxy");
+  if (!entitlement.allowed) {
+    throw new Error(entitlement.reason ?? "Your organisation is not entitled to use AI Gateway.");
+  }
+
+  const productContext = product
+    ? `Product: ${product.short_name} (registry slug: ${product.slug}). Use only claims present in the brief.`
+    : "No specific product is associated with this draft.";
+
+  const prompt = [
+    "Create a marketing content draft for NEXORA.",
+    `Content type: ${contentType}`,
+    `Target channel: ${channel}`,
+    productContext,
+    campaignContext,
+    "Editorial and factual constraints:",
+    "- Treat the brief as the only source of product facts.",
+    "- Do not invent features, integrations, pricing, customer names, testimonials, metrics or guarantees.",
+    "- If a required fact is missing, use a concise [VERIFY] placeholder instead of guessing.",
+    "- Match the conventions and length of the selected channel.",
+    "- Return only the draft body, without commentary or a preamble.",
+    `Brief:\n${brief}`,
+  ].join("\n\n");
+
+  const startedAt = Date.now();
+  const result = await relayChatRequest({
+    messages: [{ role: "user", content: prompt }],
+    max_tokens: 1024,
+  });
+
+  await logEvent({
+    orgId,
+    actorId: userId,
+    action: "gateway.proxy.completed",
+    resourceType: "chat_request",
+    outcome: result.ok ? "success" : "failure",
+    metadata: { status: result.status, latencyMs: Date.now() - startedAt, feature: "growth.content" },
+  });
+
+  if (!result.ok) throw new Error(relayErrorMessage(result.raw));
+  const body = result.text?.trim();
+  if (!body) throw new Error("AI Gateway returned an empty content draft");
+  if (body.length > 50_000) throw new Error("Generated content exceeds the draft size limit");
+
+  const created = await db.transaction(async (tx) => {
+    const [item] = await tx
+      .insert(growthContentItems)
+      .values({
+        orgId,
+        campaignId,
+        productSlug,
+        title,
+        contentType,
+        channel,
+        createdBy: userId,
+      })
+      .returning({ id: growthContentItems.id });
+
+    if (!item) throw new Error("Content item could not be created");
+
+    const [version] = await tx
+      .insert(growthContentVersions)
+      .values({
+        orgId,
+        contentItemId: item.id,
+        version: 1,
+        body,
+        sourceRefs: [
+          {
+            kind: "ai_generation",
+            provider: "nexora_gateway",
+            model: "gateway_default",
+            generatedAt: new Date().toISOString(),
+          },
+        ],
+        createdBy: userId,
+      })
+      .returning({ id: growthContentVersions.id });
+
+    if (!version) throw new Error("Content version could not be created");
+    return { itemId: item.id, versionId: version.id };
+  });
+
+  await logEvent({
+    orgId,
+    actorId: userId,
+    action: "console.growth.content.ai_draft_generated",
+    resourceType: "growth_content_item",
+    resourceId: created.itemId,
+    metadata: { versionId: created.versionId, channel, contentType },
+  });
+
+  revalidatePath("/growth");
+  revalidatePath("/growth/content");
+}
+
+export async function generateGrowthContentDraftFromForm(formData: FormData): Promise<void> {
+  await generateGrowthContentDraft(formData);
 }
