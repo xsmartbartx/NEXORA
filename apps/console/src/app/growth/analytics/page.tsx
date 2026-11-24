@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { requireOrg } from "@nexora/auth/server";
-import { getGrowthAnalytics } from "../actions";
+import { getGrowthAnalytics, getGrowthAttributionReport } from "../actions";
 
 export const metadata: Metadata = {
   title: "Growth analytics",
@@ -30,7 +30,7 @@ function Metric({
 
 export default async function GrowthAnalyticsPage() {
   await requireOrg();
-  const data = await getGrowthAnalytics();
+  const [data, attribution] = await Promise.all([getGrowthAnalytics(), getGrowthAttributionReport()]);
   const activeCampaigns = countFor(data.campaigns.byStatus, "active");
   const pendingApprovals = data.approvals.pending;
   const maxDaily = Math.max(1, ...data.aiDraftsByDay.map((point) => point.count));
@@ -41,7 +41,7 @@ export default async function GrowthAnalyticsPage() {
       <h1 className="mt-2 text-3xl font-semibold tracking-tight">Operational analytics</h1>
       <p className="mt-2 max-w-3xl text-sm text-muted-foreground">
         Organisation-scoped operational activity from NEXORA records and audit events. This view
-        does not estimate revenue, CAC, conversions or channel attribution.
+        does not estimate revenue, CAC or conversions. Lead source reporting below is based only on recorded touchpoints.
       </p>
 
       <div className="mt-8 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
@@ -113,6 +113,35 @@ export default async function GrowthAnalyticsPage() {
         )}
       </section>
 
+      <section className="mt-8 rounded-xl border border-border bg-card p-6">
+        <h2 className="font-semibold">Lead attribution · first touch vs last touch</h2>
+        <p className="mt-2 text-sm text-muted-foreground">
+          Each lead is counted once per model using its earliest or latest recorded touchpoint.
+          Missing source or medium values are grouped as unknown. These are lead counts, not revenue attribution.
+        </p>
+        <div className="mt-4 grid gap-6 lg:grid-cols-2">
+          {([{ key: "firstTouch", label: "First touch" }, { key: "lastTouch", label: "Last touch" }] as const).map((model) => {
+            const rows = attribution[model.key];
+            return (
+              <div key={model.key}>
+                <h3 className="text-sm font-medium">{model.label}</h3>
+                {rows.length === 0 ? (
+                  <p className="mt-2 text-sm text-muted-foreground">No touchpoints recorded.</p>
+                ) : (
+                  <div className="mt-3 grid gap-2">
+                    {rows.map((row) => (
+                      <div key={row.source + row.medium} className="flex items-center justify-between gap-3 border-b border-border pb-2 text-sm">
+                        <span><span className="block font-medium">{row.source}</span><span className="text-xs text-muted-foreground">{row.medium}</span></span>
+                        <span className="font-medium tabular-nums">{row.leads}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      </section>
       <section className="mt-8 rounded-xl border border-dashed border-border p-6">
         <h2 className="font-semibold">Business outcome metrics unavailable</h2>
         <p className="mt-2 text-sm leading-6 text-muted-foreground">
