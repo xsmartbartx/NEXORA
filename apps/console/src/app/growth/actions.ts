@@ -290,3 +290,81 @@ export async function reviewGrowthApproval(
   revalidatePath("/growth/approvals");
   revalidatePath("/growth/content");
 }
+
+
+export async function listGrowthContentItems() {
+  const { orgId } = await requireOrg();
+  const rows = await db
+    .select({
+      id: growthContentItems.id,
+      title: growthContentItems.title,
+      contentType: growthContentItems.contentType,
+      channel: growthContentItems.channel,
+      status: growthContentItems.status,
+      updatedAt: growthContentItems.updatedAt,
+      version: growthContentVersions.version,
+      versionId: growthContentVersions.id,
+    })
+    .from(growthContentItems)
+    .leftJoin(
+      growthContentVersions,
+      and(
+        eq(growthContentVersions.contentItemId, growthContentItems.id),
+        eq(growthContentVersions.orgId, orgId),
+      ),
+    )
+    .where(eq(growthContentItems.orgId, orgId))
+    .orderBy(desc(growthContentItems.updatedAt));
+
+  return rows.map((row) => ({
+    ...row,
+    updatedAt: row.updatedAt.toISOString(),
+  }));
+}
+
+export async function listPendingGrowthApprovals() {
+  const { orgId } = await requireOrg();
+  const rows = await db
+    .select({
+      id: growthApprovals.id,
+      contentVersionId: growthApprovals.contentVersionId,
+      requestedAt: growthApprovals.requestedAt,
+      requestedBy: growthApprovals.requestedBy,
+      title: growthContentItems.title,
+      channel: growthContentItems.channel,
+      version: growthContentVersions.version,
+      body: growthContentVersions.body,
+    })
+    .from(growthApprovals)
+    .innerJoin(
+      growthContentVersions,
+      and(
+        eq(growthContentVersions.id, growthApprovals.contentVersionId),
+        eq(growthContentVersions.orgId, orgId),
+      ),
+    )
+    .innerJoin(
+      growthContentItems,
+      and(
+        eq(growthContentItems.id, growthContentVersions.contentItemId),
+        eq(growthContentItems.orgId, orgId),
+      ),
+    )
+    .where(and(eq(growthApprovals.orgId, orgId), eq(growthApprovals.status, "pending")))
+    .orderBy(desc(growthApprovals.requestedAt));
+
+  return rows.map((row) => ({
+    ...row,
+    requestedAt: row.requestedAt.toISOString(),
+  }));
+}
+
+export async function approveGrowthApproval(formData: FormData) {
+  const approvalId = requiredText(formData.get("approvalId"), "Approval id", 64);
+  await reviewGrowthApproval(approvalId, "approved", String(formData.get("reviewNote") ?? ""));
+}
+
+export async function rejectGrowthApproval(formData: FormData) {
+  const approvalId = requiredText(formData.get("approvalId"), "Approval id", 64);
+  await reviewGrowthApproval(approvalId, "rejected", String(formData.get("reviewNote") ?? ""));
+}
