@@ -409,3 +409,12 @@ export async function requestGrowthApprovalFromForm(formData: FormData) {
   const versionId = requiredText(formData.get("contentVersionId"), "Content version id", 64);
   await requestGrowthApproval(versionId);
 }
+
+
+export async function createGrowthCampaignFromForm(formData: FormData): Promise<void> {
+  await createGrowthCampaign(formData);
+}
+
+export async function createGrowthContentDraftFromForm(formData: FormData): Promise<void> {
+  await createGrowthContentDraft(formData);
+}
