@@ -190,6 +190,12 @@ This is a UI foundation, not a claim that campaign CRUD, database persistence, A
 - Per-channel approval, rollback/withdrawal procedure and delivery audit.
 - Additional workflows only after operational review.
 
+### G5.1 — Lead lifecycle management
+
+- Added an organisation-scoped lifecycle update action for `new`, `qualified`, `contacted` and `disqualified` states.
+- Lead stage changes are audited and update the lead's `updated_at` timestamp.
+- The Acquisition & Leads table now exposes a controlled stage selector; no cross-organisation identifiers are accepted.
+
 ## 7.3 G5 implementation checkpoint — acquisition foundation\n\n- Added `growth_leads` and `growth_lead_touchpoints` with organisation indexes, campaign references, lifecycle/consent constraints and optional idempotency keys.\n- Added an authenticated Console lead register and intake form. The route is not public and does not expose an unauthenticated capture endpoint.\n- Captures source, medium and UTM fields and writes an append-only `lead_created` touchpoint in the same database transaction.\n- Stores consent status separately; granted and not-required states require an evidence source, and granted/denied states receive a timestamp. No marketing message is sent.\n- The current slice is a first-touch operational register, not multi-channel identity stitching or revenue attribution. Lead scoring, public form protection, CRM sync and outcome metrics remain deferred.\n- Apply migration `0011_growth_acquisition_attribution.sql` before using the lead workspace.\n\n## 8. Definition of done
 
 - Cross-organisation access tests prove no Growth data leaks between organisations.
