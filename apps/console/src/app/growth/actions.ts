@@ -941,3 +941,31 @@ export async function getGrowthAttributionReport() {
 
   return { firstTouch, lastTouch };
 }
+
+/**
+ * Current lead lifecycle distribution. These are mutually exclusive current
+ * states, not historical stage transitions or conversion rates.
+ */
+export async function getGrowthLeadLifecycleReport() {
+  const { orgId } = await requireOrg();
+  const rows = await db
+    .select({ stage: growthLeads.stage, leads: count() })
+    .from(growthLeads)
+    .where(eq(growthLeads.orgId, orgId))
+    .groupBy(growthLeads.stage)
+    .orderBy(growthLeads.stage);
+
+  const total = rows.reduce((sum, row) => sum + row.leads, 0);
+  const stages = ["new", "qualified", "contacted", "disqualified"] as const;
+  return {
+    total,
+    stages: stages.map((stage) => {
+      const leads = rows.find((row) => row.stage === stage)?.leads ?? 0;
+      return {
+        stage,
+        leads,
+        sharePercent: total > 0 ? Math.round((leads / total) * 1000) / 10 : 0,
+      };
+    }),
+  };
+}
