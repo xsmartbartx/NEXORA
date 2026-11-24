@@ -1,10 +1,8 @@
 name: Prepare Growth formatting artifact
 
 on:
-  pull_request:
-    branches: [main]
-    paths:
-      - ".github/workflows/format-growth-artifact.yml"
+  push:
+    branches: [fix/growth-format-artifact]
 
 permissions:
   contents: read
