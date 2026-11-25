@@ -441,6 +441,91 @@ export const growthLeadTouchpoints = pgTable(
   ],
 );
 
+
+/**
+ * Provider connections for Growth Engine. Only an opaque secret-manager reference
+ * is persisted; access tokens, refresh tokens and webhook secrets never enter Postgres.
+ */
+export const growthIntegrations = pgTable(
+  "growth_integrations",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    orgId: text("org_id").notNull(),
+    provider: text("provider").notNull(),
+    connectionKey: text("connection_key").notNull().default("default"),
+    displayName: text("display_name").notNull(),
+    status: text("status").notNull().default("disconnected"),
+    externalAccountId: text("external_account_id"),
+    credentialRef: text("credential_ref"),
+    grantedScopes: text("granted_scopes").array().notNull().default([]),
+    connectedBy: text("connected_by"),
+    connectedAt: timestamp("connected_at", { withTimezone: true }),
+    lastVerifiedAt: timestamp("last_verified_at", { withTimezone: true }),
+    lastErrorCode: text("last_error_code"),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    uniqueIndex("growth_integrations_org_provider_key_idx").on(
+      table.orgId,
+      table.provider,
+      table.connectionKey,
+    ),
+    index("growth_integrations_org_status_idx").on(table.orgId, table.status),
+    check("growth_integrations_status_chk", sql`${table.status} in ('disconnected', 'pending', 'connected', 'error', 'revoked')`),
+    check("growth_integrations_provider_chk", sql`${table.provider} in ('n8n', 'hubspot', 'salesforce', 'resend', 'sendgrid', 'mailchimp', 'linkedin', 'posthog', 'google_search_console', 'github')`),
+  ],
+);
+
+/**
+ * Durable orchestration ledger. Workers must re-check tenant ownership, credentials
+ * and the exact approved content version before performing external side effects.
+ */
+export const growthWorkflowRuns = pgTable(
+  "growth_workflow_runs",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    orgId: text("org_id").notNull(),
+    integrationId: uuid("integration_id"),
+    workflowKey: text("workflow_key").notNull(),
+    triggerType: text("trigger_type").notNull(),
+    status: text("status").notNull().default("queued"),
+    idempotencyKey: text("idempotency_key").notNull(),
+    requiresApproval: boolean("requires_approval").notNull().default(false),
+    approvalId: uuid("approval_id"),
+    contentVersionId: uuid("content_version_id"),
+    resourceType: text("resource_type"),
+    resourceId: text("resource_id"),
+    externalRunId: text("external_run_id"),
+    attemptCount: integer("attempt_count").notNull().default(0),
+    maxAttempts: integer("max_attempts").notNull().default(5),
+    availableAt: timestamp("available_at", { withTimezone: true }).notNull().defaultNow(),
+    startedAt: timestamp("started_at", { withTimezone: true }),
+    finishedAt: timestamp("finished_at", { withTimezone: true }),
+    errorCode: text("error_code"),
+    createdBy: text("created_by"),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    uniqueIndex("growth_workflow_runs_org_idempotency_idx").on(table.orgId, table.idempotencyKey),
+    index("growth_workflow_runs_org_status_available_idx").on(table.orgId, table.status, table.availableAt),
+    index("growth_workflow_runs_integration_created_idx").on(table.integrationId, table.createdAt),
+    check("growth_workflow_runs_status_chk", sql`${table.status} in ('queued', 'running', 'succeeded', 'failed', 'cancelled', 'dead_letter')`),
+    check("growth_workflow_runs_trigger_chk", sql`${table.triggerType} in ('manual', 'webhook', 'schedule', 'approval')`),
+    check("growth_workflow_runs_attempts_chk", sql`${table.attemptCount} >= 0 and ${table.maxAttempts} between 1 and 10 and ${table.attemptCount} <= ${table.maxAttempts}`),
+    check("growth_workflow_runs_approval_chk", sql`not ${table.requiresApproval} or (${table.approvalId} is not null and ${table.contentVersionId} is not null)`),
+    foreignKey({ columns: [table.integrationId], foreignColumns: [growthIntegrations.id], name: "growth_workflow_integration_fk" }).onDelete("set null"),
+    foreignKey({ columns: [table.approvalId], foreignColumns: [growthApprovals.id], name: "growth_workflow_approval_fk" }).onDelete("restrict"),
+    foreignKey({ columns: [table.contentVersionId], foreignColumns: [growthContentVersions.id], name: "growth_workflow_content_version_fk" }).onDelete("restrict"),
+  ],
+);
+
+export type GrowthIntegration = typeof growthIntegrations.$inferSelect;
+export type NewGrowthIntegration = typeof growthIntegrations.$inferInsert;
+export type GrowthWorkflowRun = typeof growthWorkflowRuns.$inferSelect;
+export type NewGrowthWorkflowRun = typeof growthWorkflowRuns.$inferInsert;
+
 export type GrowthLead = typeof growthLeads.$inferSelect;
 export type NewGrowthLead = typeof growthLeads.$inferInsert;
 export type GrowthLeadTouchpoint = typeof growthLeadTouchpoints.$inferSelect;
