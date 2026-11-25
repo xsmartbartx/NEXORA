@@ -441,7 +441,6 @@ export const growthLeadTouchpoints = pgTable(
   ],
 );
 
-
 /**
  * Provider connections for Growth Engine. Only an opaque secret-manager reference
  * is persisted; access tokens, refresh tokens and webhook secrets never enter Postgres.
