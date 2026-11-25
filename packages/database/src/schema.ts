@@ -379,9 +379,18 @@ export const growthLeads = pgTable(
     uniqueIndex("growth_leads_org_idempotency_idx")
       .on(table.orgId, table.idempotencyKey)
       .where(sql`${table.idempotencyKey} is not null`),
-    check("growth_leads_stage_chk", sql`${table.stage} in ('new', 'qualified', 'contacted', 'disqualified')`),
-    check("growth_leads_consent_chk", sql`${table.consentStatus} in ('unknown', 'granted', 'denied', 'not_required')`),
-    check("growth_leads_consent_timestamp_chk", sql`${table.consentStatus} <> 'granted' or ${table.consentAt} is not null`),
+    check(
+      "growth_leads_stage_chk",
+      sql`${table.stage} in ('new', 'qualified', 'contacted', 'disqualified')`,
+    ),
+    check(
+      "growth_leads_consent_chk",
+      sql`${table.consentStatus} in ('unknown', 'granted', 'denied', 'not_required')`,
+    ),
+    check(
+      "growth_leads_consent_timestamp_chk",
+      sql`${table.consentStatus} <> 'granted' or ${table.consentAt} is not null`,
+    ),
     foreignKey({
       columns: [table.campaignId],
       foreignColumns: [growthCampaigns.id],
@@ -410,7 +419,11 @@ export const growthLeadTouchpoints = pgTable(
     idempotencyKey: text("idempotency_key"),
   },
   (table) => [
-    index("growth_lead_touchpoints_org_lead_occurred_idx").on(table.orgId, table.leadId, table.occurredAt),
+    index("growth_lead_touchpoints_org_lead_occurred_idx").on(
+      table.orgId,
+      table.leadId,
+      table.occurredAt,
+    ),
     uniqueIndex("growth_lead_touchpoints_org_idempotency_idx")
       .on(table.orgId, table.idempotencyKey)
       .where(sql`${table.idempotencyKey} is not null`),

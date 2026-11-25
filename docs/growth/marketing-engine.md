@@ -65,20 +65,20 @@ Explicitly defer social calendar automation, SEO keyword research, video product
 
 All timestamps are UTC. IDs are UUIDs unless a stable external identifier is required. All tenant-owned tables include `org_id` and indexes beginning with `org_id`.
 
-| Table                            | Key fields                                                                                                                 | Purpose                                                            |
-| -------------------------------- | -------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------ |
-| `growth_product_profiles`        | org_id, product_slug, icp, positioning, use_cases, proof_points, approved_claims, updated_by                               | Organisation-specific growth context referencing Product Registry  |
-| `growth_campaigns`               | org_id, product_slug, name, objective, status, start_at, end_at, budget_minor, currency, owner_id                          | Campaign plan and lifecycle                                        |
-| `growth_campaign_channels`       | org_id, campaign_id, channel, destination, utm_source, utm_medium, utm_campaign                                            | Channel configuration and UTM mapping                              |
-| `growth_content_items`           | org_id, campaign_id, product_slug, type, title, status, owner_id, scheduled_at                                             | Logical content item                                               |
-| `growth_content_versions`        | org_id, content_item_id, version, body, metadata, source_refs, created_by                                                  | Immutable content revisions and evidence                           |
-| `growth_media_assets`            | org_id, storage_key, mime_type, size_bytes, checksum, metadata, uploaded_by                                                | References to media in object storage; no binary blobs in Postgres |
-| `growth_approvals`               | org_id, content_version_id, channel, decision, decided_by, decided_at, comment                                             | Version-specific approval/rejection history                        |
-| `growth_workflow_runs`           | org_id, workflow_key, idempotency_key, external_run_id, status, input_ref, output_ref, started_at, finished_at, error_code | Durable workflow execution state                                   |
-| `growth_metric_daily`            | org_id, product_slug, campaign_id, channel, metric_date, metric_key, metric_value, currency                                | Daily aggregated performance metrics                               |
-| `growth_leads`                   | org_id, email, stage, campaign_id, source, medium, utm_*, consent_status, consent_at, consent_source, idempotency_key         | Minimal organisation-owned lead register and first-touch context   |
-| `growth_lead_touchpoints`         | org_id, lead_id, touchpoint_type, campaign_id, source, medium, utm_*, occurred_at, idempotency_key                           | Append-only attribution history for known leads                     |
-| `growth_reports`                 | org_id, period_start, period_end, report_type, snapshot, generated_at, generated_by                                        | Reproducible report snapshots                                      |
+| Table                      | Key fields                                                                                                                 | Purpose                                                            |
+| -------------------------- | -------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------ |
+| `growth_product_profiles`  | org_id, product_slug, icp, positioning, use_cases, proof_points, approved_claims, updated_by                               | Organisation-specific growth context referencing Product Registry  |
+| `growth_campaigns`         | org_id, product_slug, name, objective, status, start_at, end_at, budget_minor, currency, owner_id                          | Campaign plan and lifecycle                                        |
+| `growth_campaign_channels` | org_id, campaign_id, channel, destination, utm_source, utm_medium, utm_campaign                                            | Channel configuration and UTM mapping                              |
+| `growth_content_items`     | org_id, campaign_id, product_slug, type, title, status, owner_id, scheduled_at                                             | Logical content item                                               |
+| `growth_content_versions`  | org_id, content_item_id, version, body, metadata, source_refs, created_by                                                  | Immutable content revisions and evidence                           |
+| `growth_media_assets`      | org_id, storage_key, mime_type, size_bytes, checksum, metadata, uploaded_by                                                | References to media in object storage; no binary blobs in Postgres |
+| `growth_approvals`         | org_id, content_version_id, channel, decision, decided_by, decided_at, comment                                             | Version-specific approval/rejection history                        |
+| `growth_workflow_runs`     | org_id, workflow_key, idempotency_key, external_run_id, status, input_ref, output_ref, started_at, finished_at, error_code | Durable workflow execution state                                   |
+| `growth_metric_daily`      | org_id, product_slug, campaign_id, channel, metric_date, metric_key, metric_value, currency                                | Daily aggregated performance metrics                               |
+| `growth_leads`             | org_id, email, stage, campaign_id, source, medium, utm_*, consent_status, consent_at, consent_source, idempotency_key      | Minimal organisation-owned lead register and first-touch context   |
+| `growth_lead_touchpoints`  | org_id, lead_id, touchpoint_type, campaign_id, source, medium, utm_*, occurred_at, idempotency_key                         | Append-only attribution history for known leads                    |
+| `growth_reports`           | org_id, period_start, period_end, report_type, snapshot, generated_at, generated_by                                        | Reproducible report snapshots                                      |
 
 Use existing platform audit events for security-sensitive actions where appropriate. Add domain-specific audit actions for campaign edits, content generation, approval decisions, integration changes and export operations. Do not create a second user or organisation table.
 
@@ -258,7 +258,6 @@ The Growth overview consumes the same server-side query for its active-campaign 
 
 These are workflow/operations metrics, not evidence of market performance. Revenue attribution, CAC, conversion, activation and retention remain unavailable until trusted billing, CRM and product analytics sources are integrated and their identifiers can be joined to campaign records. The UI explicitly distinguishes those unavailable business metrics from operational counts.
 
-
 ### G5.2 — Attribution event capture
 
 - Added an authenticated action for appending touchpoints to an existing lead in the active organisation.
@@ -269,7 +268,6 @@ These are workflow/operations metrics, not evidence of market performance. Reven
 - Added deterministic first-touch and last-touch reporting. Each lead contributes once to each model, with tie-breaking by timestamp and touchpoint ID; missing source/medium values are grouped as unknown. Where a lead has only its creation event, both models correctly resolve to that event.
 - Attribution reports lead counts by source and medium only. Revenue, CAC, ROI and conversion claims remain unavailable until verified CRM, billing and product outcome sources are integrated.
 
- 
 ### G5.3 — Lead lifecycle reporting
 
 - Added an organisation-scoped lifecycle distribution report using the current lead stage.
