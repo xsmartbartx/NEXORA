@@ -1,4 +1,5 @@
 import {
+  boolean,
   check,
   foreignKey,
   index,
