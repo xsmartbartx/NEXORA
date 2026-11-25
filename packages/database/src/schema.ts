@@ -472,8 +472,14 @@ export const growthIntegrations = pgTable(
       table.connectionKey,
     ),
     index("growth_integrations_org_status_idx").on(table.orgId, table.status),
-    check("growth_integrations_status_chk", sql`${table.status} in ('disconnected', 'pending', 'connected', 'error', 'revoked')`),
-    check("growth_integrations_provider_chk", sql`${table.provider} in ('n8n', 'hubspot', 'salesforce', 'resend', 'sendgrid', 'mailchimp', 'linkedin', 'posthog', 'google_search_console', 'github')`),
+    check(
+      "growth_integrations_status_chk",
+      sql`${table.status} in ('disconnected', 'pending', 'connected', 'error', 'revoked')`,
+    ),
+    check(
+      "growth_integrations_provider_chk",
+      sql`${table.provider} in ('n8n', 'hubspot', 'salesforce', 'resend', 'sendgrid', 'mailchimp', 'linkedin', 'posthog', 'google_search_console', 'github')`,
+    ),
   ],
 );
 
@@ -509,15 +515,43 @@ export const growthWorkflowRuns = pgTable(
   },
   (table) => [
     uniqueIndex("growth_workflow_runs_org_idempotency_idx").on(table.orgId, table.idempotencyKey),
-    index("growth_workflow_runs_org_status_available_idx").on(table.orgId, table.status, table.availableAt),
+    index("growth_workflow_runs_org_status_available_idx").on(
+      table.orgId,
+      table.status,
+      table.availableAt,
+    ),
     index("growth_workflow_runs_integration_created_idx").on(table.integrationId, table.createdAt),
-    check("growth_workflow_runs_status_chk", sql`${table.status} in ('queued', 'running', 'succeeded', 'failed', 'cancelled', 'dead_letter')`),
-    check("growth_workflow_runs_trigger_chk", sql`${table.triggerType} in ('manual', 'webhook', 'schedule', 'approval')`),
-    check("growth_workflow_runs_attempts_chk", sql`${table.attemptCount} >= 0 and ${table.maxAttempts} between 1 and 10 and ${table.attemptCount} <= ${table.maxAttempts}`),
-    check("growth_workflow_runs_approval_chk", sql`not ${table.requiresApproval} or (${table.approvalId} is not null and ${table.contentVersionId} is not null)`),
-    foreignKey({ columns: [table.integrationId], foreignColumns: [growthIntegrations.id], name: "growth_workflow_integration_fk" }).onDelete("set null"),
-    foreignKey({ columns: [table.approvalId], foreignColumns: [growthApprovals.id], name: "growth_workflow_approval_fk" }).onDelete("restrict"),
-    foreignKey({ columns: [table.contentVersionId], foreignColumns: [growthContentVersions.id], name: "growth_workflow_content_version_fk" }).onDelete("restrict"),
+    check(
+      "growth_workflow_runs_status_chk",
+      sql`${table.status} in ('queued', 'running', 'succeeded', 'failed', 'cancelled', 'dead_letter')`,
+    ),
+    check(
+      "growth_workflow_runs_trigger_chk",
+      sql`${table.triggerType} in ('manual', 'webhook', 'schedule', 'approval')`,
+    ),
+    check(
+      "growth_workflow_runs_attempts_chk",
+      sql`${table.attemptCount} >= 0 and ${table.maxAttempts} between 1 and 10 and ${table.attemptCount} <= ${table.maxAttempts}`,
+    ),
+    check(
+      "growth_workflow_runs_approval_chk",
+      sql`not ${table.requiresApproval} or (${table.approvalId} is not null and ${table.contentVersionId} is not null)`,
+    ),
+    foreignKey({
+      columns: [table.integrationId],
+      foreignColumns: [growthIntegrations.id],
+      name: "growth_workflow_integration_fk",
+    }).onDelete("set null"),
+    foreignKey({
+      columns: [table.approvalId],
+      foreignColumns: [growthApprovals.id],
+      name: "growth_workflow_approval_fk",
+    }).onDelete("restrict"),
+    foreignKey({
+      columns: [table.contentVersionId],
+      foreignColumns: [growthContentVersions.id],
+      name: "growth_workflow_content_version_fk",
+    }).onDelete("restrict"),
   ],
 );
 
