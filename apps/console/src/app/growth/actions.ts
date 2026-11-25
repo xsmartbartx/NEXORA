@@ -651,7 +651,6 @@ export async function getGrowthAnalytics() {
   };
 }
 
-
 function optionalText(value: FormDataEntryValue | null, label: string, max = 160): string | null {
   const result = String(value ?? "").trim();
   if (!result) return null;
@@ -806,7 +805,6 @@ export async function createGrowthLeadFromForm(formData: FormData): Promise<void
   revalidatePath("/growth/leads");
 }
 
-
 const LEAD_STAGES = ["new", "qualified", "contacted", "disqualified"] as const;
 
 /** Update a lead lifecycle stage without allowing cross-organisation record access. */
@@ -840,7 +838,6 @@ export async function updateGrowthLeadStageFromForm(formData: FormData): Promise
   revalidatePath("/growth");
   revalidatePath("/growth/leads");
 }
-
 
 const LEAD_TOUCHPOINT_TYPES = [
   "website_visit",
@@ -923,20 +920,32 @@ export async function getGrowthAttributionReport() {
     .select({
       source: sql<string>`COALESCE(NULLIF(${growthLeadTouchpoints.source}, ''), NULLIF(${growthLeadTouchpoints.utmSource}, ''), 'unknown')`,
       medium: sql<string>`COALESCE(NULLIF(${growthLeadTouchpoints.medium}, ''), NULLIF(${growthLeadTouchpoints.utmMedium}, ''), 'unknown')`,
-      firstRank: sql<number>`ROW_NUMBER() OVER (PARTITION BY ${growthLeadTouchpoints.leadId} ORDER BY ${growthLeadTouchpoints.occurredAt} ASC, ${growthLeadTouchpoints.id} ASC)`.as('first_rank'),
-      lastRank: sql<number>`ROW_NUMBER() OVER (PARTITION BY ${growthLeadTouchpoints.leadId} ORDER BY ${growthLeadTouchpoints.occurredAt} DESC, ${growthLeadTouchpoints.id} DESC)`.as('last_rank'),
+      firstRank:
+        sql<number>`ROW_NUMBER() OVER (PARTITION BY ${growthLeadTouchpoints.leadId} ORDER BY ${growthLeadTouchpoints.occurredAt} ASC, ${growthLeadTouchpoints.id} ASC)`.as(
+          "first_rank",
+        ),
+      lastRank:
+        sql<number>`ROW_NUMBER() OVER (PARTITION BY ${growthLeadTouchpoints.leadId} ORDER BY ${growthLeadTouchpoints.occurredAt} DESC, ${growthLeadTouchpoints.id} DESC)`.as(
+          "last_rank",
+        ),
     })
     .from(growthLeadTouchpoints)
     .where(eq(growthLeadTouchpoints.orgId, orgId))
-    .as('ranked_touchpoints');
+    .as("ranked_touchpoints");
 
   const [firstTouch, lastTouch] = await Promise.all([
-    db.select({ source: ranked.source, medium: ranked.medium, leads: count() })
-      .from(ranked).where(eq(ranked.firstRank, 1))
-      .groupBy(ranked.source, ranked.medium).orderBy(desc(count())),
-    db.select({ source: ranked.source, medium: ranked.medium, leads: count() })
-      .from(ranked).where(eq(ranked.lastRank, 1))
-      .groupBy(ranked.source, ranked.medium).orderBy(desc(count())),
+    db
+      .select({ source: ranked.source, medium: ranked.medium, leads: count() })
+      .from(ranked)
+      .where(eq(ranked.firstRank, 1))
+      .groupBy(ranked.source, ranked.medium)
+      .orderBy(desc(count())),
+    db
+      .select({ source: ranked.source, medium: ranked.medium, leads: count() })
+      .from(ranked)
+      .where(eq(ranked.lastRank, 1))
+      .groupBy(ranked.source, ranked.medium)
+      .orderBy(desc(count())),
   ]);
 
   return { firstTouch, lastTouch };
