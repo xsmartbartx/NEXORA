@@ -14,12 +14,7 @@ export const INTEGRATION_PROVIDERS = [
 export type IntegrationProvider = (typeof INTEGRATION_PROVIDERS)[number];
 
 export type IntegrationCategory =
-  | "automation"
-  | "crm"
-  | "email"
-  | "marketing"
-  | "analytics"
-  | "developer";
+  "automation" | "crm" | "email" | "marketing" | "analytics" | "developer";
 
 export type IntegrationAuthMethod = "api_key" | "oauth2" | "webhook";
 
