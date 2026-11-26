@@ -56,7 +56,7 @@ function validateCredentialRef(value: unknown): string | undefined {
     value.length === 0 ||
     value !== value.trim() ||
     value.length > 256 ||
-    !/^[A-Za-z0-9][A-Za-z0-9._:/-]*$/.test(value)
+    !/^(vault|secret|aws-sm|gcp-sm|azure-kv):\\/\\/[A-Za-z0-9][A-Za-z0-9._:/-]*$/.test(value)
   ) {
     return undefined;
   }

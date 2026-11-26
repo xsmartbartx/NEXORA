@@ -56,7 +56,7 @@ describe("n8n adapter configuration", () => {
     ).toMatchObject({ ok: false });
   });
 
-  it("requires an opaque credential reference rather than an API key field", () => {
+  it("requires a secret-manager URI rather than a raw API key value", () => {
     expect(
       adapter.validateConfig({
         baseUrl: "https://automation.example.com",
@@ -68,7 +68,7 @@ describe("n8n adapter configuration", () => {
     expect(
       adapter.validateConfig({
         baseUrl: "https://automation.example.com",
-        credentialRef: "raw api key",
+        credentialRef: "plain-api-key-value",
       }),
     ).toMatchObject({ ok: false });
   });
