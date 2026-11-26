@@ -12,7 +12,7 @@
 
 ## Architectural boundary
 
-The catalog describes supported provider families and intended capabilities. It does not mean an account is connected, credentials exist, scopes have been granted, or a capability is enabled for a tenant.
+The catalog describes supported provider families and broad capability classes. It does not mean an account is connected, credentials exist, scopes have been granted, or a capability is enabled for a tenant. Provider-specific OAuth scopes and API-key permissions are deliberately resolved by adapters rather than guessed in shared metadata.
 
 The registry is inert unless server code supplies an adapter. It does not dynamically import modules, perform network requests, exchange OAuth codes, read secrets, process webhooks or execute workflows.
 
@@ -21,7 +21,7 @@ The registry is inert unless server code supplies an adapter. It does not dynami
 1. Accept configuration only through provider-specific validation; never accept credentials from browser-controlled payloads.
 2. Resolve opaque `credential_ref` values only through the deployment secret manager in trusted server runtime.
 3. Never persist or log access tokens, refresh tokens, API keys, OAuth responses, webhook secrets, raw provider payloads or raw exception messages.
-4. Request least-privilege scopes and verify granted scopes before using a capability.
+4. Request least-privilege permissions and verify actual granted scopes before using a capability.
 5. Enforce tenant ownership, approval state, consent and suppression checks at the execution boundary.
 6. Treat provider webhooks as untrusted input: verify signatures, enforce replay protection and validate schemas.
 7. Keep outbound actions disabled until the adapter, worker, audit trail and human approval flow pass review.

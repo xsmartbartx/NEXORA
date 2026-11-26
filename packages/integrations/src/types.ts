@@ -2,14 +2,13 @@ export const INTEGRATION_PROVIDERS = ["n8n","hubspot","salesforce","resend","sen
 export type IntegrationProvider = (typeof INTEGRATION_PROVIDERS)[number];
 export type IntegrationCategory = "automation" | "crm" | "email" | "marketing" | "analytics" | "developer";
 export type IntegrationAuthMethod = "api_key" | "oauth2" | "webhook";
-export type IntegrationCapability = "workflow_trigger" | "workflow_action" | "contact_read" | "contact_write" | "email_send" | "campaign_read" | "analytics_read" | "repository_read" | "webhook_receive";
+export type IntegrationCapability = "workflow_trigger" | "workflow_action" | "contact_read" | "contact_write" | "email_send" | "campaign_read" | "campaign_send" | "analytics_read" | "repository_read" | "webhook_receive";
 export interface IntegrationDefinition {
   readonly provider: IntegrationProvider;
   readonly displayName: string;
   readonly category: IntegrationCategory;
   readonly authMethod: IntegrationAuthMethod;
   readonly capabilities: readonly IntegrationCapability[];
-  readonly requiredScopes: readonly string[];
   readonly supportsWebhooks: boolean;
 }
 export interface IntegrationConfigIssue {
