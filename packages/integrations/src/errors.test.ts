@@ -11,10 +11,9 @@ describe("sanitizeIntegrationError", () => {
 
   it("discards arbitrary messages and provider response details", () => {
     const secret = "access_token=do-not-log";
+    const sanitized = sanitizeIntegrationError({ message: secret, body: secret });
 
     expect(sanitizeIntegrationError(new Error(secret))).toEqual({ code: "provider_error" });
-    expect(JSON.stringify(sanitizeIntegrationError({ message: secret, body: secret }))).not.toContain(
-      secret,
-    );
+    expect(JSON.stringify(sanitized)).not.toContain(secret);
   });
 });

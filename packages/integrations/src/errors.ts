@@ -5,5 +5,7 @@ import { IntegrationAdapterError, type SanitizedIntegrationError } from "./types
  * material.
  */
 export function sanitizeIntegrationError(error: unknown): SanitizedIntegrationError {
-  return error instanceof IntegrationAdapterError ? { code: error.code } : { code: "provider_error" };
+  return error instanceof IntegrationAdapterError
+    ? { code: error.code }
+    : { code: "provider_error" };
 }

@@ -3,10 +3,12 @@ import { getIntegrationDefinition, listIntegrationDefinitions } from "./catalog"
 import { INTEGRATION_PROVIDERS } from "./types";
 
 describe("integration catalog", () => {
-  it("matches the provider allow-list in the database schema", () => {
-    expect(listIntegrationDefinitions().map((item) => item.provider).sort()).toEqual(
-      [...INTEGRATION_PROVIDERS].sort(),
-    );
+  it("covers every provider identifier in the typed contract", () => {
+    const catalogProviders = listIntegrationDefinitions()
+      .map((item) => item.provider)
+      .sort();
+
+    expect(catalogProviders).toEqual([...INTEGRATION_PROVIDERS].sort());
   });
 
   it("returns undefined for unknown providers", () => {

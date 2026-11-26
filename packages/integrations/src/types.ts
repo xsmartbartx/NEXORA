@@ -54,8 +54,8 @@ export type IntegrationConfigResult<TConfig> =
   | { readonly ok: false; readonly issues: readonly IntegrationConfigIssue[] };
 
 /**
- * Adapter contract only. Network execution and provider side effects are separate
- * reviewed runtime slices.
+ * Adapter contract only. Network execution and provider side effects are
+ * separate reviewed runtime slices.
  */
 export interface IntegrationAdapter<TConfig = unknown> {
   readonly definition: IntegrationDefinition;
@@ -75,7 +75,9 @@ export interface SanitizedIntegrationError {
   readonly code: IntegrationErrorCode;
 }
 
-/** Raw provider messages and payloads must never cross this boundary. */
+/**
+ * Raw provider messages and payloads must never cross this boundary.
+ */
 export class IntegrationAdapterError extends Error {
   constructor(readonly code: IntegrationErrorCode) {
     super(code);

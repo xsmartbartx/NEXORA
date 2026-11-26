@@ -87,7 +87,9 @@ export const INTEGRATION_CATALOG: readonly IntegrationDefinition[] = [
   },
 ] as const;
 
-const byProvider = new Map(INTEGRATION_CATALOG.map((definition) => [definition.provider, definition]));
+const byProvider = new Map(
+  INTEGRATION_CATALOG.map((definition) => [definition.provider, definition]),
+);
 
 export function getIntegrationDefinition(provider: string): IntegrationDefinition | undefined {
   return byProvider.get(provider as IntegrationDefinition["provider"]);
