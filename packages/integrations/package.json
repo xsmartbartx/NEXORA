@@ -1,1 +1,17 @@
-{"name":"@nexora/integrations","version":"0.1.0","private":true,"description":"Provider-neutral integration catalog, adapter contracts and registry for NEXORA Growth Engine.","type":"module","exports":{".":"./src/index.ts"},"scripts":{"typecheck":"tsc --noEmit"},"devDependencies":{"@types/node":"^22","typescript":"^6"}}
+{
+  "name": "@nexora/integrations",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Provider-neutral integration catalog, adapter contracts and registry for NEXORA Growth Engine.",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@types/node": "^22",
+    "typescript": "^6"
+  }
+}
