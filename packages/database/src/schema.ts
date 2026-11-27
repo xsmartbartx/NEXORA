@@ -757,6 +757,7 @@ export const growthSegmentProductFits = pgTable(
     updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
   },
   (table) => [
+    uniqueIndex("growth_segment_product_fits_org_id_idx").on(table.orgId, table.id),
     uniqueIndex("growth_segment_product_fits_org_segment_product_idx").on(
       table.orgId,
       table.segmentId,
@@ -803,6 +804,75 @@ export const growthSegmentProductFits = pgTable(
     }).onDelete("cascade"),
   ],
 );
+
+
+
+/**
+ * Explainable strategy recommendations derived from organisation-owned fit
+ * assessments. Recommendations are drafts until a human records a decision.
+ */
+export const growthStrategyRecommendations = pgTable(
+  "growth_strategy_recommendations",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    orgId: text("org_id").notNull(),
+    sourceFitId: uuid("source_fit_id").notNull(),
+    segmentId: uuid("segment_id").notNull(),
+    productSlug: text("product_slug").notNull(),
+    category: text("category").notNull(),
+    title: text("title").notNull(),
+    recommendation: text("recommendation").notNull(),
+    rationale: text("rationale").notNull(),
+    evidenceSnapshot: jsonb("evidence_snapshot").$type<Record<string, unknown>>().notNull().default({}),
+    confidence: text("confidence").notNull().default("low"),
+    status: text("status").notNull().default("draft"),
+    decisionNote: text("decision_note").notNull().default(""),
+    createdBy: text("created_by").notNull(),
+    updatedBy: text("updated_by").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    uniqueIndex("growth_strategy_recommendations_org_fit_category_idx").on(
+      table.orgId,
+      table.sourceFitId,
+      table.category,
+    ),
+    index("growth_strategy_recommendations_org_status_idx").on(table.orgId, table.status),
+    index("growth_strategy_recommendations_org_updated_idx").on(table.orgId, table.updatedAt),
+    check(
+      "growth_strategy_recommendations_category_chk",
+      sql`${table.category} in ('segment_priority', 'product_gap', 'evidence_gap', 'positioning')`,
+    ),
+    check(
+      "growth_strategy_recommendations_confidence_chk",
+      sql`${table.confidence} in ('low', 'medium', 'high')`,
+    ),
+    check(
+      "growth_strategy_recommendations_status_chk",
+      sql`${table.status} in ('draft', 'accepted', 'rejected', 'implemented')`,
+    ),
+    check(
+      "growth_strategy_recommendations_title_chk",
+      sql`length(trim(${table.title})) between 1 and 180`,
+    ),
+    foreignKey({
+      columns: [table.orgId, table.segmentId],
+      foreignColumns: [growthCustomerSegments.orgId, growthCustomerSegments.id],
+      name: "growth_strategy_recommendation_segment_fk",
+    }).onDelete("cascade"),
+    foreignKey({
+      columns: [table.orgId, table.sourceFitId],
+      foreignColumns: [growthSegmentProductFits.orgId, growthSegmentProductFits.id],
+      name: "growth_strategy_recommendation_fit_fk",
+    }).onDelete("cascade"),
+  ],
+);
+
+export type GrowthStrategyRecommendation =
+  typeof growthStrategyRecommendations.$inferSelect;
+export type NewGrowthStrategyRecommendation =
+  typeof growthStrategyRecommendations.$inferInsert;
 
 export type GrowthSegmentProductFit = typeof growthSegmentProductFits.$inferSelect;
 export type NewGrowthSegmentProductFit = typeof growthSegmentProductFits.$inferInsert;
