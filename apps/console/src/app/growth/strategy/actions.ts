@@ -164,7 +164,7 @@ export async function listGrowthStrategyRecommendations() {
   }));
 }
 
-export async function generateGrowthStrategyRecommendations(): Promise<number> {
+export async function generateGrowthStrategyRecommendations(): Promise<void> {
   const { orgId, userId } = await requireOrg();
   const fits = await db
     .select({
@@ -275,7 +275,6 @@ export async function generateGrowthStrategyRecommendations(): Promise<number> {
     metadata: { fitAssessmentsReviewed: fits.length, recommendationsUpserted: generated },
   });
   revalidatePath("/growth/strategy");
-  return generated;
 }
 
 export async function decideGrowthStrategyRecommendation(formData: FormData): Promise<void> {
