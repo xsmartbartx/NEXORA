@@ -9,7 +9,13 @@ import { logEvent } from "@nexora/telemetry";
 
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
-function textField(formData: FormData, key: string, label: string, max: number, required = false): string {
+function textField(
+  formData: FormData,
+  key: string,
+  label: string,
+  max: number,
+  required = false,
+): string {
   const value = String(formData.get(key) ?? "").trim();
   if (required && !value) throw new Error(`${label} is required`);
   if (value.length > max) throw new Error(`${label} exceeds ${max} characters`);
@@ -71,7 +77,8 @@ export async function saveGrowthProductSegmentFit(formData: FormData): Promise<v
   if (!segment) throw new Error("Customer segment not found in this organisation");
 
   const productSlug = textField(formData, "productSlug", "Product", 120, true);
-  if (!getProductBySlug(productSlug)) throw new Error("Product does not exist in the Product Registry");
+  if (!getProductBySlug(productSlug))
+    throw new Error("Product does not exist in the Product Registry");
 
   const status = textField(formData, "status", "Assessment status", 20, true);
   if (!["hypothesis", "validated", "not_fit"].includes(status)) {
@@ -83,7 +90,11 @@ export async function saveGrowthProductSegmentFit(formData: FormData): Promise<v
     capabilityCoverageScore: scoreField(formData, "capabilityCoverageScore", "Capability coverage"),
     urgencyScore: scoreField(formData, "urgencyScore", "Urgency"),
     budgetReadinessScore: scoreField(formData, "budgetReadinessScore", "Budget readiness"),
-    buyingCommitteeFitScore: scoreField(formData, "buyingCommitteeFitScore", "Buying committee fit"),
+    buyingCommitteeFitScore: scoreField(
+      formData,
+      "buyingCommitteeFitScore",
+      "Buying committee fit",
+    ),
   };
   if (Object.values(scores).every((score) => score === null)) {
     throw new Error("Enter at least one criterion score; leave unknown criteria empty");

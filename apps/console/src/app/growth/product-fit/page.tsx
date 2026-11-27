@@ -11,11 +11,31 @@ export const metadata: Metadata = {
 };
 
 const criteria = [
-  ["needAlignmentScore", "Need alignment", "How strongly does the segment's documented problem match the product's value proposition?"],
-  ["capabilityCoverageScore", "Capability coverage", "How much of the documented need is supported by existing product capabilities?"],
-  ["urgencyScore", "Problem urgency", "How urgent is the problem based on documented triggers and evidence?"],
-  ["budgetReadinessScore", "Budget readiness", "Is there evidence of budget ownership or an established spending path?"],
-  ["buyingCommitteeFitScore", "Buying committee fit", "Does the product map to the roles involved in evaluation and approval?"],
+  [
+    "needAlignmentScore",
+    "Need alignment",
+    "How strongly does the segment's documented problem match the product's value proposition?",
+  ],
+  [
+    "capabilityCoverageScore",
+    "Capability coverage",
+    "How much of the documented need is supported by existing product capabilities?",
+  ],
+  [
+    "urgencyScore",
+    "Problem urgency",
+    "How urgent is the problem based on documented triggers and evidence?",
+  ],
+  [
+    "budgetReadinessScore",
+    "Budget readiness",
+    "Is there evidence of budget ownership or an established spending path?",
+  ],
+  [
+    "buyingCommitteeFitScore",
+    "Buying committee fit",
+    "Does the product map to the roles involved in evaluation and approval?",
+  ],
 ] as const;
 
 function averageScore(values: Array<number | null>): string {
@@ -57,7 +77,8 @@ export default async function GrowthProductFitPage() {
         <p className="mt-1 text-muted-foreground">
           Rate each criterion from 0 (no fit) to 5 (strong fit). Leave unknown criteria empty;
           unknown is excluded from the arithmetic mean, never converted to zero. Every displayed
-          average shows its evidence coverage as N/5. A validated assessment requires evidence notes.
+          average shows its evidence coverage as N/5. A validated assessment requires evidence
+          notes.
         </p>
       </div>
 
@@ -67,28 +88,62 @@ export default async function GrowthProductFitPage() {
           <form action={saveGrowthProductSegmentFit} className="mt-5 grid gap-4 md:grid-cols-2">
             <label className="grid gap-1.5 text-sm">
               <span className="font-medium">Customer segment</span>
-              <select name="segmentId" required defaultValue="" className="rounded-lg border border-border bg-background px-3 py-2">
-                <option value="" disabled>Select segment</option>
-                {segments.map((segment) => <option key={segment.id} value={segment.id}>{segment.name}</option>)}
+              <select
+                name="segmentId"
+                required
+                defaultValue=""
+                className="rounded-lg border border-border bg-background px-3 py-2"
+              >
+                <option value="" disabled>
+                  Select segment
+                </option>
+                {segments.map((segment) => (
+                  <option key={segment.id} value={segment.id}>
+                    {segment.name}
+                  </option>
+                ))}
               </select>
             </label>
             <label className="grid gap-1.5 text-sm">
               <span className="font-medium">Product</span>
-              <select name="productSlug" required defaultValue="" className="rounded-lg border border-border bg-background px-3 py-2">
-                <option value="" disabled>Select product</option>
-                {products.map((product) => <option key={product.slug} value={product.slug}>{product.name}</option>)}
+              <select
+                name="productSlug"
+                required
+                defaultValue=""
+                className="rounded-lg border border-border bg-background px-3 py-2"
+              >
+                <option value="" disabled>
+                  Select product
+                </option>
+                {products.map((product) => (
+                  <option key={product.slug} value={product.slug}>
+                    {product.name}
+                  </option>
+                ))}
               </select>
             </label>
             {criteria.map(([name, label, description]) => (
               <label key={name} className="grid gap-1.5 text-sm">
                 <span className="font-medium">{label}</span>
-                <input name={name} type="number" min={0} max={5} step={1} className="rounded-lg border border-border bg-background px-3 py-2" placeholder="Unknown" />
+                <input
+                  name={name}
+                  type="number"
+                  min={0}
+                  max={5}
+                  step={1}
+                  className="rounded-lg border border-border bg-background px-3 py-2"
+                  placeholder="Unknown"
+                />
                 <span className="text-xs text-muted-foreground">{description}</span>
               </label>
             ))}
             <label className="grid gap-1.5 text-sm">
               <span className="font-medium">Assessment status</span>
-              <select name="status" defaultValue="hypothesis" className="rounded-lg border border-border bg-background px-3 py-2">
+              <select
+                name="status"
+                defaultValue="hypothesis"
+                className="rounded-lg border border-border bg-background px-3 py-2"
+              >
                 <option value="hypothesis">Hypothesis</option>
                 <option value="validated">Validated with evidence</option>
                 <option value="not_fit">Not a fit</option>
@@ -96,21 +151,38 @@ export default async function GrowthProductFitPage() {
             </label>
             <label className="grid gap-1.5 text-sm md:col-span-2">
               <span className="font-medium">Rationale</span>
-              <textarea name="rationale" required maxLength={2000} rows={3} className="rounded-lg border border-border bg-background px-3 py-2" placeholder="Explain the fit or gap between segment needs and product capabilities." />
+              <textarea
+                name="rationale"
+                required
+                maxLength={2000}
+                rows={3}
+                className="rounded-lg border border-border bg-background px-3 py-2"
+                placeholder="Explain the fit or gap between segment needs and product capabilities."
+              />
             </label>
             <label className="grid gap-1.5 text-sm md:col-span-2">
               <span className="font-medium">Evidence notes</span>
-              <textarea name="evidenceNotes" maxLength={4000} rows={3} className="rounded-lg border border-border bg-background px-3 py-2" placeholder="Add non-sensitive source references, research dates, sample limitations and unresolved assumptions." />
+              <textarea
+                name="evidenceNotes"
+                maxLength={4000}
+                rows={3}
+                className="rounded-lg border border-border bg-background px-3 py-2"
+                placeholder="Add non-sensitive source references, research dates, sample limitations and unresolved assumptions."
+              />
             </label>
             <div className="md:col-span-2">
-              <button type="submit" className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground">
+              <button
+                type="submit"
+                className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground"
+              >
                 Save assessment
               </button>
             </div>
           </form>
         ) : (
           <p className="mt-4 text-sm text-muted-foreground">
-            Add at least one customer segment and ensure the Product Registry contains products before creating assessments.
+            Add at least one customer segment and ensure the Product Registry contains products
+            before creating assessments.
           </p>
         )}
       </section>
@@ -146,7 +218,9 @@ export default async function GrowthProductFitPage() {
                       </p>
                     </td>
                     <td className="px-4 py-4">
-                      <span className="rounded-full bg-muted px-2.5 py-1 text-xs">{assessment.status}</span>
+                      <span className="rounded-full bg-muted px-2.5 py-1 text-xs">
+                        {assessment.status}
+                      </span>
                     </td>
                     <td className="px-4 py-4 tabular-nums">
                       {averageScore([
@@ -160,9 +234,13 @@ export default async function GrowthProductFitPage() {
                     <td className="max-w-md px-4 py-4">
                       <p>{assessment.rationale}</p>
                       {assessment.evidenceNotes ? (
-                        <p className="mt-2 text-xs text-muted-foreground">{assessment.evidenceNotes}</p>
+                        <p className="mt-2 text-xs text-muted-foreground">
+                          {assessment.evidenceNotes}
+                        </p>
                       ) : (
-                        <p className="mt-2 text-xs text-muted-foreground">No evidence notes supplied.</p>
+                        <p className="mt-2 text-xs text-muted-foreground">
+                          No evidence notes supplied.
+                        </p>
                       )}
                     </td>
                   </tr>

@@ -14,27 +14,20 @@ const PROFILE_FIELDS = [
   ["differentiators", "Differentiators", 2_000],
 ] as const;
 
-function readText(
-  formData: FormData,
-  key: string,
-  label: string,
-  max: number,
-): string {
+function readText(formData: FormData, key: string, label: string, max: number): string {
   const value = String(formData.get(key) ?? "").trim();
   if (value.length > max) throw new Error(`${label} exceeds ${max} characters`);
   return value;
 }
 
-function readLines(
-  formData: FormData,
-  key: string,
-  label: string,
-  maxItems: number,
-): string[] {
+function readLines(formData: FormData, key: string, label: string, maxItems: number): string[] {
   const raw = String(formData.get(key) ?? "");
   const values = [
     ...new Set(
-      raw.split(/\r?\n/).map((item) => item.trim()).filter(Boolean),
+      raw
+        .split(/\r?\n/)
+        .map((item) => item.trim())
+        .filter(Boolean),
     ),
   ];
   if (values.length > maxItems) {
@@ -58,29 +51,17 @@ export async function listGrowthProductProfiles() {
 export async function saveGrowthProductProfile(formData: FormData): Promise<void> {
   const { orgId, userId } = await requireOrg();
   const productSlug = String(formData.get("productSlug") ?? "").trim();
-  if (
-    !productSlug ||
-    productSlug.length > 120 ||
-    !getProductBySlug(productSlug)
-  ) {
+  if (!productSlug || productSlug.length > 120 || !getProductBySlug(productSlug)) {
     throw new Error("Select a product that exists in the Product Registry");
   }
 
   const profile = Object.fromEntries(
-    PROFILE_FIELDS.map(([key, label, max]) => [
-      key,
-      readText(formData, key, label, max),
-    ]),
+    PROFILE_FIELDS.map(([key, label, max]) => [key, readText(formData, key, label, max)]),
   ) as Record<(typeof PROFILE_FIELDS)[number][0], string>;
 
   const targetRoles = readLines(formData, "targetRoles", "Target roles", 30);
   const useCases = readLines(formData, "useCases", "Use cases", 30);
-  const approvedClaims = readLines(
-    formData,
-    "approvedClaims",
-    "Approved claims",
-    50,
-  );
+  const approvedClaims = readLines(formData, "approvedClaims", "Approved claims", 50);
 
   const [saved] = await db
     .insert(growthProductProfiles)
