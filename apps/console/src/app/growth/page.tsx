@@ -61,7 +61,7 @@ const modules: GrowthModule[] = [
   },
   {
     name: "Product–Segment Fit",
-    description: "Compare product capabilities with segment needs using explainable, evidence-backed criteria.",
+    description: "Compare product fit with segment needs and documented evidence.",
     status: "Available",
     href: "/growth/product-fit",
   },
