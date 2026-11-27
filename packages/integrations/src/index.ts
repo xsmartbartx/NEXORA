@@ -6,6 +6,10 @@ export {
 
 export { sanitizeIntegrationError } from "./errors";
 
+export { createN8nAdapter } from "./n8n";
+
+export type { N8nIntegrationConfig } from "./n8n";
+
 export { createIntegrationRegistry } from "./registry";
 
 export { INTEGRATION_PROVIDERS, IntegrationAdapterError } from "./types";
