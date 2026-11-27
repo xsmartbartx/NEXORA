@@ -54,56 +54,84 @@ export default async function GrowthProductsPage() {
                 </span>
               </div>
 
-              <form action={saveGrowthProductProfile} className="mt-6 grid gap-4 md:grid-cols-2">
+              <form
+                action={saveGrowthProductProfile}
+                className="mt-6 grid gap-4 md:grid-cols-2"
+              >
                 <input type="hidden" name="productSlug" value={product.slug} />
                 <label className="grid gap-1.5 text-sm md:col-span-2">
                   <span className="font-medium">Ideal customer profile</span>
-                  <textarea name="idealCustomerProfile" rows={3} maxLength={4000}
+                  <textarea
+                    name="idealCustomerProfile"
+                    rows={3}
+                    maxLength={4000}
                     defaultValue={profile?.idealCustomerProfile ?? ""}
                     className="rounded-lg border border-border bg-background px-3 py-2"
-                    placeholder="Describe the organisation, maturity, needs and buying context." />
+                    placeholder="Describe the organisation, maturity, needs and buying context."
+                  />
                 </label>
                 <label className="grid gap-1.5 text-sm">
                   <span className="font-medium">Positioning</span>
-                  <textarea name="positioning" rows={3} maxLength={2000}
+                  <textarea
+                    name="positioning"
+                    rows={3}
+                    maxLength={2000}
                     defaultValue={profile?.positioning ?? ""}
                     className="rounded-lg border border-border bg-background px-3 py-2"
-                    placeholder="How should this product be positioned in its market?" />
+                    placeholder="How should this product be positioned in its market?"
+                  />
                 </label>
                 <label className="grid gap-1.5 text-sm">
                   <span className="font-medium">Value proposition</span>
-                  <textarea name="valueProposition" rows={3} maxLength={2000}
+                  <textarea
+                    name="valueProposition"
+                    rows={3}
+                    maxLength={2000}
                     defaultValue={profile?.valueProposition ?? ""}
                     className="rounded-lg border border-border bg-background px-3 py-2"
-                    placeholder="What customer outcome does it support?" />
+                    placeholder="What customer outcome does it support?"
+                  />
                 </label>
                 <label className="grid gap-1.5 text-sm">
                   <span className="font-medium">Differentiators</span>
-                  <textarea name="differentiators" rows={3} maxLength={2000}
+                  <textarea
+                    name="differentiators"
+                    rows={3}
+                    maxLength={2000}
                     defaultValue={profile?.differentiators ?? ""}
                     className="rounded-lg border border-border bg-background px-3 py-2"
-                    placeholder="Evidence-backed distinctions; avoid unsupported superlatives." />
+                    placeholder="Evidence-backed distinctions; avoid unsupported superlatives."
+                  />
                 </label>
                 <label className="grid gap-1.5 text-sm">
                   <span className="font-medium">Target roles (one per line)</span>
-                  <textarea name="targetRoles" rows={3}
+                  <textarea
+                    name="targetRoles"
+                    rows={3}
                     defaultValue={lines(profile?.targetRoles)}
                     className="rounded-lg border border-border bg-background px-3 py-2"
-                    placeholder={"CISO\nHead of IT\nPlatform Engineer"} />
+                    placeholder={"CISO\nHead of IT\nPlatform Engineer"}
+                  />
                 </label>
                 <label className="grid gap-1.5 text-sm">
                   <span className="font-medium">Use cases (one per line)</span>
-                  <textarea name="useCases" rows={3}
+                  <textarea
+                    name="useCases"
+                    rows={3}
                     defaultValue={lines(profile?.useCases)}
                     className="rounded-lg border border-border bg-background px-3 py-2"
-                    placeholder={"Centralise security visibility\nAutomate routine analysis"} />
+                    placeholder={"Centralise security visibility\nAutomate routine analysis"}
+                  />
                 </label>
                 <label className="grid gap-1.5 text-sm md:col-span-2">
                   <span className="font-medium">Approved claims (one per line)</span>
-                  <textarea name="approvedClaims" rows={3}
+                  <textarea
+                    name="approvedClaims"
+                    rows={3}
                     defaultValue={lines(profile?.approvedClaims)}
                     className="rounded-lg border border-border bg-background px-3 py-2"
-                    placeholder="Only claims verified and authorised for marketing use." />
+                    placeholder="Only claims verified and authorised for marketing use."
+                  />
                   <span className="text-xs text-muted-foreground">
                     These are organisation-approved statements, not independently verified facts.
                     Add supporting evidence before using them in published material.
@@ -111,10 +139,14 @@ export default async function GrowthProductsPage() {
                 </label>
                 <div className="flex flex-wrap items-center justify-between gap-3 md:col-span-2">
                   <span className="text-xs text-muted-foreground">
-                    {profile ? `Updated ${new Date(profile.updatedAt).toLocaleDateString()}` : "No profile saved"}
+                    {profile
+                      ? `Updated ${new Date(profile.updatedAt).toLocaleDateString()}`
+                      : "No profile saved"}
                   </span>
-                  <button type="submit"
-                    className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground">
+                  <button
+                    type="submit"
+                    className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground"
+                  >
                     Save profile
                   </button>
                 </div>
