@@ -22,12 +22,12 @@ It does not infer market size, revenue, conversion probability, customer propens
 
 All numeric thresholds below use the manually entered 0–5 assessment scale. `NULL` means unknown and is never treated as zero.
 
-| Category | Rule | Suggested next step |
-|---|---|---|
-| Segment priority | Need alignment >= 4, capability coverage >= 3, urgency >= 3 | Design a bounded discovery or pilot experiment |
-| Product gap | Need alignment >= 3, capability coverage <= 2 | Validate the smallest capability gap with the product owner |
-| Evidence gap | Urgency, budget readiness or buying-committee fit is unknown, or source status is not validated | Collect targeted research and update the source assessment |
-| Positioning | Need alignment >= 3 and buying-committee fit <= 2 | Map evaluator, technical approver and budget owner concerns |
+| Category         | Rule                                                                                            | Suggested next step                                         |
+| ---------------- | ----------------------------------------------------------------------------------------------- | ----------------------------------------------------------- |
+| Segment priority | Need alignment >= 4, capability coverage >= 3, urgency >= 3                                     | Design a bounded discovery or pilot experiment              |
+| Product gap      | Need alignment >= 3, capability coverage <= 2                                                   | Validate the smallest capability gap with the product owner |
+| Evidence gap     | Urgency, budget readiness or buying-committee fit is unknown, or source status is not validated | Collect targeted research and update the source assessment  |
+| Positioning      | Need alignment >= 3 and buying-committee fit <= 2                                               | Map evaluator, technical approver and budget owner concerns |
 
 Rules are intentionally explicit and deterministic. They are hypotheses to support human review, not statistically calibrated scores.
 
