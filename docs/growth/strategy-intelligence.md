@@ -39,7 +39,7 @@ Rules are intentionally explicit and deterministic. They are hypotheses to suppo
 
 ## Human decision lifecycle
 
-Recommendations are created as `draft`. An organisation member can accept, reject or mark a recommendation implemented, optionally recording a decision note. Refreshing generated content preserves existing human decisions.
+Recommendations are created as `draft`. An organisation member can accept, reject or mark a recommendation implemented, optionally recording a decision note. Refreshing generated content preserves existing human decisions. Draft candidates that no longer satisfy their source rule are marked `superseded`; if a rule becomes applicable again, an unreviewed superseded candidate returns to `draft`.
 
 ## Data boundaries
 
