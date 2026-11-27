@@ -221,10 +221,7 @@ export async function generateGrowthStrategyRecommendations(): Promise<number> {
               eq(growthStrategyRecommendations.orgId, orgId),
             ),
           );
-      } else if (
-        previous.status === "superseded" &&
-        candidateCategories.has(previous.category)
-      ) {
+      } else if (previous.status === "superseded" && candidateCategories.has(previous.category)) {
         await db
           .update(growthStrategyRecommendations)
           .set({ status: "draft", updatedBy: userId, updatedAt: new Date() })
