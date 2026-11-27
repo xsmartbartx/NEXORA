@@ -23,6 +23,7 @@ const statusLabels: Record<string, string> = {
   accepted: "Accepted",
   rejected: "Rejected",
   implemented: "Implemented",
+  superseded: "Superseded by newer assessment",
 };
 
 function scoreSummary(snapshot: Record<string, unknown>): string {
@@ -141,7 +142,7 @@ export default async function GrowthStrategyPage() {
                     Decision note: {item.decisionNote}
                   </p>
                 ) : null}
-                {item.status !== "implemented" ? (
+                {item.status !== "implemented" && item.status !== "superseded" ? (
                   <form
                     action={decideGrowthStrategyRecommendation}
                     className="mt-4 grid gap-3 border-t border-border pt-4 sm:grid-cols-[1fr_auto]"
