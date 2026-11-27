@@ -1,0 +1,22 @@
+name: Temporary Prettier diagnostics
+
+on:
+  push:
+    branches:
+      - feat/growth-g6-2-n8n-adapter
+
+permissions:
+  contents: read
+
+jobs:
+  print-formatted-n8n:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Print Prettier output for n8n adapter
+        run: npx prettier packages/integrations/src/n8n.ts
