@@ -66,6 +66,12 @@ const modules: GrowthModule[] = [
     href: "/growth/product-fit",
   },
   {
+    name: "Strategy Intelligence",
+    description: "Generate explainable product and segment strategy recommendations.",
+    status: "Available",
+    href: "/growth/strategy",
+  },
+  {
     name: "Reports",
     description: "Generate reproducible weekly and monthly growth snapshots.",
     status: "Next",
