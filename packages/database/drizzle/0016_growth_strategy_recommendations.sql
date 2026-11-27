@@ -24,7 +24,7 @@ CREATE TABLE "growth_strategy_recommendations" (
   CONSTRAINT "growth_strategy_recommendations_confidence_chk"
     CHECK ("confidence" in ('low', 'medium', 'high')),
   CONSTRAINT "growth_strategy_recommendations_status_chk"
-    CHECK ("status" in ('draft', 'accepted', 'rejected', 'implemented')),
+    CHECK ("status" in ('draft', 'accepted', 'rejected', 'implemented', 'superseded')),
   CONSTRAINT "growth_strategy_recommendations_title_chk"
     CHECK (length(trim("title")) between 1 and 180),
   CONSTRAINT "growth_strategy_recommendation_segment_fk"
