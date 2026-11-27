@@ -824,7 +824,7 @@ export const growthStrategyRecommendations = pgTable(
     ),
     check(
       "growth_strategy_recommendations_status_chk",
-      sql`${table.status} in ('draft', 'accepted', 'rejected', 'implemented')`,
+      sql`${table.status} in ('draft', 'accepted', 'rejected', 'implemented', 'superseded')`,
     ),
     check(
       "growth_strategy_recommendations_title_chk",
