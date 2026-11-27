@@ -50,13 +50,16 @@ function validateBaseUrl(value: unknown): string | undefined {
   }
 }
 
+const credentialRefPattern =
+  /^(vault|secret|aws-sm|gcp-sm|azure-kv):\/\/[A-Za-z0-9][A-Za-z0-9._:/-]*$/;
+
 function validateCredentialRef(value: unknown): string | undefined {
   if (
     typeof value !== "string" ||
     value.length === 0 ||
     value !== value.trim() ||
     value.length > 256 ||
-    !/^(vault|secret|aws-sm|gcp-sm|azure-kv):\/\/[A-Za-z0-9][A-Za-z0-9._:/-]*$/.test(value)
+    !credentialRefPattern.test(value)
   ) {
     return undefined;
   }
