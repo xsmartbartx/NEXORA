@@ -60,6 +60,12 @@ const modules: GrowthModule[] = [
     href: "/growth/customer-intelligence",
   },
   {
+    name: "Product–Segment Fit",
+    description: "Compare product capabilities with segment needs using explainable, evidence-backed criteria.",
+    status: "Available",
+    href: "/growth/product-fit",
+  },
+  {
     name: "Reports",
     description: "Generate reproducible weekly and monthly growth snapshots.",
     status: "Next",
