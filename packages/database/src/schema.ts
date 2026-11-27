@@ -704,4 +704,3 @@ export type GrowthCustomerSegment = typeof growthCustomerSegments.$inferSelect;
 export type NewGrowthCustomerSegment = typeof growthCustomerSegments.$inferInsert;
 export type GrowthCustomerPersona = typeof growthCustomerPersonas.$inferSelect;
 export type NewGrowthCustomerPersona = typeof growthCustomerPersonas.$inferInsert;
-
