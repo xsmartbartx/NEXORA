@@ -54,6 +54,12 @@ const modules: GrowthModule[] = [
     href: "/growth/leads",
   },
   {
+    name: "Customer Intelligence",
+    description: "Manage customer segments, buyer personas, pain points and buying signals.",
+    status: "Available",
+    href: "/growth/customer-intelligence",
+  },
+  {
     name: "Reports",
     description: "Generate reproducible weekly and monthly growth snapshots.",
     status: "Next",
