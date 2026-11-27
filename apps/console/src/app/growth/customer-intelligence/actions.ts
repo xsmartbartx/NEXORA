@@ -9,7 +9,13 @@ import { logEvent } from "@nexora/telemetry";
 
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
-function textField(formData: FormData, key: string, label: string, max: number, required = false): string {
+function textField(
+  formData: FormData,
+  key: string,
+  label: string,
+  max: number,
+  required = false,
+): string {
   const value = String(formData.get(key) ?? "").trim();
   if (required && !value) throw new Error(`${label} is required`);
   if (value.length > max) throw new Error(`${label} exceeds ${max} characters`);
@@ -17,12 +23,14 @@ function textField(formData: FormData, key: string, label: string, max: number, 
 }
 
 function lineList(formData: FormData, key: string, label: string): string[] {
-  const values = [...new Set(
-    String(formData.get(key) ?? "")
-      .split(/\r?\n/)
-      .map((value) => value.trim())
-      .filter(Boolean),
-  )];
+  const values = [
+    ...new Set(
+      String(formData.get(key) ?? "")
+        .split(/\r?\n/)
+        .map((value) => value.trim())
+        .filter(Boolean),
+    ),
+  ];
   if (values.length > 30) throw new Error(`${label} supports at most 30 entries`);
   if (values.some((value) => value.length > 240)) {
     throw new Error(`${label} entries must be 240 characters or fewer`);
@@ -153,7 +161,8 @@ export async function saveGrowthCustomerPersona(formData: FormData): Promise<voi
   const confidence = textField(formData, "confidence", "Confidence", 10, true);
   const status = textField(formData, "status", "Status", 20, true);
   if (!["low", "medium", "high"].includes(confidence)) throw new Error("Invalid confidence level");
-  if (!["draft", "validated", "archived"].includes(status)) throw new Error("Invalid persona status");
+  if (!["draft", "validated", "archived"].includes(status))
+    throw new Error("Invalid persona status");
 
   const name = textField(formData, "name", "Persona name", 120, true);
   const role = textField(formData, "role", "Role", 160);
