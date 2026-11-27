@@ -195,6 +195,48 @@ export async function generateGrowthStrategyRecommendations(): Promise<number> {
   for (const fit of fits) {
     if (!getProductBySlug(fit.productSlug)) continue;
     const candidates = buildCandidates(fit);
+    const candidateCategories = new Set(candidates.map((candidate) => candidate.category));
+    const existing = await db
+      .select({
+        id: growthStrategyRecommendations.id,
+        category: growthStrategyRecommendations.category,
+        status: growthStrategyRecommendations.status,
+      })
+      .from(growthStrategyRecommendations)
+      .where(
+        and(
+          eq(growthStrategyRecommendations.orgId, orgId),
+          eq(growthStrategyRecommendations.sourceFitId, fit.id),
+        ),
+      );
+
+    for (const previous of existing) {
+      if (previous.status === "draft" && !candidateCategories.has(previous.category)) {
+        await db
+          .update(growthStrategyRecommendations)
+          .set({ status: "superseded", updatedBy: userId, updatedAt: new Date() })
+          .where(
+            and(
+              eq(growthStrategyRecommendations.id, previous.id),
+              eq(growthStrategyRecommendations.orgId, orgId),
+            ),
+          );
+      } else if (
+        previous.status === "superseded" &&
+        candidateCategories.has(previous.category)
+      ) {
+        await db
+          .update(growthStrategyRecommendations)
+          .set({ status: "draft", updatedBy: userId, updatedAt: new Date() })
+          .where(
+            and(
+              eq(growthStrategyRecommendations.id, previous.id),
+              eq(growthStrategyRecommendations.orgId, orgId),
+            ),
+          );
+      }
+    }
+
     for (const candidate of candidates) {
       await db
         .insert(growthStrategyRecommendations)
