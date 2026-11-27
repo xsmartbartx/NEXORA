@@ -18,9 +18,7 @@ export default async function GrowthProductsPage() {
     Promise.resolve(getAllProducts()),
     listGrowthProductProfiles(),
   ]);
-  const profileBySlug = new Map(
-    profiles.map((profile) => [profile.productSlug, profile]),
-  );
+  const profileBySlug = new Map(profiles.map((profile) => [profile.productSlug, profile]));
 
   return (
     <div className="mx-auto w-full max-w-6xl px-6 py-10">
@@ -29,13 +27,10 @@ export default async function GrowthProductsPage() {
       </Link>
       <div className="mt-2 flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h1 className="text-3xl font-semibold tracking-tight">
-            Product Growth Profiles
-          </h1>
+          <h1 className="text-3xl font-semibold tracking-tight">Product Growth Profiles</h1>
           <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
-            Organisation-owned marketing context layered over the canonical Product
-            Registry. Registry identity and product facts are not copied or modified
-            here.
+            Organisation-owned marketing context layered over the canonical Product Registry.
+            Registry identity and product facts are not copied or modified here.
           </p>
         </div>
         <span className="rounded-full border border-border px-3 py-1.5 text-xs text-muted-foreground">
@@ -47,27 +42,19 @@ export default async function GrowthProductsPage() {
         {products.map((product) => {
           const profile = profileBySlug.get(product.slug);
           return (
-            <section
-              key={product.slug}
-              className="rounded-xl border border-border bg-card p-6"
-            >
+            <section key={product.slug} className="rounded-xl border border-border bg-card p-6">
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <div>
                   <p className="text-xs font-medium text-link">{product.slug}</p>
                   <h2 className="mt-1 text-xl font-semibold">{product.name}</h2>
-                  <p className="mt-1 text-sm text-muted-foreground">
-                    {product.tagline}
-                  </p>
+                  <p className="mt-1 text-sm text-muted-foreground">{product.tagline}</p>
                 </div>
                 <span className="rounded-full bg-muted px-2.5 py-1 text-xs capitalize text-muted-foreground">
                   {profile ? "Configured" : "Not configured"}
                 </span>
               </div>
 
-              <form
-                action={saveGrowthProductProfile}
-                className="mt-6 grid gap-4 md:grid-cols-2"
-              >
+              <form action={saveGrowthProductProfile} className="mt-6 grid gap-4 md:grid-cols-2">
                 <input type="hidden" name="productSlug" value={product.slug} />
                 <label className="grid gap-1.5 text-sm md:col-span-2">
                   <span className="font-medium">Ideal customer profile</span>
@@ -143,9 +130,8 @@ export default async function GrowthProductsPage() {
                     placeholder="Only claims verified and authorised for marketing use."
                   />
                   <span className="text-xs text-muted-foreground">
-                    These are organisation-approved statements, not independently
-                    verified facts. Add supporting evidence before using them in
-                    published material.
+                    These are organisation-approved statements, not independently verified facts.
+                    Add supporting evidence before using them in published material.
                   </span>
                 </label>
                 <div className="flex flex-wrap items-center justify-between gap-3 md:col-span-2">
