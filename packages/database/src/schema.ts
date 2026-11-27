@@ -732,3 +732,79 @@ export type GrowthCustomerSegment = typeof growthCustomerSegments.$inferSelect;
 export type NewGrowthCustomerSegment = typeof growthCustomerSegments.$inferInsert;
 export type GrowthCustomerPersona = typeof growthCustomerPersonas.$inferSelect;
 export type NewGrowthCustomerPersona = typeof growthCustomerPersonas.$inferInsert;
+
+
+/**
+ * Explainable product-to-segment fit assessments. Scores are internal hypotheses
+ * on a 0-5 scale; null means unknown and is never treated as zero.
+ */
+export const growthSegmentProductFits = pgTable(
+  "growth_segment_product_fits",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    orgId: text("org_id").notNull(),
+    segmentId: uuid("segment_id").notNull(),
+    productSlug: text("product_slug").notNull(),
+    needAlignmentScore: integer("need_alignment_score"),
+    capabilityCoverageScore: integer("capability_coverage_score"),
+    urgencyScore: integer("urgency_score"),
+    budgetReadinessScore: integer("budget_readiness_score"),
+    buyingCommitteeFitScore: integer("buying_committee_fit_score"),
+    status: text("status").notNull().default("hypothesis"),
+    rationale: text("rationale").notNull().default(""),
+    evidenceNotes: text("evidence_notes").notNull().default(""),
+    createdBy: text("created_by").notNull(),
+    updatedBy: text("updated_by").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    uniqueIndex("growth_segment_product_fits_org_segment_product_idx").on(
+      table.orgId,
+      table.segmentId,
+      table.productSlug,
+    ),
+    index("growth_segment_product_fits_org_status_idx").on(table.orgId, table.status),
+    index("growth_segment_product_fits_org_updated_idx").on(table.orgId, table.updatedAt),
+    check(
+      "growth_segment_product_fits_slug_chk",
+      sql`length(trim(${table.productSlug})) between 1 and 120`,
+    ),
+    check(
+      "growth_segment_product_fits_status_chk",
+      sql`${table.status} in ('hypothesis', 'validated', 'not_fit')`,
+    ),
+    check(
+      "growth_segment_product_fits_need_score_chk",
+      sql`${table.needAlignmentScore} is null or ${table.needAlignmentScore} between 0 and 5`,
+    ),
+    check(
+      "growth_segment_product_fits_capability_score_chk",
+      sql`${table.capabilityCoverageScore} is null or ${table.capabilityCoverageScore} between 0 and 5`,
+    ),
+    check(
+      "growth_segment_product_fits_urgency_score_chk",
+      sql`${table.urgencyScore} is null or ${table.urgencyScore} between 0 and 5`,
+    ),
+    check(
+      "growth_segment_product_fits_budget_score_chk",
+      sql`${table.budgetReadinessScore} is null or ${table.budgetReadinessScore} between 0 and 5`,
+    ),
+    check(
+      "growth_segment_product_fits_committee_score_chk",
+      sql`${table.buyingCommitteeFitScore} is null or ${table.buyingCommitteeFitScore} between 0 and 5`,
+    ),
+    check(
+      "growth_segment_product_fits_validated_evidence_chk",
+      sql`${table.status} <> 'validated' or length(trim(${table.evidenceNotes})) > 0`,
+    ),
+    foreignKey({
+      columns: [table.orgId, table.segmentId],
+      foreignColumns: [growthCustomerSegments.orgId, growthCustomerSegments.id],
+      name: "growth_segment_product_fit_segment_fk",
+    }).onDelete("cascade"),
+  ],
+);
+
+export type GrowthSegmentProductFit = typeof growthSegmentProductFits.$inferSelect;
+export type NewGrowthSegmentProductFit = typeof growthSegmentProductFits.$inferInsert;
