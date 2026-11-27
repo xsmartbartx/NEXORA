@@ -92,6 +92,13 @@
       "when": 1795615200000,
       "tag": "0012_growth_integrations_workflows",
       "breakpoints": true
+    },
+    {
+      "idx": 13,
+      "version": "7",
+      "when": 1795801080000,
+      "tag": "0013_growth_product_profiles",
+      "breakpoints": true
     }
   ]
 }
