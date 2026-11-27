@@ -190,7 +190,8 @@ export default async function GrowthStrategyPage() {
           </div>
         ) : (
           <p className="mt-4 rounded-xl border border-dashed border-border p-8 text-center text-sm text-muted-foreground">
-            No recommendations yet. Add product–segment fit assessments, then generate strategy candidates.
+            No recommendations yet. Add product–segment fit assessments, then generate strategy
+            candidates.
           </p>
         )}
       </section>

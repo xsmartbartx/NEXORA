@@ -635,14 +635,8 @@ export const growthCustomerSegments = pgTable(
     uniqueIndex("growth_customer_segments_org_name_idx").on(table.orgId, table.name),
     uniqueIndex("growth_customer_segments_org_id_idx").on(table.orgId, table.id),
     index("growth_customer_segments_org_updated_idx").on(table.orgId, table.updatedAt),
-    check(
-      "growth_customer_segments_name_chk",
-      sql`length(trim(${table.name})) between 1 and 120`,
-    ),
-    check(
-      "growth_customer_segments_triggers_chk",
-      sql`cardinality(${table.buyingTriggers}) <= 30`,
-    ),
+    check("growth_customer_segments_name_chk", sql`length(trim(${table.name})) between 1 and 120`),
+    check("growth_customer_segments_triggers_chk", sql`cardinality(${table.buyingTriggers}) <= 30`),
   ],
 );
 
@@ -683,10 +677,7 @@ export const growthCustomerPersonas = pgTable(
     ),
     index("growth_customer_personas_org_status_idx").on(table.orgId, table.status),
     index("growth_customer_personas_org_product_idx").on(table.orgId, table.productSlug),
-    check(
-      "growth_customer_personas_name_chk",
-      sql`length(trim(${table.name})) between 1 and 120`,
-    ),
+    check("growth_customer_personas_name_chk", sql`length(trim(${table.name})) between 1 and 120`),
     check(
       "growth_customer_personas_confidence_chk",
       sql`${table.confidence} in ('low', 'medium', 'high')`,
@@ -695,30 +686,12 @@ export const growthCustomerPersonas = pgTable(
       "growth_customer_personas_status_chk",
       sql`${table.status} in ('draft', 'validated', 'archived')`,
     ),
-    check(
-      "growth_customer_personas_goals_chk",
-      sql`cardinality(${table.goals}) <= 30`,
-    ),
-    check(
-      "growth_customer_personas_pains_chk",
-      sql`cardinality(${table.painPoints}) <= 30`,
-    ),
-    check(
-      "growth_customer_personas_jobs_chk",
-      sql`cardinality(${table.jobsToBeDone}) <= 30`,
-    ),
-    check(
-      "growth_customer_personas_objections_chk",
-      sql`cardinality(${table.objections}) <= 30`,
-    ),
-    check(
-      "growth_customer_personas_success_chk",
-      sql`cardinality(${table.successCriteria}) <= 30`,
-    ),
-    check(
-      "growth_customer_personas_signals_chk",
-      sql`cardinality(${table.buyingSignals}) <= 30`,
-    ),
+    check("growth_customer_personas_goals_chk", sql`cardinality(${table.goals}) <= 30`),
+    check("growth_customer_personas_pains_chk", sql`cardinality(${table.painPoints}) <= 30`),
+    check("growth_customer_personas_jobs_chk", sql`cardinality(${table.jobsToBeDone}) <= 30`),
+    check("growth_customer_personas_objections_chk", sql`cardinality(${table.objections}) <= 30`),
+    check("growth_customer_personas_success_chk", sql`cardinality(${table.successCriteria}) <= 30`),
+    check("growth_customer_personas_signals_chk", sql`cardinality(${table.buyingSignals}) <= 30`),
     foreignKey({
       columns: [table.orgId, table.segmentId],
       foreignColumns: [growthCustomerSegments.orgId, growthCustomerSegments.id],
@@ -805,8 +778,6 @@ export const growthSegmentProductFits = pgTable(
   ],
 );
 
-
-
 /**
  * Explainable strategy recommendations derived from organisation-owned fit
  * assessments. Recommendations are drafts until a human records a decision.
@@ -823,7 +794,10 @@ export const growthStrategyRecommendations = pgTable(
     title: text("title").notNull(),
     recommendation: text("recommendation").notNull(),
     rationale: text("rationale").notNull(),
-    evidenceSnapshot: jsonb("evidence_snapshot").$type<Record<string, unknown>>().notNull().default({}),
+    evidenceSnapshot: jsonb("evidence_snapshot")
+      .$type<Record<string, unknown>>()
+      .notNull()
+      .default({}),
     confidence: text("confidence").notNull().default("low"),
     status: text("status").notNull().default("draft"),
     decisionNote: text("decision_note").notNull().default(""),
@@ -869,10 +843,8 @@ export const growthStrategyRecommendations = pgTable(
   ],
 );
 
-export type GrowthStrategyRecommendation =
-  typeof growthStrategyRecommendations.$inferSelect;
-export type NewGrowthStrategyRecommendation =
-  typeof growthStrategyRecommendations.$inferInsert;
+export type GrowthStrategyRecommendation = typeof growthStrategyRecommendations.$inferSelect;
+export type NewGrowthStrategyRecommendation = typeof growthStrategyRecommendations.$inferInsert;
 
 export type GrowthSegmentProductFit = typeof growthSegmentProductFits.$inferSelect;
 export type NewGrowthSegmentProductFit = typeof growthSegmentProductFits.$inferInsert;

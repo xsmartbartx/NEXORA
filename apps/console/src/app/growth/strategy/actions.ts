@@ -153,7 +153,10 @@ export async function listGrowthStrategyRecommendations() {
       ),
     )
     .where(eq(growthStrategyRecommendations.orgId, orgId))
-    .orderBy(asc(growthStrategyRecommendations.status), desc(growthStrategyRecommendations.updatedAt));
+    .orderBy(
+      asc(growthStrategyRecommendations.status),
+      desc(growthStrategyRecommendations.updatedAt),
+    );
 
   return rows.map((row) => ({
     ...row,
@@ -252,10 +255,7 @@ export async function decideGrowthStrategyRecommendation(formData: FormData): Pr
     .update(growthStrategyRecommendations)
     .set({ status, decisionNote, updatedBy: userId, updatedAt: new Date() })
     .where(
-      and(
-        eq(growthStrategyRecommendations.id, id),
-        eq(growthStrategyRecommendations.orgId, orgId),
-      ),
+      and(eq(growthStrategyRecommendations.id, id), eq(growthStrategyRecommendations.orgId, orgId)),
     )
     .returning({ id: growthStrategyRecommendations.id });
 
