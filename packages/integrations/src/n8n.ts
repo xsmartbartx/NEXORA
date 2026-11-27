@@ -15,11 +15,17 @@ export interface N8nIntegrationConfig {
 const definition = getIntegrationDefinition("n8n");
 
 if (!definition) {
-  throw new Error("The n8n integration definition is missing from the catalog.");
+  throw new Error(
+    "The n8n integration definition is missing from the catalog.",
+  );
 }
 
 function isLoopback(hostname: string): boolean {
-  return hostname === "localhost" || hostname === "127.0.0.1" || hostname === "[::1]";
+  return (
+    hostname === "localhost" ||
+    hostname === "127.0.0.1" ||
+    hostname === "[::1]"
+  );
 }
 
 function validateBaseUrl(value: unknown): string | undefined {
