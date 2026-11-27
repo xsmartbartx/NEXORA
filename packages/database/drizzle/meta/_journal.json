@@ -85,6 +85,13 @@
       "when": 1795527000000,
       "tag": "0011_growth_acquisition_attribution",
       "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "7",
+      "when": 1795615200000,
+      "tag": "0012_growth_integrations_workflows",
+      "breakpoints": true
     }
   ]
 }
