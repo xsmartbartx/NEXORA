@@ -572,3 +572,39 @@ export type GrowthContentVersion = typeof growthContentVersions.$inferSelect;
 export type NewGrowthContentVersion = typeof growthContentVersions.$inferInsert;
 export type GrowthApproval = typeof growthApprovals.$inferSelect;
 export type NewGrowthApproval = typeof growthApprovals.$inferInsert;
+
+
+/**
+ * Organisation-owned marketing context for a registry product.
+ * Product identity and lifecycle remain owned by @nexora/registry.
+ */
+export const growthProductProfiles = pgTable(
+  "growth_product_profiles",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    orgId: text("org_id").notNull(),
+    productSlug: text("product_slug").notNull(),
+    idealCustomerProfile: text("ideal_customer_profile").notNull().default(""),
+    positioning: text("positioning").notNull().default(""),
+    valueProposition: text("value_proposition").notNull().default(""),
+    differentiators: text("differentiators").notNull().default(""),
+    targetRoles: text("target_roles").array().notNull().default([]),
+    useCases: text("use_cases").array().notNull().default([]),
+    approvedClaims: text("approved_claims").array().notNull().default([]),
+    createdBy: text("created_by").notNull(),
+    updatedBy: text("updated_by").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    uniqueIndex("growth_product_profiles_org_product_idx").on(table.orgId, table.productSlug),
+    index("growth_product_profiles_org_updated_idx").on(table.orgId, table.updatedAt),
+    check("growth_product_profiles_slug_chk", sql`length(trim(${table.productSlug})) between 1 and 120`),
+    check("growth_product_profiles_roles_chk", sql`cardinality(${table.targetRoles}) <= 30`),
+    check("growth_product_profiles_use_cases_chk", sql`cardinality(${table.useCases}) <= 30`),
+    check("growth_product_profiles_claims_chk", sql`cardinality(${table.approvedClaims}) <= 50`),
+  ],
+);
+
+export type GrowthProductProfile = typeof growthProductProfiles.$inferSelect;
+export type NewGrowthProductProfile = typeof growthProductProfiles.$inferInsert;
