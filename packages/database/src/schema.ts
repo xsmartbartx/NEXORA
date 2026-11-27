@@ -611,7 +611,6 @@ export const growthProductProfiles = pgTable(
 export type GrowthProductProfile = typeof growthProductProfiles.$inferSelect;
 export type NewGrowthProductProfile = typeof growthProductProfiles.$inferInsert;
 
-
 /**
  * Organisation-owned aggregate customer segments. Do not store identifiable
  * personal data in segment descriptions or behavioural signals.
@@ -732,7 +731,6 @@ export type GrowthCustomerSegment = typeof growthCustomerSegments.$inferSelect;
 export type NewGrowthCustomerSegment = typeof growthCustomerSegments.$inferInsert;
 export type GrowthCustomerPersona = typeof growthCustomerPersonas.$inferSelect;
 export type NewGrowthCustomerPersona = typeof growthCustomerPersonas.$inferInsert;
-
 
 /**
  * Explainable product-to-segment fit assessments. Scores are internal hypotheses
