@@ -86,11 +86,7 @@ export function createN8nAdapter(): IntegrationAdapter<N8nIntegrationConfig> {
     ): IntegrationConfigResult<N8nIntegrationConfig> {
       const issues: IntegrationConfigIssue[] = [];
 
-      if (
-        typeof input !== "object" ||
-        input === null ||
-        Array.isArray(input)
-      ) {
+      if (typeof input !== "object" || input === null || Array.isArray(input)) {
         return {
           ok: false,
           issues: [{ field: "config", code: "invalid_format" }],
