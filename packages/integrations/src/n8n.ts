@@ -29,14 +29,19 @@ function isLoopback(hostname: string): boolean {
 }
 
 function validateBaseUrl(value: unknown): string | undefined {
-  if (typeof value !== "string" || value.length === 0 || value !== value.trim()) {
+  if (
+    typeof value !== "string" ||
+    value.length === 0 ||
+    value !== value.trim()
+  ) {
     return undefined;
   }
 
   try {
     const url = new URL(value);
     const secure = url.protocol === "https:";
-    const localDevelopment = url.protocol === "http:" && isLoopback(url.hostname);
+    const localDevelopment =
+      url.protocol === "http:" && isLoopback(url.hostname);
 
     if (
       (!secure && !localDevelopment) ||
@@ -76,10 +81,16 @@ function validateCredentialRef(value: unknown): string | undefined {
 export function createN8nAdapter(): IntegrationAdapter<N8nIntegrationConfig> {
   return {
     definition,
-    validateConfig(input: unknown): IntegrationConfigResult<N8nIntegrationConfig> {
+    validateConfig(
+      input: unknown,
+    ): IntegrationConfigResult<N8nIntegrationConfig> {
       const issues: IntegrationConfigIssue[] = [];
 
-      if (typeof input !== "object" || input === null || Array.isArray(input)) {
+      if (
+        typeof input !== "object" ||
+        input === null ||
+        Array.isArray(input)
+      ) {
         return {
           ok: false,
           issues: [{ field: "config", code: "invalid_format" }],
@@ -107,7 +118,8 @@ export function createN8nAdapter(): IntegrationAdapter<N8nIntegrationConfig> {
       if (!credentialRef) {
         issues.push({
           field: "credentialRef",
-          code: config.credentialRef === undefined ? "required" : "invalid_format",
+          code:
+            config.credentialRef === undefined ? "required" : "invalid_format",
         });
       }
 
