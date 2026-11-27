@@ -22,8 +22,12 @@ function readText(formData: FormData, key: string, label: string, max: number): 
 
 function readLines(formData: FormData, key: string, label: string, maxItems: number): string[] {
   const raw = String(formData.get(key) ?? "");
-  const values = [...new Set(raw.split(/\r?\n/).map((item) => item.trim()).filter(Boolean))];
-  if (values.length > maxItems) throw new Error(`${label} supports at most ${maxItems} entries`);
+  const values = [
+    ...new Set(raw.split(/\r?\n/).map((item) => item.trim()).filter(Boolean)),
+  ];
+  if (values.length > maxItems) {
+    throw new Error(`${label} supports at most ${maxItems} entries`);
+  }
   if (values.some((item) => item.length > 240)) {
     throw new Error(`${label} entries must be 240 characters or fewer`);
   }
