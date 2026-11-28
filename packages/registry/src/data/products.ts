@@ -177,4 +177,30 @@ export const products: Product[] = [
     icon: "aurex",
     owner: "Platform Team",
   },
+  // OmniFlow's own site says "In development · early access soon" and that NEXORA sign-in
+  // and billing "arrive with the beta"; its app has public sign-up switched off and its
+  // only call to action is "Request early access" (onenexora.com/company#contact). That is
+  // `alpha` (§5.3: no external accounts yet), kept `internal` like every pre-beta record,
+  // so it shows in Labs and Console, and its product page offers the same contact link.
+  {
+    id: "prod_omniflow",
+    slug: "omniflow",
+    path: "omniflow",
+    name: "OmniFlow",
+    short_name: "OmniFlow",
+    tagline: "Durable workflows without the cluster.",
+    description:
+      "OmniFlow runs workflows that must happen exactly once: each one is a short manifest, checked before it runs, executed from a single container with one SQLite file, and recorded so every step can be explained. Effectful steps carry an idempotency key, so a retry or a crash does not repeat a charge, an email or a deploy; a step can wait for a person's approval; and it keeps a hash-chained audit log. It does not scale across machines. It is in development with early access by request: there is no public sign-up yet and prices are still to be announced. Independently built and hosted with its own accounts — not yet on Core identity/entitlements.",
+    category: "cloud",
+    platform_pillar: "cloud",
+    lifecycle: "alpha",
+    visibility: "internal",
+    featured: false,
+    url: "https://www.omniflow.onenexora.com",
+    app_url: "https://omniflow.onenexora.com",
+    pricing_url: "https://www.omniflow.onenexora.com/pricing.html",
+    health_source: "https://omniflow.onenexora.com/healthz",
+    icon: "omniflow",
+    owner: "Platform Team",
+  },
 ];
