@@ -92,6 +92,27 @@
       "when": 1795615200000,
       "tag": "0012_growth_integrations_workflows",
       "breakpoints": true
+    },
+    {
+      "idx": 13,
+      "version": "7",
+      "when": 1795801080000,
+      "tag": "0013_growth_product_profiles",
+      "breakpoints": true
+    },
+    {
+      "idx": 14,
+      "version": "7",
+      "when": 1795801800000,
+      "tag": "0014_growth_customer_intelligence",
+      "breakpoints": true
+    },
+    {
+      "idx": 15,
+      "version": "7",
+      "when": 1795802400000,
+      "tag": "0015_growth_segment_product_fits",
+      "breakpoints": true
     }
   ]
 }

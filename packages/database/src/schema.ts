@@ -572,3 +572,210 @@ export type GrowthContentVersion = typeof growthContentVersions.$inferSelect;
 export type NewGrowthContentVersion = typeof growthContentVersions.$inferInsert;
 export type GrowthApproval = typeof growthApprovals.$inferSelect;
 export type NewGrowthApproval = typeof growthApprovals.$inferInsert;
+
+/**
+ * Organisation-owned marketing context for a registry product.
+ * Product identity and lifecycle remain owned by @nexora/registry.
+ */
+export const growthProductProfiles = pgTable(
+  "growth_product_profiles",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    orgId: text("org_id").notNull(),
+    productSlug: text("product_slug").notNull(),
+    idealCustomerProfile: text("ideal_customer_profile").notNull().default(""),
+    positioning: text("positioning").notNull().default(""),
+    valueProposition: text("value_proposition").notNull().default(""),
+    differentiators: text("differentiators").notNull().default(""),
+    targetRoles: text("target_roles").array().notNull().default([]),
+    useCases: text("use_cases").array().notNull().default([]),
+    approvedClaims: text("approved_claims").array().notNull().default([]),
+    createdBy: text("created_by").notNull(),
+    updatedBy: text("updated_by").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    uniqueIndex("growth_product_profiles_org_product_idx").on(table.orgId, table.productSlug),
+    index("growth_product_profiles_org_updated_idx").on(table.orgId, table.updatedAt),
+    check(
+      "growth_product_profiles_slug_chk",
+      sql`length(trim(${table.productSlug})) between 1 and 120`,
+    ),
+    check("growth_product_profiles_roles_chk", sql`cardinality(${table.targetRoles}) <= 30`),
+    check("growth_product_profiles_use_cases_chk", sql`cardinality(${table.useCases}) <= 30`),
+    check("growth_product_profiles_claims_chk", sql`cardinality(${table.approvedClaims}) <= 50`),
+  ],
+);
+
+export type GrowthProductProfile = typeof growthProductProfiles.$inferSelect;
+export type NewGrowthProductProfile = typeof growthProductProfiles.$inferInsert;
+
+/**
+ * Organisation-owned aggregate customer segments. Do not store identifiable
+ * personal data in segment descriptions or behavioural signals.
+ */
+export const growthCustomerSegments = pgTable(
+  "growth_customer_segments",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    orgId: text("org_id").notNull(),
+    name: text("name").notNull(),
+    description: text("description").notNull().default(""),
+    industry: text("industry"),
+    companySize: text("company_size"),
+    market: text("market"),
+    buyingTriggers: text("buying_triggers").array().notNull().default([]),
+    createdBy: text("created_by").notNull(),
+    updatedBy: text("updated_by").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    uniqueIndex("growth_customer_segments_org_name_idx").on(table.orgId, table.name),
+    uniqueIndex("growth_customer_segments_org_id_idx").on(table.orgId, table.id),
+    index("growth_customer_segments_org_updated_idx").on(table.orgId, table.updatedAt),
+    check("growth_customer_segments_name_chk", sql`length(trim(${table.name})) between 1 and 120`),
+    check("growth_customer_segments_triggers_chk", sql`cardinality(${table.buyingTriggers}) <= 30`),
+  ],
+);
+
+/**
+ * Reusable, non-identifying buyer personas attached to an organisation segment.
+ * Confidence and evidence notes describe the quality of the hypothesis, not a
+ * measured probability that an individual will purchase.
+ */
+export const growthCustomerPersonas = pgTable(
+  "growth_customer_personas",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    orgId: text("org_id").notNull(),
+    segmentId: uuid("segment_id").notNull(),
+    productSlug: text("product_slug"),
+    name: text("name").notNull(),
+    role: text("role").notNull().default(""),
+    seniority: text("seniority"),
+    goals: text("goals").array().notNull().default([]),
+    painPoints: text("pain_points").array().notNull().default([]),
+    jobsToBeDone: text("jobs_to_be_done").array().notNull().default([]),
+    objections: text("objections").array().notNull().default([]),
+    successCriteria: text("success_criteria").array().notNull().default([]),
+    buyingSignals: text("buying_signals").array().notNull().default([]),
+    evidenceNotes: text("evidence_notes").notNull().default(""),
+    confidence: text("confidence").notNull().default("low"),
+    status: text("status").notNull().default("draft"),
+    createdBy: text("created_by").notNull(),
+    updatedBy: text("updated_by").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    uniqueIndex("growth_customer_personas_org_segment_name_idx").on(
+      table.orgId,
+      table.segmentId,
+      table.name,
+    ),
+    index("growth_customer_personas_org_status_idx").on(table.orgId, table.status),
+    index("growth_customer_personas_org_product_idx").on(table.orgId, table.productSlug),
+    check("growth_customer_personas_name_chk", sql`length(trim(${table.name})) between 1 and 120`),
+    check(
+      "growth_customer_personas_confidence_chk",
+      sql`${table.confidence} in ('low', 'medium', 'high')`,
+    ),
+    check(
+      "growth_customer_personas_status_chk",
+      sql`${table.status} in ('draft', 'validated', 'archived')`,
+    ),
+    check("growth_customer_personas_goals_chk", sql`cardinality(${table.goals}) <= 30`),
+    check("growth_customer_personas_pains_chk", sql`cardinality(${table.painPoints}) <= 30`),
+    check("growth_customer_personas_jobs_chk", sql`cardinality(${table.jobsToBeDone}) <= 30`),
+    check("growth_customer_personas_objections_chk", sql`cardinality(${table.objections}) <= 30`),
+    check("growth_customer_personas_success_chk", sql`cardinality(${table.successCriteria}) <= 30`),
+    check("growth_customer_personas_signals_chk", sql`cardinality(${table.buyingSignals}) <= 30`),
+    foreignKey({
+      columns: [table.orgId, table.segmentId],
+      foreignColumns: [growthCustomerSegments.orgId, growthCustomerSegments.id],
+      name: "growth_customer_persona_segment_fk",
+    }).onDelete("cascade"),
+  ],
+);
+
+export type GrowthCustomerSegment = typeof growthCustomerSegments.$inferSelect;
+export type NewGrowthCustomerSegment = typeof growthCustomerSegments.$inferInsert;
+export type GrowthCustomerPersona = typeof growthCustomerPersonas.$inferSelect;
+export type NewGrowthCustomerPersona = typeof growthCustomerPersonas.$inferInsert;
+
+/**
+ * Explainable product-to-segment fit assessments. Scores are internal hypotheses
+ * on a 0-5 scale; null means unknown and is never treated as zero.
+ */
+export const growthSegmentProductFits = pgTable(
+  "growth_segment_product_fits",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    orgId: text("org_id").notNull(),
+    segmentId: uuid("segment_id").notNull(),
+    productSlug: text("product_slug").notNull(),
+    needAlignmentScore: integer("need_alignment_score"),
+    capabilityCoverageScore: integer("capability_coverage_score"),
+    urgencyScore: integer("urgency_score"),
+    budgetReadinessScore: integer("budget_readiness_score"),
+    buyingCommitteeFitScore: integer("buying_committee_fit_score"),
+    status: text("status").notNull().default("hypothesis"),
+    rationale: text("rationale").notNull().default(""),
+    evidenceNotes: text("evidence_notes").notNull().default(""),
+    createdBy: text("created_by").notNull(),
+    updatedBy: text("updated_by").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    uniqueIndex("growth_segment_product_fits_org_segment_product_idx").on(
+      table.orgId,
+      table.segmentId,
+      table.productSlug,
+    ),
+    index("growth_segment_product_fits_org_status_idx").on(table.orgId, table.status),
+    index("growth_segment_product_fits_org_updated_idx").on(table.orgId, table.updatedAt),
+    check(
+      "growth_segment_product_fits_slug_chk",
+      sql`length(trim(${table.productSlug})) between 1 and 120`,
+    ),
+    check(
+      "growth_segment_product_fits_status_chk",
+      sql`${table.status} in ('hypothesis', 'validated', 'not_fit')`,
+    ),
+    check(
+      "growth_segment_product_fits_need_score_chk",
+      sql`${table.needAlignmentScore} is null or ${table.needAlignmentScore} between 0 and 5`,
+    ),
+    check(
+      "growth_segment_product_fits_capability_score_chk",
+      sql`${table.capabilityCoverageScore} is null or ${table.capabilityCoverageScore} between 0 and 5`,
+    ),
+    check(
+      "growth_segment_product_fits_urgency_score_chk",
+      sql`${table.urgencyScore} is null or ${table.urgencyScore} between 0 and 5`,
+    ),
+    check(
+      "growth_segment_product_fits_budget_score_chk",
+      sql`${table.budgetReadinessScore} is null or ${table.budgetReadinessScore} between 0 and 5`,
+    ),
+    check(
+      "growth_segment_product_fits_committee_score_chk",
+      sql`${table.buyingCommitteeFitScore} is null or ${table.buyingCommitteeFitScore} between 0 and 5`,
+    ),
+    check(
+      "growth_segment_product_fits_validated_evidence_chk",
+      sql`${table.status} <> 'validated' or length(trim(${table.evidenceNotes})) > 0`,
+    ),
+    foreignKey({
+      columns: [table.orgId, table.segmentId],
+      foreignColumns: [growthCustomerSegments.orgId, growthCustomerSegments.id],
+      name: "growth_segment_product_fit_segment_fk",
+    }).onDelete("cascade"),
+  ],
+);
+
+export type GrowthSegmentProductFit = typeof growthSegmentProductFits.$inferSelect;
+export type NewGrowthSegmentProductFit = typeof growthSegmentProductFits.$inferInsert;
