@@ -42,6 +42,8 @@ export interface Product {
   url: string;
   app_url?: string;
   docs_url?: string;
+  /** Base URL of the product's public API, where it has one on its own host. */
+  api_url?: string;
   pricing_url?: string;
   repository_url?: string;
   /** Asset key in the design system. */
