@@ -27,7 +27,7 @@ export const products: Product[] = [
     lifecycle: "beta",
     visibility: "public",
     featured: true,
-    url: "https://linegist.onenexora.com/go",
+    url: "https://linegist.onenexora.com",
     app_url: "https://linegist.onenexora.com/app",
     docs_url: "https://linegist.onenexora.com/docs",
     health_source: "https://linegist.onenexora.com/api/health",
