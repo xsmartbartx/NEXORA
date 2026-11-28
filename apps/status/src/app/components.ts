@@ -1,3 +1,5 @@
+import { getAllProducts } from "@nexora/registry";
+
 export type ComponentStatus = "operational" | "degraded" | "down";
 
 /** Groups components on the status page — Tier 1 core vs. Tier 2 products vs. shared infra. */
@@ -20,7 +22,7 @@ export interface StatusComponent {
  * edge proxy, then the app), so an outage anywhere on that path shows up
  * here — see ./health.ts for how a response maps to a status.
  */
-export const components: StatusComponent[] = [
+const platformComponents: StatusComponent[] = [
   {
     name: "Website",
     description: "onenexora.com",
@@ -58,61 +60,55 @@ export const components: StatusComponent[] = [
     checkUrl: "https://developers.onenexora.com",
   },
   { name: "Status", description: "status.onenexora.com", category: "platform" },
-  {
-    name: "Linegist",
-    description: "linegist.onenexora.com",
-    category: "products",
-    checkUrl: "https://linegist.onenexora.com/api/health",
-  },
-  {
-    name: "CSPM",
-    description: "cspm.onenexora.com",
-    category: "products",
-    checkUrl: "https://cspm.onenexora.com/api/health",
-  },
-  {
-    name: "Gateway",
-    description: "gateway.onenexora.com",
-    category: "products",
-    checkUrl: "https://gateway-next-api.onenexora.com/v1/health",
-  },
-  {
-    name: "Vigilo",
-    description: "vigilo.onenexora.com",
-    category: "products",
-    checkUrl: "https://vigilo.onenexora.com",
-  },
-  {
-    name: "Vigilo API",
-    description: "vigilo-api.onenexora.com",
-    category: "products",
-    checkUrl: "https://vigilo-api.onenexora.com/healthz",
-  },
-  {
-    name: "NeuraWall",
-    description: "neurawall.onenexora.com",
-    category: "products",
-    checkUrl: "https://neurawall.onenexora.com/readyz",
-  },
-  {
-    name: "CodeReviewer",
-    description: "codereviewer.onenexora.com",
-    category: "products",
-    checkUrl: "https://codereviewer.onenexora.com/api/health",
-  },
-  {
-    name: "Prism",
-    description: "prism.onenexora.com",
-    category: "products",
-    checkUrl: "https://prism.onenexora.com/readyz",
-  },
-  {
-    name: "AUREX",
-    description: "aurex.onenexora.com",
-    category: "products",
-    checkUrl: "https://aurex.onenexora.com/api/v1/health",
-  },
 ];
+
+/**
+ * Products whose site is a separate app from their health source, so both
+ * are probed, as two components: "<name>" is the site and "<name> API" the
+ * health source. Vigilo's health source is its API (vigilo-api.onenexora.com),
+ * and its Next.js site can fail on its own.
+ */
+const alsoProbeSite = new Set(["vigilo"]);
+
+/**
+ * Products come from the registry (§5.4, §8.8): every product that declares
+ * a `health_source` and is still running (not `retired`), in registry order,
+ * probed at that health source. A product with no health source is not
+ * listed until it declares one.
+ */
+function productComponents(): StatusComponent[] {
+  return getAllProducts().flatMap((product): StatusComponent[] => {
+    const healthSource = product.health_source;
+    if (!healthSource || product.lifecycle === "retired") return [];
+    const siteHost = new URL(product.url).host;
+    if (!alsoProbeSite.has(product.slug)) {
+      return [
+        {
+          name: product.short_name,
+          description: siteHost,
+          category: "products",
+          checkUrl: healthSource,
+        },
+      ];
+    }
+    return [
+      {
+        name: product.short_name,
+        description: siteHost,
+        category: "products",
+        checkUrl: product.url,
+      },
+      {
+        name: `${product.short_name} API`,
+        description: new URL(healthSource).host,
+        category: "products",
+        checkUrl: healthSource,
+      },
+    ];
+  });
+}
+
+export const components: StatusComponent[] = [...platformComponents, ...productComponents()];
 
 export const categoryLabel: Record<ComponentCategory, string> = {
   platform: "Platform",
