@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { siteConfig } from "@/lib/site-config";
 import { getPlansForProduct, type NativeProductId, type PlanTier } from "@nexora/billing/plans";
+import { getProductBySlug, type Product } from "@nexora/registry";
 import { buttonVariants, cn } from "@nexora/ui";
 
 export const metadata: Metadata = {
@@ -10,11 +11,26 @@ export const metadata: Metadata = {
 };
 
 const consoleUrl = process.env.NEXT_PUBLIC_CONSOLE_URL ?? "https://console.onenexora.com";
-const vigiloUrl = "https://vigilo.onenexora.com";
-const neurawallUrl = "https://neurawall.onenexora.com";
-const codereviewerUrl = "https://codereviewer.onenexora.com";
+
+/** Product URLs come from the registry, so this page can't drift from the product's real hosts. */
+function registryProduct(slug: string): Product {
+  const product = getProductBySlug(slug);
+  if (!product) throw new Error(`Pricing lists "${slug}", which is not in the product registry`);
+  return product;
+}
+
+/** A page inside the product's app, e.g. its billing screen. */
+function appPage(product: Product, page: string): string {
+  const appUrl = product.app_url ?? product.url;
+  return new URL(page, appUrl.endsWith("/") ? appUrl : `${appUrl}/`).href;
+}
+
+const vigilo = registryProduct("vigilo");
+const neurawall = registryProduct("neurawall");
+const codereviewer = registryProduct("codereviewer");
+const aurex = registryProduct("aurex");
+// Not a registry field: the self-hosted install guide is the free plan's starting point.
 const prismInstallUrl = "https://github.com/xsmartbartx/Prism/blob/main/docs/install.md";
-const aurexUrl = "https://aurex.onenexora.com";
 
 function salesCta(product: string, plan: string): Tier["cta"] {
   const subject = encodeURIComponent(product + " " + plan);
@@ -115,7 +131,7 @@ const products: ProductPricing[] = [
         monthlyCents: 0,
         yearlyCents: 0,
         features: ["1 target", "3 scans / month", "Passive checks"],
-        cta: { label: "Start free", href: vigiloUrl },
+        cta: { label: "Start free", href: vigilo.url },
       },
       {
         name: "Pro",
@@ -129,7 +145,7 @@ const products: ProductPricing[] = [
           "API access and shareable reports",
           "White-label reports",
         ],
-        cta: { label: "Upgrade in Vigilo", href: `${vigiloUrl}/dashboard` },
+        cta: { label: "Upgrade in Vigilo", href: vigilo.app_url ?? vigilo.url },
         highlighted: true,
       },
     ],
@@ -155,7 +171,7 @@ const products: ProductPricing[] = [
           "Community support",
           "Self-hosted",
         ],
-        cta: { label: "Start free", href: neurawallUrl },
+        cta: { label: "Start free", href: neurawall.url },
       },
       {
         name: "Pro",
@@ -168,7 +184,7 @@ const products: ProductPricing[] = [
           "Email support, 2 business days",
           "Self-hosted or managed",
         ],
-        cta: { label: "Upgrade in NeuraWall", href: `${neurawallUrl}/billing` },
+        cta: { label: "Upgrade in NeuraWall", href: appPage(neurawall, "billing") },
       },
       {
         name: "Business",
@@ -181,7 +197,7 @@ const products: ProductPricing[] = [
           "Priority support, 1 business day",
           "Managed or self-hosted",
         ],
-        cta: { label: "Upgrade in NeuraWall", href: `${neurawallUrl}/billing` },
+        cta: { label: "Upgrade in NeuraWall", href: appPage(neurawall, "billing") },
         highlighted: true,
       },
       {
@@ -195,7 +211,7 @@ const products: ProductPricing[] = [
           "SLA and priority support",
           "Managed or self-hosted",
         ],
-        cta: { label: "Upgrade in NeuraWall", href: `${neurawallUrl}/billing` },
+        cta: { label: "Upgrade in NeuraWall", href: appPage(neurawall, "billing") },
       },
       {
         name: "Enterprise Dedicated",
@@ -230,7 +246,7 @@ const products: ProductPricing[] = [
           "Public and private repositories",
           "Up to 50 files a review",
         ],
-        cta: { label: "Start free", href: codereviewerUrl },
+        cta: { label: "Start free", href: codereviewer.url },
       },
       {
         name: "Pro",
@@ -242,7 +258,7 @@ const products: ProductPricing[] = [
           "Request-changes workflow and checks",
           "Up to 150 files a review",
         ],
-        cta: { label: "Upgrade in CodeReviewer", href: `${codereviewerUrl}/dashboard` },
+        cta: { label: "Upgrade in CodeReviewer", href: codereviewer.app_url ?? codereviewer.url },
         highlighted: true,
       },
       {
@@ -250,7 +266,7 @@ const products: ProductPricing[] = [
         monthlyCents: 14900,
         yearlyCents: 0,
         features: ["1,000 reviews / month", "Everything in Pro", "Up to 300 files a review"],
-        cta: { label: "Upgrade in CodeReviewer", href: `${codereviewerUrl}/dashboard` },
+        cta: { label: "Upgrade in CodeReviewer", href: codereviewer.app_url ?? codereviewer.url },
       },
     ],
     note: "Plans apply per GitHub account that installs CodeReviewer. Organisations can also subscribe in NEXORA Console, billed with their other NEXORA products, for the GitHub accounts they link.",
@@ -321,7 +337,7 @@ const products: ProductPricing[] = [
           "Portfolio analytics",
           "5 research questions a day",
         ],
-        cta: { label: "Start free", href: `${aurexUrl}/signup` },
+        cta: { label: "Start free", href: `${aurex.url}/signup` },
       },
       {
         name: "Pro",
