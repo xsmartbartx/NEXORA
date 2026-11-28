@@ -20,7 +20,7 @@ const modules: GrowthModule[] = [
     name: "Products",
     description: "Portfolio context, ICP, positioning and approved product claims.",
     status: "Available",
-    href: "/products",
+    href: "/growth/products",
   },
   {
     name: "Campaigns",
