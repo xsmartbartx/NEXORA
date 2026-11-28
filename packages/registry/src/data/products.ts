@@ -16,6 +16,7 @@ export const products: Product[] = [
   {
     id: "prod_sentinel",
     slug: "sentinel",
+    path: "linegist",
     name: "Linegist",
     short_name: "Linegist",
     tagline: "Paste a log sample, find the ten lines worth reading.",
@@ -35,6 +36,7 @@ export const products: Product[] = [
   {
     id: "prod_cspm",
     slug: "cspm",
+    path: "cspm",
     name: "NEXORA CSPM",
     short_name: "CSPM",
     tagline: "Paste your cloud config, get real findings back.",
@@ -54,6 +56,7 @@ export const products: Product[] = [
   {
     id: "prod_gateway",
     slug: "gateway",
+    path: "gateway",
     name: "Secure AI Gateway",
     short_name: "Gateway",
     tagline: "A governed front door for every model call your org makes.",
@@ -73,6 +76,7 @@ export const products: Product[] = [
   {
     id: "prod_vigilo",
     slug: "vigilo",
+    path: "vigilo",
     name: "Vigilo",
     short_name: "Vigilo",
     tagline: "Scan any live URL, get a real security and compliance report back.",
@@ -91,6 +95,7 @@ export const products: Product[] = [
   {
     id: "prod_neurawall",
     slug: "neurawall",
+    path: "neurawall",
     name: "NeuraWall",
     short_name: "NeuraWall",
     tagline: "An AI-assisted firewall that never lets a model silently drop your traffic.",
@@ -109,6 +114,7 @@ export const products: Product[] = [
   {
     id: "prod_codereviewer",
     slug: "codereviewer",
+    path: "codereviewer",
     name: "CodeReviewer",
     short_name: "CodeReviewer",
     tagline: "A Claude review on every GitHub pull request.",
@@ -130,6 +136,7 @@ export const products: Product[] = [
   {
     id: "prod_prism",
     slug: "prism",
+    path: "prism",
     name: "Prism",
     short_name: "Prism",
     tagline: "Spreadsheet reporting you can trust: files in, versioned datasets and charts out.",
@@ -151,6 +158,7 @@ export const products: Product[] = [
   {
     id: "prod_aurex",
     slug: "aurex",
+    path: "aurex",
     name: "AUREX",
     short_name: "AUREX",
     tagline: "A financial research terminal where every number and answer shows its source.",

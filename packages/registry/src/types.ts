@@ -17,7 +17,18 @@ export type ProductVisibility = "public" | "private" | "internal";
 
 export interface Product {
   id: string;
+  /**
+   * Internal key: billing plans, entitlements, database rows and admin logs
+   * key on it, so it never changes once set (e.g. Linegist keeps "sentinel").
+   */
   slug: string;
+  /**
+   * Public URL segment the product will use at onenexora.com/<path>.
+   * Lowercase kebab-case, unique, and never one of the website's own
+   * top-level routes (enforced by products.test.ts). Equals `slug` unless the
+   * product was renamed after its slug was fixed.
+   */
+  path: string;
   name: string;
   short_name: string;
   tagline: string;
