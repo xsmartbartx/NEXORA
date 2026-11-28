@@ -148,12 +148,7 @@ export default async function ProductDetailPage(props: PageProps<"/products/[slu
             <p className="text-sm text-muted-foreground">
               {product.short_name} is live. Visit the product for more.
             </p>
-            <a
-              href={product.url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className={cn(buttonVariants({ size: "md" }), "mt-4")}
-            >
+            <a href={product.url} className={cn(buttonVariants({ size: "md" }), "mt-4")}>
               Open {product.short_name}
             </a>
           </>
