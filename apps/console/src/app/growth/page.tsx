@@ -20,7 +20,7 @@ const modules: GrowthModule[] = [
     name: "Products",
     description: "Portfolio context, ICP, positioning and approved product claims.",
     status: "Available",
-    href: "/products",
+    href: "/growth/products",
   },
   {
     name: "Campaigns",
@@ -52,6 +52,24 @@ const modules: GrowthModule[] = [
     description: "Register organisation-owned leads with consent provenance and UTM touchpoints.",
     status: "Available",
     href: "/growth/leads",
+  },
+  {
+    name: "Customer Intelligence",
+    description: "Manage customer segments, buyer personas, pain points and buying signals.",
+    status: "Available",
+    href: "/growth/customer-intelligence",
+  },
+  {
+    name: "Product–Segment Fit",
+    description: "Compare product fit with segment needs and documented evidence.",
+    status: "Available",
+    href: "/growth/product-fit",
+  },
+  {
+    name: "Strategy Intelligence",
+    description: "Generate explainable product and segment strategy recommendations.",
+    status: "Available",
+    href: "/growth/strategy",
   },
   {
     name: "Reports",

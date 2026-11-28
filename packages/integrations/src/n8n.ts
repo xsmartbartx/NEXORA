@@ -1,5 +1,11 @@
+import { URL } from "node:url";
 import { getIntegrationDefinition } from "./catalog";
-import type { IntegrationAdapter, IntegrationConfigIssue, IntegrationConfigResult } from "./types";
+import type {
+  IntegrationAdapter,
+  IntegrationConfigIssue,
+  IntegrationConfigResult,
+  IntegrationDefinition,
+} from "./types";
 
 export interface N8nIntegrationConfig {
   /** Canonical n8n instance URL. */
@@ -8,11 +14,17 @@ export interface N8nIntegrationConfig {
   readonly credentialRef: string;
 }
 
-const definition = getIntegrationDefinition("n8n");
+function getN8nDefinition(): IntegrationDefinition {
+  const integration = getIntegrationDefinition("n8n");
 
-if (!definition) {
-  throw new Error("The n8n integration definition is missing from the catalog.");
+  if (!integration) {
+    throw new Error("The n8n integration definition is missing from the catalog.");
+  }
+
+  return integration;
 }
+
+const definition = getN8nDefinition();
 
 function isLoopback(hostname: string): boolean {
   return hostname === "localhost" || hostname === "127.0.0.1" || hostname === "[::1]";
