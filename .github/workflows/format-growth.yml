@@ -32,13 +32,7 @@ jobs:
       - name: Check repository formatting
         run: |
           npx prettier --check \
-            apps/console/src/app/growth/actions.ts \
-            apps/console/src/app/growth/analytics/page.tsx \
-            apps/console/src/app/growth/approvals/page.tsx \
-            apps/console/src/app/growth/campaigns/page.tsx \
-            apps/console/src/app/growth/content/page.tsx \
-            apps/console/src/app/growth/page.tsx \
-            apps/console/src/app/growth/leads/page.tsx \
+            apps/console/src/app/growth \
             packages/database/src/index.ts \
             docs/adr/ADR-0014-growth-engine-boundary.md \
             docs/growth/marketing-engine.md \
